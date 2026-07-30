@@ -1,0 +1,112 @@
+import { router } from 'expo-router';
+import { useState } from 'react';
+import { Alert, Platform } from 'react-native';
+import { Button, H3, Input, Label, Paragraph, XStack, YStack } from 'tamagui';
+
+import { useScheduleStore } from '@/src/state/scheduleStore';
+import { eventCategoryLabels, type EventCategory } from '@/src/types';
+
+const CATEGORIES = Object.keys(eventCategoryLabels) as EventCategory[];
+
+function parseTimeToday(time: string): Date | null {
+  const match = /^(\d{1,2}):(\d{2})$/.exec(time.trim());
+  if (!match) return null;
+  const hours = Number(match[1]);
+  const minutes = Number(match[2]);
+  if (hours > 23 || minutes > 59) return null;
+  const date = new Date();
+  date.setHours(hours, minutes, 0, 0);
+  return date;
+}
+
+export default function QuickAddModal() {
+  const addEvent = useScheduleStore((state) => state.addEvent);
+  const [title, setTitle] = useState('');
+  const [category, setCategory] = useState<EventCategory>('personal');
+  const [startTime, setStartTime] = useState('');
+  const [endTime, setEndTime] = useState('');
+  const [location, setLocation] = useState('');
+  const [error, setError] = useState<string | null>(null);
+
+  function handleSave() {
+    if (!title.trim()) {
+      setError('Give it a title.');
+      return;
+    }
+    const startsAt = parseTimeToday(startTime);
+    const endsAt = parseTimeToday(endTime);
+    if (!startsAt || !endsAt) {
+      setError('Enter start and end time as HH:mm, e.g. 14:30.');
+      return;
+    }
+    if (endsAt <= startsAt) {
+      setError('End time must be after start time.');
+      return;
+    }
+
+    addEvent({
+      title: title.trim(),
+      category,
+      startsAt: startsAt.toISOString(),
+      endsAt: endsAt.toISOString(),
+      location: location.trim() || undefined,
+      reminders: [],
+    });
+
+    if (Platform.OS === 'web') {
+      router.back();
+    } else {
+      Alert.alert('Added', `${title.trim()} was added to today's schedule.`, [
+        { text: 'OK', onPress: () => router.back() },
+      ]);
+    }
+  }
+
+  return (
+    <YStack flex={1} backgroundColor="$background" padding="$4" gap="$4">
+      <H3>Quick add</H3>
+
+      <YStack gap="$2">
+        <Label>Title</Label>
+        <Input value={title} onChangeText={setTitle} placeholder="e.g. Study group" />
+      </YStack>
+
+      <YStack gap="$2">
+        <Label>Category</Label>
+        <XStack flexWrap="wrap" gap="$2">
+          {CATEGORIES.map((option) => (
+            <Button
+              key={option}
+              size="$3"
+              theme={category === option ? 'active' : undefined}
+              onPress={() => setCategory(option)}>
+              {eventCategoryLabels[option]}
+            </Button>
+          ))}
+        </XStack>
+      </YStack>
+
+      <XStack gap="$3">
+        <YStack flex={1} gap="$2">
+          <Label>Start (HH:mm)</Label>
+          <Input value={startTime} onChangeText={setStartTime} placeholder="14:00" keyboardType="numbers-and-punctuation" />
+        </YStack>
+        <YStack flex={1} gap="$2">
+          <Label>End (HH:mm)</Label>
+          <Input value={endTime} onChangeText={setEndTime} placeholder="15:00" keyboardType="numbers-and-punctuation" />
+        </YStack>
+      </XStack>
+
+      <YStack gap="$2">
+        <Label>Location (optional)</Label>
+        <Input value={location} onChangeText={setLocation} placeholder="e.g. Library room 3B" />
+      </YStack>
+
+      {error ? <Paragraph color="$red10">{error}</Paragraph> : null}
+
+      <Button size="$4" theme="active" onPress={handleSave}>
+        Add to today
+      </Button>
+    </YStack>
+  );
+}
