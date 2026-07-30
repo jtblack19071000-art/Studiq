@@ -15,6 +15,7 @@ AI study workspace, in place of paper planners and scattered productivity apps.
 - [expo-print](https://docs.expo.dev/versions/latest/sdk/print/) + [expo-sharing](https://docs.expo.dev/versions/latest/sdk/sharing/) for study guide PDF export
 - Supabase Auth for accounts (email/password), tied to [RevenueCat](https://www.revenuecat.com) (`react-native-purchases`) for the Platinum subscription
 - [expo-notifications](https://docs.expo.dev/versions/latest/sdk/notifications/) for local scheduled reminders (no push server — see "Reminders" below)
+- [Jest](https://jestjs.io) (via [`jest-expo`](https://github.com/expo/expo/tree/main/packages/jest-expo)) for unit tests — see "Testing" below
 
 ## Setup
 
@@ -105,6 +106,19 @@ replacing the default Expo placeholder assets:
   `splash-icon.png` are transparent, and the mark was checked centered well inside Android's
   adaptive-icon safe zone under a circular mask before finalizing.
 
+## Testing
+
+```bash
+npm test            # jest
+```
+
+[Jest](https://jestjs.io) via [`jest-expo`](https://github.com/expo/expo/tree/main/packages/jest-expo)'s
+`node` preset (no React Native environment/mocks — plain logic tests only, which is all that exists
+so far). Currently covers `src/lib/occurrences.ts` (`src/lib/__tests__/occurrences.test.ts`):
+non-recurring events in/out of range and on the range boundary, weekly recurrence expansion,
+duration preservation across generated occurrences, multi-week intervals, and the `until` cutoff.
+Nothing else in the app has tests yet — see "Other known gaps" below.
+
 ## Scripts
 
 ```bash
@@ -113,6 +127,7 @@ npm run ios         # start iOS dev server
 npm run android     # start Android dev server
 npm run lint        # eslint
 npm run typecheck   # tsc --noEmit
+npm test            # jest
 ```
 
 ## Project status
@@ -181,7 +196,8 @@ Beyond the roadmap items above:
 
 - **Only auth talks to Supabase.** No screen syncs its actual data (classes, schedule, study
   materials, etc.) to the cloud yet — everything except the signed-in session is local-only.
-- **No automated tests.** Nothing is written for Jest/Detox/Playwright yet.
+- **Test coverage is minimal.** Only `src/lib/occurrences.ts` has Jest tests (see "Testing" above)
+  — stores, screens, and API routes have none yet, and there's no Detox/Playwright e2e coverage.
 - **Only tested in a web browser (Chromium)** — never run on a real iOS/Android device or
   simulator. The audio recording, permissions, and native subscription flows in particular should
   be smoke-tested on a real device before shipping; this session could only validate them through
