@@ -1,6 +1,28 @@
 import type { ID } from './common';
 
 export type TranscriptionStatus = 'pending' | 'transcribing' | 'transcribed' | 'failed';
+export type GenerationStatus = 'not_generated' | 'generating' | 'ready' | 'failed';
+
+export interface VocabularyEntry {
+  term: string;
+  definition: string;
+}
+
+export interface Flashcard {
+  front: string;
+  back: string;
+}
+
+export interface QuizQuestion {
+  question: string;
+  options?: string[];
+  answer: string;
+}
+
+export interface ConceptExplanation {
+  concept: string;
+  explanation: string;
+}
 
 export interface Lecture {
   id: ID;
@@ -10,28 +32,35 @@ export interface Lecture {
   durationSeconds: number;
   audioUri?: string;
   transcriptionStatus: TranscriptionStatus;
+  transcriptionError?: string;
   transcript?: string;
-  /** AI-generated per-lecture materials; populated once transcription completes. */
+  generationStatus: GenerationStatus;
+  generationError?: string;
+  /** AI-generated per-lecture materials; populated once generation completes. */
   generatedNotes?: string;
   generatedSummary?: string;
-  vocabulary?: { term: string; definition: string }[];
+  vocabulary?: VocabularyEntry[];
+  formulas?: string[];
+  professorEmphasis?: string[];
   detectedAssignments?: string[];
+  flashcards?: Flashcard[];
+  quiz?: QuizQuestion[];
+  conceptExplanations?: ConceptExplanation[];
 }
 
-export type StudyGuideStatus = 'not_generated' | 'generating' | 'ready' | 'failed';
-
 export interface UnitStudyGuide {
-  status: StudyGuideStatus;
+  status: GenerationStatus;
+  error?: string;
   generatedAt?: string;
   studyGuide?: string;
   reviewSheet?: string;
   chapterSummary?: string;
   keyConcepts?: string[];
-  vocabulary?: { term: string; definition: string }[];
+  vocabulary?: VocabularyEntry[];
   equationsAndFormulas?: string[];
-  flashcards?: { front: string; back: string }[];
-  practiceQuiz?: string;
-  practiceExam?: string;
+  flashcards?: Flashcard[];
+  practiceQuiz?: QuizQuestion[];
+  practiceExam?: QuizQuestion[];
   likelyExamTopics?: string[];
   professorEmphasis?: string[];
   mnemonics?: string[];

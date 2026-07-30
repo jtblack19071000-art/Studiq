@@ -3,7 +3,7 @@ import { createJSONStorage, persist } from 'zustand/middleware';
 
 import { createId } from '@/src/lib/id';
 import { mmkvStateStorage } from '@/src/lib/mmkvStorage';
-import type { Lecture, StudyCourse, StudyUnit } from '@/src/types';
+import type { Lecture, StudyCourse, StudyUnit, UnitStudyGuide } from '@/src/types';
 
 interface StudyState {
   courses: StudyCourse[];
@@ -11,7 +11,9 @@ interface StudyState {
   lectures: Lecture[];
   addCourse: (input: Omit<StudyCourse, 'id' | 'createdAt'>) => StudyCourse;
   addUnit: (input: Omit<StudyUnit, 'id' | 'createdAt' | 'studyGuide'>) => StudyUnit;
-  addLecture: (input: Omit<Lecture, 'id' | 'transcriptionStatus'>) => Lecture;
+  addLecture: (input: Omit<Lecture, 'id' | 'transcriptionStatus' | 'generationStatus'>) => Lecture;
+  updateLecture: (id: string, patch: Partial<Omit<Lecture, 'id'>>) => void;
+  updateUnitStudyGuide: (unitId: string, patch: Partial<UnitStudyGuide>) => void;
   courseByClassId: (classId: string) => StudyCourse | undefined;
 }
 
@@ -45,8 +47,9 @@ const seedLectures: Lecture[] = [
     recordedAt: new Date().toISOString(),
     durationSeconds: 2820,
     transcriptionStatus: 'transcribed',
-    transcript: 'Full transcript will appear here once recording + transcription is wired up.',
-    generatedSummary: 'Placeholder summary — AI generation lands in Phase 2.',
+    transcript: 'Full transcript will appear here once a real lecture is recorded.',
+    generationStatus: 'ready',
+    generatedSummary: 'Placeholder summary — this seed lecture has no real audio behind it.',
   },
 ];
 
@@ -72,9 +75,26 @@ export const useStudyStore = create<StudyState>()(
         return created;
       },
       addLecture: (input) => {
-        const created: Lecture = { ...input, id: createId(), transcriptionStatus: 'pending' };
+        const created: Lecture = {
+          ...input,
+          id: createId(),
+          transcriptionStatus: 'pending',
+          generationStatus: 'not_generated',
+        };
         set((state) => ({ lectures: [...state.lectures, created] }));
         return created;
+      },
+      updateLecture: (id, patch) => {
+        set((state) => ({
+          lectures: state.lectures.map((lecture) => (lecture.id === id ? { ...lecture, ...patch } : lecture)),
+        }));
+      },
+      updateUnitStudyGuide: (unitId, patch) => {
+        set((state) => ({
+          units: state.units.map((unit) =>
+            unit.id === unitId ? { ...unit, studyGuide: { ...unit.studyGuide, ...patch } } : unit,
+          ),
+        }));
       },
       courseByClassId: (classId) => get().courses.find((course) => course.classId === classId),
     }),
