@@ -6,8 +6,10 @@ import 'react-native-reanimated';
 import { TamaguiProvider } from 'tamagui';
 
 import { useColorScheme } from '@/components/useColorScheme';
+import { syncScheduledReminders } from '@/src/lib/notifications';
 import { configurePurchases } from '@/src/lib/purchases';
 import { useAuthStore } from '@/src/state/authStore';
+import { useScheduleStore } from '@/src/state/scheduleStore';
 import { useSubscriptionStore } from '@/src/state/subscriptionStore';
 import tamaguiConfig from '@/src/theme/tamagui.config';
 
@@ -52,6 +54,7 @@ function RootLayoutNav() {
   const initAuth = useAuthStore((state) => state.init);
   const userId = useAuthStore((state) => state.user?.id ?? null);
   const refreshSubscription = useSubscriptionStore((state) => state.refresh);
+  const scheduleEvents = useScheduleStore((state) => state.events);
 
   useEffect(() => {
     initAuth();
@@ -62,6 +65,14 @@ function RootLayoutNav() {
       .then(refreshSubscription)
       .catch((error) => console.warn('Subscription refresh failed.', error));
   }, [userId, refreshSubscription]);
+
+  useEffect(() => {
+    // Re-syncs on every app launch and whenever the schedule changes, rolling the notification
+    // window forward and picking up new/edited reminders. No-ops until permission is granted.
+    syncScheduledReminders(scheduleEvents).catch((error) =>
+      console.warn('Reminder sync failed.', error),
+    );
+  }, [scheduleEvents]);
 
   return (
     <TamaguiProvider config={tamaguiConfig} defaultTheme={colorScheme}>

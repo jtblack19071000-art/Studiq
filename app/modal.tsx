@@ -3,10 +3,20 @@ import { useState } from 'react';
 import { Alert, Platform } from 'react-native';
 import { Button, H3, Input, Label, Paragraph, XStack, YStack } from 'tamagui';
 
+import { createId } from '@/src/lib/id';
 import { useScheduleStore } from '@/src/state/scheduleStore';
 import { eventCategoryLabels, type EventCategory } from '@/src/types';
 
 const CATEGORIES = Object.keys(eventCategoryLabels) as EventCategory[];
+
+const REMINDER_OPTIONS: { label: string; minutesBefore: number | null }[] = [
+  { label: 'None', minutesBefore: null },
+  { label: '5 min before', minutesBefore: 5 },
+  { label: '10 min before', minutesBefore: 10 },
+  { label: '30 min before', minutesBefore: 30 },
+  { label: '1 hour before', minutesBefore: 60 },
+  { label: '1 day before', minutesBefore: 60 * 24 },
+];
 
 function parseTimeToday(time: string): Date | null {
   const match = /^(\d{1,2}):(\d{2})$/.exec(time.trim());
@@ -26,6 +36,7 @@ export default function QuickAddModal() {
   const [startTime, setStartTime] = useState('');
   const [endTime, setEndTime] = useState('');
   const [location, setLocation] = useState('');
+  const [reminderMinutes, setReminderMinutes] = useState<number | null>(10);
   const [error, setError] = useState<string | null>(null);
 
   function handleSave() {
@@ -50,7 +61,7 @@ export default function QuickAddModal() {
       startsAt: startsAt.toISOString(),
       endsAt: endsAt.toISOString(),
       location: location.trim() || undefined,
-      reminders: [],
+      reminders: reminderMinutes === null ? [] : [{ id: createId(), minutesBefore: reminderMinutes }],
     });
 
     if (Platform.OS === 'web') {
@@ -100,6 +111,21 @@ export default function QuickAddModal() {
       <YStack gap="$2">
         <Label>Location (optional)</Label>
         <Input value={location} onChangeText={setLocation} placeholder="e.g. Library room 3B" />
+      </YStack>
+
+      <YStack gap="$2">
+        <Label>Reminder</Label>
+        <XStack flexWrap="wrap" gap="$2">
+          {REMINDER_OPTIONS.map((option) => (
+            <Button
+              key={option.label}
+              size="$3"
+              theme={reminderMinutes === option.minutesBefore ? 'active' : undefined}
+              onPress={() => setReminderMinutes(option.minutesBefore)}>
+              {option.label}
+            </Button>
+          ))}
+        </XStack>
       </YStack>
 
       {error ? <Paragraph color="$red10">{error}</Paragraph> : null}

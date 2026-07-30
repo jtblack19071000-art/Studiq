@@ -14,6 +14,7 @@ AI study workspace, in place of paper planners and scattered productivity apps.
 - [Vercel AI SDK](https://ai-sdk.dev) (`ai` + `@ai-sdk/openai` + `@ai-sdk/anthropic`) for transcription (OpenAI Whisper) and structured study-material generation (Claude)
 - [expo-print](https://docs.expo.dev/versions/latest/sdk/print/) + [expo-sharing](https://docs.expo.dev/versions/latest/sdk/sharing/) for study guide PDF export
 - Supabase Auth for accounts (email/password), tied to [RevenueCat](https://www.revenuecat.com) (`react-native-purchases`) for the Platinum subscription
+- [expo-notifications](https://docs.expo.dev/versions/latest/sdk/notifications/) for local scheduled reminders (no push server — see "Reminders" below)
 
 ## Setup
 
@@ -62,6 +63,26 @@ sandbox:
    showing everyone as Free rather than crashing — real web purchasing needs that separate setup.
 4. Supabase Auth is what identifies the user RevenueCat ties the subscription to
    (`Purchases.logIn(userId)` on sign-in) — the Supabase env vars above must be set too.
+
+## Reminders
+
+Studiq has no push notification server — "push notifications" here means locally-scheduled device
+notifications (`expo-notifications`), which work fully offline and need no backend at all. Set a
+reminder (e.g. "10 min before") on any schedule event in Quick Add; Studiq schedules a real
+notification for every upcoming occurrence, including recurring ones.
+
+Two real platform limits worth knowing:
+
+- **Native only.** `expo-notifications` has no scheduling backend on web — the browser can grant
+  the *permission*, but nothing ever actually gets scheduled there. Settings correctly hides the
+  "Enable notifications" control on web rather than showing a button that would silently do
+  nothing.
+- **A rolling 14-day window, not the full recurrence.** iOS caps an app at 64 pending local
+  notifications, so scheduling every future occurrence of a weekly class for a whole semester
+  isn't possible. Studiq re-schedules from scratch — 14 days out — every time the app launches or
+  the schedule changes, which keeps reminders current without hitting that cap for a typical
+  course load. If you leave the app closed for more than ~2 weeks, reopen it before the next
+  reminder is due so the window rolls forward.
 
 ## Scripts
 
@@ -121,6 +142,8 @@ Built and working end to end:
   AI generation, and College Match — see "Subscriptions" above for what's required to charge real
   money; without those accounts configured, Platinum features show a clear "not configured" state
   rather than a broken or fake-unlocked one
+- **Reminders** — locally-scheduled device notifications for schedule events (see "Reminders"
+  above); free for all users, no Platinum gate
 
 Deliberately **not yet built** (see roadmap in the product spec):
 
@@ -135,8 +158,6 @@ No gamification (XP, levels, badges, streaks) by design — see the product spec
 
 Beyond the roadmap items above:
 
-- **Push notifications aren't wired up.** The `Reminder` type exists on schedule events, but
-  nothing actually schedules a native notification for one yet.
 - **Only auth talks to Supabase.** No screen syncs its actual data (classes, schedule, study
   materials, etc.) to the cloud yet — everything except the signed-in session is local-only.
 - **Default Expo app icon/splash** — no custom Studiq branding yet.
@@ -145,6 +166,24 @@ Beyond the roadmap items above:
   simulator. The audio recording, permissions, and native subscription flows in particular should
   be smoke-tested on a real device before shipping; this session could only validate them through
   Chromium's fake-microphone flag and RevenueCat's browser-simulation fallback.
+
+### Verification notes (Reminders)
+
+- Settings' permission flow was exercised in a real browser: on web, the "Enable notifications"
+  button correctly never appears — `notificationsSchedulingSupported` is `false` there by design,
+  since `expo-notifications` has no web scheduling implementation at all (only permissions do,
+  backed by the browser's native `Notification` API). This is documented behavior, not a bug found
+  during testing.
+- Quick Add's reminder picker was exercised end to end: selecting "1 hour before" visibly updates
+  the selected state, and the created event carries the reminder through to the store.
+- Proactively re-checked for the same "eager native call crashes SSG" bug class that hit Supabase
+  auth and RevenueCat, since `Notifications.setNotificationHandler(...)` also runs at module scope.
+  Ran a full `expo export -p web` after wiring the feature — it completed cleanly with no crash.
+- What couldn't be verified: actual notification delivery/firing. Scheduling is native-only
+  (`notificationsSchedulingSupported` gates it off entirely on web), and this sandbox is web-only,
+  so the `scheduleNotificationAsync` call path itself was verified by code review, not a live
+  device run. It should be smoke-tested on a real iOS/Android device before shipping, alongside the
+  other native-only flows already called out above (audio recording, RevenueCat purchases).
 
 ### Verification notes (Subscriptions & auth)
 

@@ -1,4 +1,5 @@
 import Constants from 'expo-constants';
+import { useEffect, useState } from 'react';
 import { Button, H2, Paragraph, Text, YStack } from 'tamagui';
 
 import { AuthForm } from '@/src/components/AuthForm';
@@ -6,14 +7,36 @@ import { Card } from '@/src/components/Card';
 import { Paywall } from '@/src/components/Paywall';
 import { Screen } from '@/src/components/Screen';
 import { SectionHeader } from '@/src/components/SectionHeader';
+import {
+  isNotificationPermissionGranted,
+  notificationsSchedulingSupported,
+  requestNotificationPermissions,
+  syncScheduledReminders,
+} from '@/src/lib/notifications';
 import { supabase } from '@/src/lib/supabase';
 import { useAuthStore } from '@/src/state/authStore';
+import { useScheduleStore } from '@/src/state/scheduleStore';
 import { useSubscriptionStore } from '@/src/state/subscriptionStore';
 
 export default function SettingsScreen() {
   const session = useAuthStore((state) => state.session);
   const signOut = useAuthStore((state) => state.signOut);
   const tier = useSubscriptionStore((state) => state.tier);
+  const scheduleEvents = useScheduleStore((state) => state.events);
+
+  const [notificationsGranted, setNotificationsGranted] = useState<boolean | null>(null);
+
+  useEffect(() => {
+    isNotificationPermissionGranted().then(setNotificationsGranted);
+  }, []);
+
+  async function handleEnableNotifications() {
+    const granted = await requestNotificationPermissions();
+    setNotificationsGranted(granted);
+    if (granted) {
+      await syncScheduledReminders(scheduleEvents);
+    }
+  }
 
   return (
     <Screen>
@@ -65,6 +88,31 @@ export default function SettingsScreen() {
             <Paywall />
           </Card>
         ) : null}
+      </YStack>
+
+      <YStack gap="$2">
+        <SectionHeader title="Reminders & notifications" />
+        <Card gap="$2">
+          {!notificationsSchedulingSupported ? (
+            <Paragraph color="$color10" fontSize="$3">
+              Reminders are local device notifications, which aren&apos;t supported in a web
+              browser. Open Studiq on iOS or Android to receive them.
+            </Paragraph>
+          ) : notificationsGranted ? (
+            <Text fontWeight="600">Reminders are on.</Text>
+          ) : (
+            <YStack gap="$2">
+              <Paragraph color="$color10" fontSize="$3">
+                Turn on notifications to get reminders for classes, work, and other schedule
+                events — set per-event in Quick Add. These are scheduled on this device only;
+                Studiq has no server sending you notifications.
+              </Paragraph>
+              <Button size="$3" theme="active" onPress={handleEnableNotifications}>
+                Enable notifications
+              </Button>
+            </YStack>
+          )}
+        </Card>
       </YStack>
 
       <YStack gap="$2">

@@ -39,7 +39,8 @@
         {
           "microphonePermission": "Allow Studiq to access your microphone to record lectures."
         }
-      ]
+      ],
+      "expo-notifications"
     ],
     "experiments": {
       "typedRoutes": true
