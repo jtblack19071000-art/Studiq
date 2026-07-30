@@ -84,6 +84,27 @@ Two real platform limits worth knowing:
   course load. If you leave the app closed for more than ~2 weeks, reopen it before the next
   reminder is due so the window rolls forward.
 
+## Branding
+
+Custom app icon, Android adaptive icon set, favicon, and splash screen (`assets/images/`),
+replacing the default Expo placeholder assets:
+
+- **Mark**: a bold, single-stroke "S" monogram — geometric and rounded rather than a literal
+  letterform from a font, so it stays crisp and legible from a 48px favicon up to a 1024px app
+  icon and holds up under Android's circular/squircle adaptive-icon masks.
+- **Color**: a bright indigo-violet (`#5B4CF5`), used as the full-bleed icon/favicon background,
+  the Android adaptive icon background, and the splash screen background — chosen to stand out
+  among the blues most productivity/education apps default to, while still reading as focused and
+  organized rather than loud.
+- **Splash screen** pairs the same mark with a "Studiq" wordmark underneath, composited with
+  `resizeMode: "contain"` onto the brand color.
+- Generated as SVG/HTML rendered to PNG at each target's exact pixel size (no upscaling), rather
+  than a single image resized down — every asset was verified against its actual constraints:
+  `icon.png`/`favicon.png`/`android-icon-background.png` are opaque (no alpha channel, matching
+  what iOS/store icons expect), `android-icon-foreground.png`/`android-icon-monochrome.png`/
+  `splash-icon.png` are transparent, and the mark was checked centered well inside Android's
+  adaptive-icon safe zone under a circular mask before finalizing.
+
 ## Scripts
 
 ```bash
@@ -160,7 +181,6 @@ Beyond the roadmap items above:
 
 - **Only auth talks to Supabase.** No screen syncs its actual data (classes, schedule, study
   materials, etc.) to the cloud yet — everything except the signed-in session is local-only.
-- **Default Expo app icon/splash** — no custom Studiq branding yet.
 - **No automated tests.** Nothing is written for Jest/Detox/Playwright yet.
 - **Only tested in a web browser (Chromium)** — never run on a real iOS/Android device or
   simulator. The audio recording, permissions, and native subscription flows in particular should
