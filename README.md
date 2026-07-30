@@ -114,9 +114,15 @@ npm test            # jest
 
 [Jest](https://jestjs.io) via [`jest-expo`](https://github.com/expo/expo/tree/main/packages/jest-expo)'s
 `node` preset (no React Native environment/mocks — plain logic tests only, which is all that exists
-so far). Currently covers `src/lib/occurrences.ts` (`src/lib/__tests__/occurrences.test.ts`):
-non-recurring events in/out of range and on the range boundary, weekly recurrence expansion,
-duration preservation across generated occurrences, multi-week intervals, and the `until` cutoff.
+so far). Currently covers:
+
+- `src/lib/occurrences.ts` (`src/lib/__tests__/occurrences.test.ts`) — non-recurring events in/out
+  of range and on the range boundary, weekly recurrence expansion, duration preservation across
+  generated occurrences, multi-week intervals, and the `until` cutoff.
+- `src/lib/gpa.ts` (`src/lib/__tests__/gpa.test.ts`) — `calculateGpa`'s credit-hour weighting
+  (checked against a hand-computed expected value, not just eyeballed), classes missing a grade or
+  credit hours correctly excluded from the average, an empty class list, and `groupClassesByTerm`.
+
 Nothing else in the app has tests yet — see "Other known gaps" below.
 
 ## Scripts
@@ -196,8 +202,9 @@ Beyond the roadmap items above:
 
 - **Only auth talks to Supabase.** No screen syncs its actual data (classes, schedule, study
   materials, etc.) to the cloud yet — everything except the signed-in session is local-only.
-- **Test coverage is minimal.** Only `src/lib/occurrences.ts` has Jest tests (see "Testing" above)
-  — stores, screens, and API routes have none yet, and there's no Detox/Playwright e2e coverage.
+- **Test coverage is minimal.** Only two pure-logic modules (`occurrences.ts`, `gpa.ts`) have Jest
+  tests (see "Testing" above) — stores, screens, and API routes have none yet, and there's no
+  Detox/Playwright e2e coverage.
 - **Only tested in a web browser (Chromium)** — never run on a real iOS/Android device or
   simulator. The audio recording, permissions, and native subscription flows in particular should
   be smoke-tested on a real device before shipping; this session could only validate them through
