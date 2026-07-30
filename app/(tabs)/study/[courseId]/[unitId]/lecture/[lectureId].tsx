@@ -5,15 +5,18 @@ import { Button, H2, Paragraph, Text, YStack } from 'tamagui';
 
 import { Card } from '@/src/components/Card';
 import { EmptyState } from '@/src/components/EmptyState';
+import { PlatinumGate } from '@/src/components/PlatinumGate';
 import { Screen } from '@/src/components/Screen';
 import { SectionHeader } from '@/src/components/SectionHeader';
 import { generateLectureMaterials, StudyAiError } from '@/src/lib/studyAi';
 import { useStudyStore } from '@/src/state/studyStore';
+import { useSubscriptionStore } from '@/src/state/subscriptionStore';
 
 export default function LectureDetailScreen() {
   const { lectureId } = useLocalSearchParams<{ courseId: string; unitId: string; lectureId: string }>();
   const lecture = useStudyStore((state) => state.lectures.find((l) => l.id === lectureId));
   const updateLecture = useStudyStore((state) => state.updateLecture);
+  const isPlatinum = useSubscriptionStore((state) => state.tier === 'platinum');
   const [generateError, setGenerateError] = useState<string | null>(null);
 
   if (!lecture) {
@@ -71,6 +74,8 @@ export default function LectureDetailScreen() {
             <Card>
               <EmptyState message="Generating study materials…" />
             </Card>
+          ) : !isPlatinum ? (
+            <PlatinumGate>{null}</PlatinumGate>
           ) : (
             <Button size="$4" theme="active" onPress={handleGenerateMaterials}>
               {lecture.generationStatus === 'failed' ? 'Retry generating materials' : 'Generate materials'}

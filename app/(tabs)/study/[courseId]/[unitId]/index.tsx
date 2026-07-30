@@ -5,10 +5,12 @@ import { Button, H2, Paragraph, Text, XStack, YStack } from 'tamagui';
 
 import { Card } from '@/src/components/Card';
 import { EmptyState } from '@/src/components/EmptyState';
+import { PlatinumGate } from '@/src/components/PlatinumGate';
 import { Screen } from '@/src/components/Screen';
 import { SectionHeader } from '@/src/components/SectionHeader';
 import { generateUnitStudyGuide, StudyAiError } from '@/src/lib/studyAi';
 import { useStudyStore } from '@/src/state/studyStore';
+import { useSubscriptionStore } from '@/src/state/subscriptionStore';
 
 function statusLabel(transcriptionStatus: string, generationStatus: string): string {
   if (transcriptionStatus === 'pending') return 'queued';
@@ -25,6 +27,7 @@ export default function UnitDetailScreen() {
   const unit = useStudyStore((state) => state.units.find((u) => u.id === unitId));
   const allLectures = useStudyStore((state) => state.lectures);
   const updateUnitStudyGuide = useStudyStore((state) => state.updateUnitStudyGuide);
+  const isPlatinum = useSubscriptionStore((state) => state.tier === 'platinum');
   const [studyGuideError, setStudyGuideError] = useState<string | null>(null);
 
   const lectures = useMemo(
@@ -69,6 +72,8 @@ export default function UnitDetailScreen() {
         <Button size="$4" theme="active" onPress={() => router.push(`/study/${courseId}/${unitId}/study-guide`)}>
           View Study Guide
         </Button>
+      ) : !isPlatinum ? (
+        <PlatinumGate>{null}</PlatinumGate>
       ) : (
         <Button size="$4" theme="active" onPress={handleGenerateStudyGuide} disabled={isGeneratingStudyGuide}>
           {isGeneratingStudyGuide ? 'Generating…' : 'Generate Unit Study Guide'}

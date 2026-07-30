@@ -6,6 +6,9 @@ import 'react-native-reanimated';
 import { TamaguiProvider } from 'tamagui';
 
 import { useColorScheme } from '@/components/useColorScheme';
+import { configurePurchases } from '@/src/lib/purchases';
+import { useAuthStore } from '@/src/state/authStore';
+import { useSubscriptionStore } from '@/src/state/subscriptionStore';
 import tamaguiConfig from '@/src/theme/tamagui.config';
 
 export {
@@ -46,6 +49,19 @@ export default function RootLayout() {
 
 function RootLayoutNav() {
   const colorScheme = useColorScheme();
+  const initAuth = useAuthStore((state) => state.init);
+  const userId = useAuthStore((state) => state.user?.id ?? null);
+  const refreshSubscription = useSubscriptionStore((state) => state.refresh);
+
+  useEffect(() => {
+    initAuth();
+  }, [initAuth]);
+
+  useEffect(() => {
+    configurePurchases(userId)
+      .then(refreshSubscription)
+      .catch((error) => console.warn('Subscription refresh failed.', error));
+  }, [userId, refreshSubscription]);
 
   return (
     <TamaguiProvider config={tamaguiConfig} defaultTheme={colorScheme}>

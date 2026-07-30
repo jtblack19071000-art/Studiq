@@ -8,3 +8,4 @@ export * from './goals';
 export * from './notes';
 export * from './schedule';
 export * from './study';
+export * from './subscription';

@@ -9,8 +9,10 @@ import { router, useLocalSearchParams } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { Button, H2, Input, Label, Paragraph, Text, YStack } from 'tamagui';
 
+import { PlatinumGate } from '@/src/components/PlatinumGate';
 import { generateLectureMaterials, transcribeAudio } from '@/src/lib/studyAi';
 import { useStudyStore } from '@/src/state/studyStore';
+import { useSubscriptionStore } from '@/src/state/subscriptionStore';
 import type { Lecture } from '@/src/types';
 
 function formatDuration(millis: number): string {
@@ -63,8 +65,10 @@ export default function RecordLectureScreen() {
 
   const recorder = useAudioRecorder(RecordingPresets.HIGH_QUALITY);
   const recorderState = useAudioRecorderState(recorder, 200);
+  const isPlatinum = useSubscriptionStore((state) => state.tier === 'platinum');
 
   useEffect(() => {
+    if (!isPlatinum) return;
     (async () => {
       const { granted } = await requestRecordingPermissionsAsync();
       if (!granted) {
@@ -74,7 +78,7 @@ export default function RecordLectureScreen() {
       await setAudioModeAsync({ allowsRecording: true, playsInSilentMode: true });
       await recorder.prepareToRecordAsync();
     })();
-  }, [recorder]);
+  }, [recorder, isPlatinum]);
 
   function handleStart() {
     recorder.record();
@@ -117,6 +121,15 @@ export default function RecordLectureScreen() {
     return (
       <YStack flex={1} backgroundColor="$background" padding="$4">
         <Paragraph>Unit not found.</Paragraph>
+      </YStack>
+    );
+  }
+
+  if (!isPlatinum) {
+    return (
+      <YStack flex={1} backgroundColor="$background" padding="$4" gap="$4">
+        <H2>Record lecture</H2>
+        <PlatinumGate>{null}</PlatinumGate>
       </YStack>
     );
   }
