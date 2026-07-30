@@ -13,6 +13,7 @@ interface ClassesState {
   announcements: Announcement[];
   grades: GradeEntry[];
   addClass: (input: Omit<StudiqClass, 'id'>) => StudiqClass;
+  updateClass: (id: string, patch: Partial<Omit<StudiqClass, 'id'>>) => void;
   addAssignment: (input: Omit<Assignment, 'id'>) => Assignment;
   updateAssignmentStatus: (id: string, status: Assignment['status']) => void;
   classById: (id: string) => StudiqClass | undefined;
@@ -43,6 +44,7 @@ const seedClasses: StudiqClass[] = [
     },
     classroom: 'Chem Bldg 118',
     term: 'Fall 2026',
+    creditHours: 4,
   },
   {
     id: classIdMacro,
@@ -57,6 +59,7 @@ const seedClasses: StudiqClass[] = [
     },
     classroom: 'Econ Hall 110',
     term: 'Fall 2026',
+    creditHours: 3,
   },
   {
     id: classIdArt,
@@ -69,6 +72,27 @@ const seedClasses: StudiqClass[] = [
     },
     classroom: 'Fine Arts 220',
     term: 'Fall 2026',
+    creditHours: 3,
+  },
+  {
+    id: 'seed-class-bio-spring',
+    name: 'Introduction to Biology',
+    code: 'BIOL 101',
+    color: '#2BA6A4',
+    professor: { name: 'Dr. Wren Okafor' },
+    term: 'Spring 2026',
+    creditHours: 4,
+    finalGrade: 'A-',
+  },
+  {
+    id: 'seed-class-writing-spring',
+    name: 'College Writing II',
+    code: 'ENGL 102',
+    color: '#C4478C',
+    professor: { name: 'Prof. Lena Marchetti' },
+    term: 'Spring 2026',
+    creditHours: 3,
+    finalGrade: 'B+',
   },
 ];
 
@@ -137,6 +161,13 @@ export const useClassesStore = create<ClassesState>()(
         const created: StudiqClass = { ...input, id: createId() };
         set((state) => ({ classes: [...state.classes, created] }));
         return created;
+      },
+      updateClass: (id, patch) => {
+        set((state) => ({
+          classes: state.classes.map((studiqClass) =>
+            studiqClass.id === id ? { ...studiqClass, ...patch } : studiqClass,
+          ),
+        }));
       },
       addAssignment: (input) => {
         const created: Assignment = { ...input, id: createId() };

@@ -1,10 +1,94 @@
-import { PlaceholderScreen } from '@/src/components/PlaceholderScreen';
+import { useState } from 'react';
+import { Button, H2, Input, Paragraph, Text, XStack, YStack } from 'tamagui';
+
+import { Card } from '@/src/components/Card';
+import { EmptyState } from '@/src/components/EmptyState';
+import { Screen } from '@/src/components/Screen';
+import { SectionHeader } from '@/src/components/SectionHeader';
+import { useCareerStore } from '@/src/state/careerStore';
+import { applicationStatusLabels, type ApplicationStatus } from '@/src/types';
+
+const STATUSES = Object.keys(applicationStatusLabels) as ApplicationStatus[];
 
 export default function CareerScreen() {
+  const applications = useCareerStore((state) => state.applications);
+  const addApplication = useCareerStore((state) => state.addApplication);
+  const updateApplicationStatus = useCareerStore((state) => state.updateApplicationStatus);
+  const removeApplication = useCareerStore((state) => state.removeApplication);
+
+  const [company, setCompany] = useState('');
+  const [role, setRole] = useState('');
+  const [error, setError] = useState<string | null>(null);
+
+  function handleAdd() {
+    if (!company.trim() || !role.trim()) {
+      setError('Add both a company and a role.');
+      return;
+    }
+    setError(null);
+    addApplication({ company: company.trim(), role: role.trim() });
+    setCompany('');
+    setRole('');
+  }
+
   return (
-    <PlaceholderScreen
-      title="Career Hub"
-      description="Internship and job search tools, resume help, and career planning. Coming in Phase 3."
-    />
+    <Screen>
+      <YStack gap="$1" paddingTop="$2">
+        <H2>Career Hub</H2>
+        <Paragraph color="$color10">Track internship and job applications from saved to offer.</Paragraph>
+      </YStack>
+
+      <YStack gap="$2">
+        <SectionHeader title="Add application" />
+        <Card gap="$3">
+          <Input placeholder="Company" value={company} onChangeText={setCompany} />
+          <Input placeholder="Role" value={role} onChangeText={setRole} />
+          {error ? <Paragraph color="$red10">{error}</Paragraph> : null}
+          <Button theme="active" onPress={handleAdd}>
+            Add application
+          </Button>
+        </Card>
+      </YStack>
+
+      <YStack gap="$2">
+        <SectionHeader title="Applications" />
+        {applications.length === 0 ? (
+          <Card>
+            <EmptyState message="No applications tracked yet." />
+          </Card>
+        ) : (
+          <YStack gap="$3">
+            {applications.map((application) => (
+              <Card key={application.id}>
+                <XStack justifyContent="space-between" alignItems="flex-start">
+                  <YStack flex={1}>
+                    <Text fontWeight="700" fontSize="$5">
+                      {application.role}
+                    </Text>
+                    <Paragraph color="$color10" fontSize="$3">
+                      {application.company}
+                    </Paragraph>
+                  </YStack>
+                  <Button size="$2" chromeless onPress={() => removeApplication(application.id)}>
+                    Remove
+                  </Button>
+                </XStack>
+                <XStack flexWrap="wrap" gap="$2" paddingTop="$2">
+                  {STATUSES.map((status) => (
+                    <Button
+                      key={status}
+                      size="$2"
+                      theme={application.status === status ? 'active' : undefined}
+                      onPress={() => updateApplicationStatus(application.id, status)}>
+                      {applicationStatusLabels[status]}
+                    </Button>
+                  ))}
+                </XStack>
+              </Card>
+            ))}
+          </YStack>
+        )}
+      </YStack>
+    </Screen>
   );
 }

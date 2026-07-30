@@ -1,10 +1,167 @@
-import { PlaceholderScreen } from '@/src/components/PlaceholderScreen';
+import { useMemo, useState } from 'react';
+import { Button, H2, Input, Paragraph, Text, XStack, YStack } from 'tamagui';
+
+import { Card } from '@/src/components/Card';
+import { EmptyState } from '@/src/components/EmptyState';
+import { Screen } from '@/src/components/Screen';
+import { SectionHeader } from '@/src/components/SectionHeader';
+import { useGoalsStore } from '@/src/state/goalsStore';
+import { goalCategoryLabels, type Goal, type GoalCategory, type GoalStatus } from '@/src/types';
+
+const CATEGORIES = Object.keys(goalCategoryLabels) as GoalCategory[];
+const STATUSES: { value: GoalStatus; label: string }[] = [
+  { value: 'not_started', label: 'Not started' },
+  { value: 'in_progress', label: 'In progress' },
+  { value: 'completed', label: 'Completed' },
+];
+
+function GoalCard({ goal }: { goal: Goal }) {
+  const updateGoalStatus = useGoalsStore((state) => state.updateGoalStatus);
+  const removeGoal = useGoalsStore((state) => state.removeGoal);
+
+  return (
+    <Card borderLeftWidth={4} style={{ borderLeftColor: goal.status === 'completed' ? '#4C9F4C' : '#8A8F98' }}>
+      <XStack justifyContent="space-between" alignItems="flex-start">
+        <YStack flex={1}>
+          <Text fontWeight="700" fontSize="$5">
+            {goal.title}
+          </Text>
+          <Paragraph color="$color10" fontSize="$3">
+            {goalCategoryLabels[goal.category]}
+            {goal.targetTimeframe ? ` · ${goal.targetTimeframe}` : ''}
+          </Paragraph>
+        </YStack>
+        <Button size="$2" chromeless onPress={() => removeGoal(goal.id)}>
+          Remove
+        </Button>
+      </XStack>
+      <XStack flexWrap="wrap" gap="$2" paddingTop="$2">
+        {STATUSES.map((option) => (
+          <Button
+            key={option.value}
+            size="$2"
+            theme={goal.status === option.value ? 'active' : undefined}
+            onPress={() => updateGoalStatus(goal.id, option.value)}>
+            {option.label}
+          </Button>
+        ))}
+      </XStack>
+    </Card>
+  );
+}
 
 export default function GoalsScreen() {
+  const goals = useGoalsStore((state) => state.goals);
+  const addGoal = useGoalsStore((state) => state.addGoal);
+
+  const [title, setTitle] = useState('');
+  const [category, setCategory] = useState<GoalCategory>('academic');
+  const [targetTimeframe, setTargetTimeframe] = useState('');
+  const [error, setError] = useState<string | null>(null);
+
+  const grouped = useMemo(
+    () => ({
+      in_progress: goals.filter((g) => g.status === 'in_progress'),
+      not_started: goals.filter((g) => g.status === 'not_started'),
+      completed: goals.filter((g) => g.status === 'completed'),
+    }),
+    [goals],
+  );
+
+  function handleAdd() {
+    if (!title.trim()) {
+      setError('Give the goal a title.');
+      return;
+    }
+    setError(null);
+    addGoal({ title: title.trim(), category, targetTimeframe: targetTimeframe.trim() || undefined });
+    setTitle('');
+    setTargetTimeframe('');
+  }
+
   return (
-    <PlaceholderScreen
-      title="Goals"
-      description="Set and track personal and academic goals. Coming in Phase 3."
-    />
+    <Screen>
+      <YStack gap="$1" paddingTop="$2">
+        <H2>Goals</H2>
+      </YStack>
+
+      <YStack gap="$2">
+        <SectionHeader title="Add goal" />
+        <Card gap="$3">
+          <Input placeholder="What do you want to accomplish?" value={title} onChangeText={setTitle} />
+          <Input
+            placeholder="Target timeframe (optional), e.g. by finals"
+            value={targetTimeframe}
+            onChangeText={setTargetTimeframe}
+          />
+          <XStack flexWrap="wrap" gap="$2">
+            {CATEGORIES.map((option) => (
+              <Button
+                key={option}
+                size="$2"
+                theme={category === option ? 'active' : undefined}
+                onPress={() => setCategory(option)}>
+                {goalCategoryLabels[option]}
+              </Button>
+            ))}
+          </XStack>
+          {error ? <Paragraph color="$red10">{error}</Paragraph> : null}
+          <Button theme="active" onPress={handleAdd}>
+            Add goal
+          </Button>
+        </Card>
+      </YStack>
+
+      {goals.length === 0 ? (
+        <EmptyState message="No goals yet." />
+      ) : (
+        <>
+          <YStack gap="$2">
+            <SectionHeader title="In progress" />
+            {grouped.in_progress.length === 0 ? (
+              <Card>
+                <EmptyState message="Nothing in progress." />
+              </Card>
+            ) : (
+              <YStack gap="$3">
+                {grouped.in_progress.map((goal) => (
+                  <GoalCard key={goal.id} goal={goal} />
+                ))}
+              </YStack>
+            )}
+          </YStack>
+
+          <YStack gap="$2">
+            <SectionHeader title="Not started" />
+            {grouped.not_started.length === 0 ? (
+              <Card>
+                <EmptyState message="Nothing here." />
+              </Card>
+            ) : (
+              <YStack gap="$3">
+                {grouped.not_started.map((goal) => (
+                  <GoalCard key={goal.id} goal={goal} />
+                ))}
+              </YStack>
+            )}
+          </YStack>
+
+          <YStack gap="$2">
+            <SectionHeader title="Completed" />
+            {grouped.completed.length === 0 ? (
+              <Card>
+                <EmptyState message="Nothing completed yet." />
+              </Card>
+            ) : (
+              <YStack gap="$3">
+                {grouped.completed.map((goal) => (
+                  <GoalCard key={goal.id} goal={goal} />
+                ))}
+              </YStack>
+            )}
+          </YStack>
+        </>
+      )}
+    </Screen>
   );
 }

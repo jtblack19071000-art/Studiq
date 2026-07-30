@@ -44,8 +44,9 @@ npm run typecheck   # tsc --noEmit
 
 ## Project status
 
-**Phase 1** (foundation, planner, schedule, classes) and **Phase 2** (Study AI: lecture recording,
-transcription, AI-generated study materials) are built.
+**Phase 1** (foundation, planner, schedule, classes), **Phase 2** (Study AI: lecture recording,
+transcription, AI-generated study materials), and **Phase 3** (GPA Tracker, Finance, Goals, Career
+Hub, College Match, Campus Resources) are built.
 
 Built and working end to end:
 
@@ -67,19 +68,39 @@ Built and working end to end:
     equations/formulas, flashcards, practice quiz, practice exam, likely exam topics, professor
     emphasis, mnemonics, and a review checklist
   - Export the generated Unit Study Guide to PDF
-- More: menu shell for GPA Tracker, Finance, Goals, Career Hub, College Match, Campus Resources,
-  Settings
+- More:
+  - **GPA Tracker** — credit-hour-weighted GPA (standard 4.0 scale), grouped by term with
+    cumulative + per-term totals, editable credit hours and final letter grade per class
+  - **Finance** — income/expense tracking with categories, this-month summary (income, expenses,
+    balance)
+  - **Goals** — academic/career/personal/health/financial goals with status tracking
+  - **Career Hub** — internship/job application tracker (saved → applied → interviewing → offer/
+    accepted/rejected)
+  - **College Match** — a preferences profile (major, location, size, budget notes) plus a saved-
+    schools application tracker. There's no external college database to actually match against,
+    so this is an honest self-directed research tracker, not an automated matching algorithm —
+    said plainly rather than faking a "match score" with no real data behind it
+  - **Campus Resources** — a personal directory (name, category, contact, location) the student
+    fills in with their own campus's offices, since no per-school resource data source exists
+  - **Settings** — cloud sync status, appearance, about
 - Local persistence (MMKV) so data survives restarts; Supabase wired for optional cloud sync
 
 Deliberately **not yet built** (see roadmap in the product spec):
 
 - Syllabus import (PDF/image → auto-built class)
-- GPA Tracker, Finance, Goals, Career Hub, College Match, Campus Resources (Phase 3) — placeholder
-  screens only
 - Drag-and-drop schedule editing, semester templates
 - Cloud sync conflict resolution / multi-device sync (Supabase client is wired, sync logic is not)
+- Any subscription/paywall system — the spec mentions "premium features" for Phase 3 but that's a
+  monetization decision, not something to assume unprompted
 
 No gamification (XP, levels, badges, streaks) by design — see the product spec.
+
+### Verification notes (Phase 3)
+
+All six screens are local CRUD with no external dependency, so they were fully exercised end to
+end in a real browser: add/remove/status-cycle on every screen, and the GPA calculation was
+checked against hand-computed expected values (credit-hour-weighted, both per-term and cumulative)
+rather than just eyeballed.
 
 ### Verification notes (Phase 2)
 
