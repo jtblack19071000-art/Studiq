@@ -1,4 +1,4 @@
-import { format, isSameMonth } from 'date-fns';
+import { format } from 'date-fns';
 import { useMemo, useState } from 'react';
 import { Button, H2, Input, Paragraph, Text, XStack, YStack } from 'tamagui';
 
@@ -6,6 +6,7 @@ import { Card } from '@/src/components/Card';
 import { EmptyState } from '@/src/components/EmptyState';
 import { Screen } from '@/src/components/Screen';
 import { SectionHeader } from '@/src/components/SectionHeader';
+import { calculateMonthlySummary } from '@/src/lib/finance';
 import { useFinanceStore } from '@/src/state/financeStore';
 import { transactionCategoryLabels, type TransactionCategory, type TransactionType } from '@/src/types';
 
@@ -26,13 +27,7 @@ export default function FinanceScreen() {
   const [category, setCategory] = useState<TransactionCategory>('other');
   const [error, setError] = useState<string | null>(null);
 
-  const summary = useMemo(() => {
-    const now = new Date();
-    const thisMonth = transactions.filter((tx) => isSameMonth(new Date(tx.date), now));
-    const income = thisMonth.filter((tx) => tx.type === 'income').reduce((sum, tx) => sum + tx.amount, 0);
-    const expenses = thisMonth.filter((tx) => tx.type === 'expense').reduce((sum, tx) => sum + tx.amount, 0);
-    return { income, expenses, balance: income - expenses };
-  }, [transactions]);
+  const summary = useMemo(() => calculateMonthlySummary(transactions), [transactions]);
 
   function handleAdd() {
     const parsedAmount = Number(amount);

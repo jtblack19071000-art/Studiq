@@ -122,6 +122,12 @@ so far). Currently covers:
 - `src/lib/gpa.ts` (`src/lib/__tests__/gpa.test.ts`) — `calculateGpa`'s credit-hour weighting
   (checked against a hand-computed expected value, not just eyeballed), classes missing a grade or
   credit hours correctly excluded from the average, an empty class list, and `groupClassesByTerm`.
+- `src/lib/finance.ts` (`src/lib/__tests__/finance.test.ts`) — `calculateMonthlySummary`'s
+  income/expense/balance totals, transactions outside the reference month correctly excluded,
+  income-only and expense-only months (including a negative balance), and an empty list. This
+  summary calculation used to live inline in the Finance screen's `useMemo`; it was pulled out into
+  `src/lib/finance.ts` (verified behavior-unchanged in-browser afterward) so it could be tested the
+  same way as the other calculation modules.
 
 Nothing else in the app has tests yet — see "Other known gaps" below.
 
@@ -202,9 +208,9 @@ Beyond the roadmap items above:
 
 - **Only auth talks to Supabase.** No screen syncs its actual data (classes, schedule, study
   materials, etc.) to the cloud yet — everything except the signed-in session is local-only.
-- **Test coverage is minimal.** Only two pure-logic modules (`occurrences.ts`, `gpa.ts`) have Jest
-  tests (see "Testing" above) — stores, screens, and API routes have none yet, and there's no
-  Detox/Playwright e2e coverage.
+- **Test coverage is minimal.** Only three pure-logic modules (`occurrences.ts`, `gpa.ts`,
+  `finance.ts`) have Jest tests (see "Testing" above) — stores, screens, and API routes have none
+  yet, and there's no Detox/Playwright e2e coverage.
 - **Only tested in a web browser (Chromium)** — never run on a real iOS/Android device or
   simulator. The audio recording, permissions, and native subscription flows in particular should
   be smoke-tested on a real device before shipping; this session could only validate them through
