@@ -16,6 +16,8 @@ AI study workspace, in place of paper planners and scattered productivity apps.
 - Supabase Auth for accounts (email/password), tied to [RevenueCat](https://www.revenuecat.com) (`react-native-purchases`) for the Platinum subscription
 - [expo-notifications](https://docs.expo.dev/versions/latest/sdk/notifications/) for local scheduled reminders (no push server — see "Reminders" below)
 - [Jest](https://jestjs.io) (via [`jest-expo`](https://github.com/expo/expo/tree/main/packages/jest-expo)) for unit tests — see "Testing" below
+- [EAS Build](https://docs.expo.dev/build/introduction/) (`expo-dev-client`) for installable dev
+  builds on a physical device — see "Running on a physical device" below
 
 ## Setup
 
@@ -39,6 +41,48 @@ Without the AI keys configured, recording still works fully (audio is captured a
 transcription/generation fail with a clear in-app error rather than silently doing nothing. Without
 Supabase configured, Platinum features show "sign in required, cloud sync isn't configured" instead
 of a sign-in form. Without the RevenueCat key, Platinum shows as unavailable rather than crashing.
+
+## Running on a physical device (EAS Build)
+
+**Expo Go alone isn't enough** — `react-native-purchases` (RevenueCat) is a native module Expo Go
+doesn't bundle, so testing the real app (subscriptions included) on a phone needs a custom
+[development build](https://docs.expo.dev/develop/development-builds/introduction/) via
+[EAS Build](https://docs.expo.dev/build/introduction/) instead. This is already configured in the
+repo (`expo-dev-client` installed, `eas.json` build profiles, `ios.bundleIdentifier`/`android.package`
+set to `com.studiq.app` as placeholders — change these before a real store submission).
+
+**EAS Build's free tier needs no credit card** and covers casual testing — a handful of builds a
+month at no cost, separate from (and unrelated to) the $99/year Apple Developer Program fee, which
+you only need once you're ready to actually submit to the App Store, not for this step.
+
+What's already done vs. what you need to do yourself:
+
+- ✅ `expo-dev-client` installed, `eas.json` created with `development`/`preview`/`production`
+  build profiles, bundle identifiers set.
+- ⬜ Create a free account at [expo.dev](https://expo.dev) if you don't have one.
+- ⬜ Run these yourself (this can't be done from an automated sandbox — EAS builds require an
+  interactive login):
+
+  ```bash
+  npx eas login                                          # one-time, opens a browser to sign in
+  npx eas build:configure                                # links this project to your Expo account
+  npx eas build --profile development --platform ios     # or --platform android
+  ```
+
+  (`npm run eas:login` / `npm run eas:build:dev:ios` / `npm run eas:build:dev:android` do the same
+  thing.) The build runs on Expo's servers (~15–20 min for iOS, less for Android) and finishes with
+  a QR code / link — scan it or open it on your phone to install.
+- ⬜ Once installed, run `npm run start:dev-client` (instead of `npm run ios`/`android`) to start
+  the dev server — the installed build connects to it for the usual fast-refresh iteration, just
+  like Expo Go, but with RevenueCat and every other native module actually present.
+- ⬜ **iOS specifically** also needs your device registered with your Apple Developer account
+  first — `eas build` walks you through this (or does it automatically) the first time, but it
+  does require the $99/year Apple Developer Program membership for *iOS* device installs. Android
+  has no equivalent fee for installing a development build on your own device.
+
+Rebuild (repeat the `eas build` command) whenever a *native* dependency changes (a new
+`expo install`-ed package, a new config plugin, an `app.json` permission string). Everyday
+JS/TS/UI changes don't need a rebuild — just the dev server restart.
 
 ## Subscriptions
 
