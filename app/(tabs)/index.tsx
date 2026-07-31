@@ -1,5 +1,5 @@
 import { format } from 'date-fns';
-import { Link } from 'expo-router';
+import { Link, router } from 'expo-router';
 import { useMemo } from 'react';
 import { Button, H2, Paragraph, Text, TextArea, YStack } from 'tamagui';
 
@@ -8,10 +8,22 @@ import { Card } from '@/src/components/Card';
 import { EmptyState } from '@/src/components/EmptyState';
 import { Screen } from '@/src/components/Screen';
 import { SectionHeader } from '@/src/components/SectionHeader';
+import type { EventOccurrence } from '@/src/lib/occurrences';
 import { getOccurrencesInRange } from '@/src/lib/occurrences';
 import { useClassesStore } from '@/src/state/classesStore';
 import { useNotesStore } from '@/src/state/notesStore';
 import { useScheduleStore } from '@/src/state/scheduleStore';
+
+function openEventDetail(occurrence: EventOccurrence) {
+  router.push({
+    pathname: '/event-detail',
+    params: {
+      eventId: occurrence.event.id,
+      startsAt: occurrence.startsAt.toISOString(),
+      endsAt: occurrence.endsAt.toISOString(),
+    },
+  });
+}
 
 function startOfToday() {
   const date = new Date();
@@ -30,6 +42,7 @@ export default function HomeScreen() {
   const assignments = useClassesStore((state) => state.assignments);
   const exams = useClassesStore((state) => state.exams);
   const classes = useClassesStore((state) => state.classes);
+  const classesById = useMemo(() => new Map(classes.map((studiqClass) => [studiqClass.id, studiqClass])), [classes]);
   const todayKey = format(new Date(), 'yyyy-MM-dd');
   const note = useNotesStore((state) => state.noteForDate(todayKey));
   const setNote = useNotesStore((state) => state.setNoteForDate);
@@ -81,7 +94,12 @@ export default function HomeScreen() {
             <EmptyState message="Nothing scheduled today." />
           ) : (
             todaysOccurrences.map((occurrence, index) => (
-              <AgendaItem key={`${occurrence.event.id}-${index}`} occurrence={occurrence} />
+              <AgendaItem
+                key={`${occurrence.event.id}-${index}`}
+                occurrence={occurrence}
+                classesById={classesById}
+                onPress={() => openEventDetail(occurrence)}
+              />
             ))
           )}
         </Card>

@@ -22,6 +22,8 @@ export interface ScheduleEvent {
   endsAt: string;
   location?: string;
   notes?: string;
+  /** Overrides the linked class's color (if any) or the category default — see resolveEventColor. */
+  color?: string;
   recurrence?: RecurrenceRule;
   reminders: Reminder[];
   /** Links this event back to a Class, when category is 'class'. */

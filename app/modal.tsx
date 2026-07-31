@@ -5,7 +5,7 @@ import { Button, H3, Input, Label, Paragraph, XStack, YStack } from 'tamagui';
 
 import { createId } from '@/src/lib/id';
 import { useScheduleStore } from '@/src/state/scheduleStore';
-import { eventCategoryLabels, type EventCategory } from '@/src/types';
+import { EVENT_COLOR_SWATCHES, eventCategoryLabels, type EventCategory } from '@/src/types';
 
 const CATEGORIES = Object.keys(eventCategoryLabels) as EventCategory[];
 
@@ -36,6 +36,7 @@ export default function QuickAddModal() {
   const [startTime, setStartTime] = useState('');
   const [endTime, setEndTime] = useState('');
   const [location, setLocation] = useState('');
+  const [color, setColor] = useState<string | undefined>(undefined);
   const [reminderMinutes, setReminderMinutes] = useState<number | null>(10);
   const [error, setError] = useState<string | null>(null);
 
@@ -61,6 +62,7 @@ export default function QuickAddModal() {
       startsAt: startsAt.toISOString(),
       endsAt: endsAt.toISOString(),
       location: location.trim() || undefined,
+      color,
       reminders: reminderMinutes === null ? [] : [{ id: createId(), minutesBefore: reminderMinutes }],
     });
 
@@ -111,6 +113,25 @@ export default function QuickAddModal() {
       <YStack gap="$2">
         <Label>Location (optional)</Label>
         <Input value={location} onChangeText={setLocation} placeholder="e.g. Library room 3B" />
+      </YStack>
+
+      <YStack gap="$2">
+        <Label>Color (optional — defaults to the category color)</Label>
+        <XStack flexWrap="wrap" gap="$2">
+          {EVENT_COLOR_SWATCHES.map((swatch) => (
+            <YStack
+              key={swatch}
+              width={32}
+              height={32}
+              borderRadius={16}
+              borderWidth={color === swatch ? 3 : 0}
+              borderColor="$color12"
+              onPress={() => setColor(color === swatch ? undefined : swatch)}
+              pressStyle={{ opacity: 0.7 }}
+              style={{ backgroundColor: swatch }}
+            />
+          ))}
+        </XStack>
       </YStack>
 
       <YStack gap="$2">

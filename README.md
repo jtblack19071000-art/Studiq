@@ -185,6 +185,14 @@ Zustand store in `src/state/`:
 - `src/lib/studyGuidePdf.ts` — `escapeHtml` (the AI-generated-content escaping that keeps a lecture
   transcript's stray `<`/`&` from breaking the exported PDF's HTML) and `buildStudyGuideHtml`'s
   per-section rendering and omission-when-empty, both exported from the module specifically for this.
+- `src/lib/eventColor.ts` — `resolveEventColor`'s precedence (per-event override beats a linked
+  class's color beats the category default) and its fallback when `classId` points at a class that
+  no longer exists.
+- `src/lib/weekGridLayout.ts` — `layoutDayOccurrences`'s greedy overlap-column packing behind the
+  week grid calendar: non-overlapping events each get their own column, overlapping events split
+  into side-by-side columns sized to the cluster's peak concurrency, a freed-up column gets reused
+  once its previous occupant ends, and an unrelated later event isn't squeezed by an earlier
+  overlap it has nothing to do with.
 
 **Client-side error handling** (mocked `fetch`)
 
@@ -242,12 +250,20 @@ gating the AI-powered features are built.
 
 Built and working end to end:
 
-- Bottom navigation: Home, Schedule, Classes, Study, More
+- Bottom navigation: Home, Schedule, Study, More — Schedule and Classes share one tab (a
+  Calendar/Classes toggle at the top), since they're two views onto the same underlying data
 - Home: today's timeline (merging recurring + one-off events), upcoming assignments/exams, daily
   note, quick add
-- Schedule: day/week/month views, recurring events via rrule, color-coded categories
-- Classes: list + detail (professor, office hours, classroom, assignments, exams, announcements),
-  linked into a Study workspace
+- Schedule (Calendar view): day/week/month, recurring events via rrule. Week is a real hourly grid
+  (12 AM–11 PM day columns, like Google Calendar) rather than a list — colored, tap-to-open blocks
+  positioned and sized by actual time, with overlapping events automatically laid out side by side
+  instead of stacked. Tapping any event (grid block or list row) opens a detail sheet with the full
+  time range, location, and — for events linked to a class — that class's professor, room, office
+  location, and office hours. Each event's block color defaults to its linked class's color (or the
+  category color if unlinked) but can be overridden per-event from Quick Add or the detail sheet's
+  color picker.
+- Schedule (Classes view): the class list + detail (professor, office hours, classroom,
+  assignments, exams, announcements), linked into a Study workspace
 - Study workspace, matching the spec's workflow exactly:
   - Course → Unit → Lecture hierarchy
   - Record a lecture on-device (`expo-audio`, mic permission handling, pause/resume/stop)

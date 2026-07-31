@@ -41,18 +41,9 @@ export default function TabLayout() {
         name="schedule"
         options={{
           title: 'Schedule',
-          tabBarIcon: ({ color }) => (
-            <TabIcon ios="calendar" android="calendar_month" color={color} />
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="classes"
-        options={{
-          title: 'Classes',
           headerShown: false,
           tabBarIcon: ({ color }) => (
-            <TabIcon ios="book.closed" android="menu_book" color={color} />
+            <TabIcon ios="calendar" android="calendar_month" color={color} />
           ),
         }}
       />

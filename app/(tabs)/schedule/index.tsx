@@ -12,22 +12,42 @@ import {
   startOfMonth,
   startOfWeek,
 } from 'date-fns';
+import { router } from 'expo-router';
 import { useMemo, useState } from 'react';
-import { Button, H2, Text, XStack, YStack } from 'tamagui';
+import { Button, H2, Paragraph, Text, XStack, YStack } from 'tamagui';
 
 import { AgendaItem } from '@/src/components/AgendaItem';
 import { Card } from '@/src/components/Card';
 import { EmptyState } from '@/src/components/EmptyState';
 import { Screen } from '@/src/components/Screen';
+import { WeekGridCalendar } from '@/src/components/WeekGridCalendar';
+import type { EventOccurrence } from '@/src/lib/occurrences';
 import { getOccurrencesInRange } from '@/src/lib/occurrences';
+import { useClassesStore } from '@/src/state/classesStore';
 import { useScheduleStore } from '@/src/state/scheduleStore';
-import { eventCategoryColors } from '@/src/types';
+import { eventCategoryColors, type ScheduleEvent, type StudiqClass } from '@/src/types';
 
+type TabMode = 'calendar' | 'classes';
 type ViewMode = 'day' | 'week' | 'month';
+
+function openEventDetail(occurrence: EventOccurrence) {
+  router.push({
+    pathname: '/event-detail',
+    params: {
+      eventId: occurrence.event.id,
+      startsAt: occurrence.startsAt.toISOString(),
+      endsAt: occurrence.endsAt.toISOString(),
+    },
+  });
+}
 
 export default function ScheduleScreen() {
   const events = useScheduleStore((state) => state.events);
-  const [viewMode, setViewMode] = useState<ViewMode>('day');
+  const classes = useClassesStore((state) => state.classes);
+  const classesById = useMemo(() => new Map(classes.map((studiqClass) => [studiqClass.id, studiqClass])), [classes]);
+
+  const [tabMode, setTabMode] = useState<TabMode>('calendar');
+  const [viewMode, setViewMode] = useState<ViewMode>('week');
   const [selectedDate, setSelectedDate] = useState(() => startOfDay(new Date()));
 
   function goToDay(direction: 1 | -1) {
@@ -40,48 +60,84 @@ export default function ScheduleScreen() {
     );
   }
 
+  const scroll = tabMode === 'classes' || (tabMode === 'calendar' && viewMode !== 'week' && viewMode !== 'month');
+
   return (
-    <Screen scroll={viewMode !== 'month'}>
+    <Screen scroll={scroll}>
       <YStack gap="$1" paddingTop="$2">
         <H2>Schedule</H2>
       </YStack>
 
       <XStack gap="$2">
-        {(['day', 'week', 'month'] as ViewMode[]).map((mode) => (
+        {(['calendar', 'classes'] as TabMode[]).map((mode) => (
           <Button
             key={mode}
             flex={1}
             size="$3"
-            theme={viewMode === mode ? 'active' : undefined}
-            onPress={() => setViewMode(mode)}>
-            {mode[0].toUpperCase() + mode.slice(1)}
+            theme={tabMode === mode ? 'active' : undefined}
+            onPress={() => setTabMode(mode)}>
+            {mode === 'calendar' ? 'Calendar' : 'Classes'}
           </Button>
         ))}
       </XStack>
 
-      <XStack alignItems="center" justifyContent="space-between">
-        <Button size="$3" chromeless onPress={() => goToDay(-1)}>
-          ‹
-        </Button>
-        <Text fontWeight="600" fontSize="$5">
-          {formatHeader(selectedDate, viewMode)}
-        </Text>
-        <Button size="$3" chromeless onPress={() => goToDay(1)}>
-          ›
-        </Button>
-      </XStack>
+      {tabMode === 'calendar' ? (
+        <>
+          <XStack gap="$2">
+            {(['day', 'week', 'month'] as ViewMode[]).map((mode) => (
+              <Button
+                key={mode}
+                flex={1}
+                size="$2"
+                chromeless={viewMode !== mode}
+                theme={viewMode === mode ? 'active' : undefined}
+                onPress={() => setViewMode(mode)}>
+                {mode[0].toUpperCase() + mode.slice(1)}
+              </Button>
+            ))}
+          </XStack>
 
-      {viewMode === 'day' && <DayView date={selectedDate} events={events} />}
-      {viewMode === 'week' && <WeekView date={selectedDate} events={events} />}
-      {viewMode === 'month' && (
-        <MonthView
-          date={selectedDate}
-          events={events}
-          onSelectDay={(day) => {
-            setSelectedDate(day);
-            setViewMode('day');
-          }}
-        />
+          <XStack alignItems="center" justifyContent="space-between">
+            <Button size="$3" chromeless onPress={() => goToDay(-1)}>
+              ‹
+            </Button>
+            <Text fontWeight="600" fontSize="$5">
+              {formatHeader(selectedDate, viewMode)}
+            </Text>
+            <Button size="$3" chromeless onPress={() => goToDay(1)}>
+              ›
+            </Button>
+          </XStack>
+
+          {viewMode === 'day' && (
+            <DayView
+              date={selectedDate}
+              events={events}
+              classesById={classesById}
+              onSelectOccurrence={openEventDetail}
+            />
+          )}
+          {viewMode === 'week' && (
+            <WeekGridCalendar
+              weekStart={startOfWeek(selectedDate, { weekStartsOn: 1 })}
+              events={events}
+              classesById={classesById}
+              onSelectOccurrence={openEventDetail}
+            />
+          )}
+          {viewMode === 'month' && (
+            <MonthView
+              date={selectedDate}
+              events={events}
+              onSelectDay={(day) => {
+                setSelectedDate(day);
+                setViewMode('day');
+              }}
+            />
+          )}
+        </>
+      ) : (
+        <ClassesList classes={classes} />
       )}
     </Screen>
   );
@@ -97,7 +153,17 @@ function formatHeader(date: Date, viewMode: ViewMode) {
   return format(date, 'MMMM yyyy');
 }
 
-function DayView({ date, events }: { date: Date; events: ReturnType<typeof useScheduleStore.getState>['events'] }) {
+function DayView({
+  date,
+  events,
+  classesById,
+  onSelectOccurrence,
+}: {
+  date: Date;
+  events: ScheduleEvent[];
+  classesById: Map<string, StudiqClass>;
+  onSelectOccurrence: (occurrence: EventOccurrence) => void;
+}) {
   const occurrences = useMemo(() => {
     const rangeStart = startOfDay(date);
     const rangeEnd = addDays(rangeStart, 1);
@@ -113,47 +179,15 @@ function DayView({ date, events }: { date: Date; events: ReturnType<typeof useSc
         <EmptyState message="Nothing scheduled." />
       ) : (
         occurrences.map((occurrence, index) => (
-          <AgendaItem key={`${occurrence.event.id}-${index}`} occurrence={occurrence} />
+          <AgendaItem
+            key={`${occurrence.event.id}-${index}`}
+            occurrence={occurrence}
+            classesById={classesById}
+            onPress={() => onSelectOccurrence(occurrence)}
+          />
         ))
       )}
     </Card>
-  );
-}
-
-function WeekView({ date, events }: { date: Date; events: ReturnType<typeof useScheduleStore.getState>['events'] }) {
-  const days = useMemo(() => {
-    const start = startOfWeek(date, { weekStartsOn: 1 });
-    const end = endOfWeek(date, { weekStartsOn: 1 });
-    return eachDayOfInterval({ start, end });
-  }, [date]);
-
-  return (
-    <YStack gap="$3">
-      {days.map((day) => {
-        const rangeEnd = addDays(day, 1);
-        const occurrences = events
-          .flatMap((event) => getOccurrencesInRange(event, day, rangeEnd))
-          .filter((occurrence) => isSameDay(occurrence.startsAt, day))
-          .sort((a, b) => a.startsAt.getTime() - b.startsAt.getTime());
-
-        return (
-          <YStack key={day.toISOString()} gap="$1.5">
-            <Text fontWeight="600" color="$color10" fontSize="$3">
-              {format(day, 'EEE, MMM d')}
-            </Text>
-            <Card>
-              {occurrences.length === 0 ? (
-                <EmptyState message="Nothing scheduled." />
-              ) : (
-                occurrences.map((occurrence, index) => (
-                  <AgendaItem key={`${occurrence.event.id}-${index}`} occurrence={occurrence} />
-                ))
-              )}
-            </Card>
-          </YStack>
-        );
-      })}
-    </YStack>
   );
 }
 
@@ -163,7 +197,7 @@ function MonthView({
   onSelectDay,
 }: {
   date: Date;
-  events: ReturnType<typeof useScheduleStore.getState>['events'];
+  events: ScheduleEvent[];
   onSelectDay: (day: Date) => void;
 }) {
   const days = useMemo(() => {
@@ -233,6 +267,34 @@ function MonthView({
           );
         })}
       </XStack>
+    </YStack>
+  );
+}
+
+function ClassesList({ classes }: { classes: ReturnType<typeof useClassesStore.getState>['classes'] }) {
+  return classes.length === 0 ? (
+    <EmptyState message="No classes yet. Import a syllabus or add one manually." />
+  ) : (
+    <YStack gap="$3">
+      {classes.map((studiqClass) => (
+        <Card
+          key={studiqClass.id}
+          onPress={() => router.push(`/schedule/classes/${studiqClass.id}`)}
+          pressStyle={{ opacity: 0.7 }}
+          borderLeftWidth={4}
+          style={{ borderLeftColor: studiqClass.color }}>
+          <Text fontWeight="700" fontSize="$5">
+            {studiqClass.name}
+          </Text>
+          <Paragraph color="$color10">
+            {studiqClass.code} · {studiqClass.term}
+          </Paragraph>
+          <Paragraph color="$color10" fontSize="$3">
+            {studiqClass.professor.name}
+            {studiqClass.classroom ? ` · ${studiqClass.classroom}` : ''}
+          </Paragraph>
+        </Card>
+      ))}
     </YStack>
   );
 }
