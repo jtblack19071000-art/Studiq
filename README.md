@@ -113,23 +113,70 @@ npm test            # jest
 ```
 
 [Jest](https://jestjs.io) via [`jest-expo`](https://github.com/expo/expo/tree/main/packages/jest-expo)'s
-`node` preset (no React Native environment/mocks — plain logic tests only, which is all that exists
-so far). Currently covers:
+`node` preset (no React Native rendering — logic and state tests only; see "Other known gaps" below
+for what that excludes). 125 tests across 22 suites, covering every `src/lib/` module and every
+Zustand store in `src/state/`:
 
-- `src/lib/occurrences.ts` (`src/lib/__tests__/occurrences.test.ts`) — non-recurring events in/out
-  of range and on the range boundary, weekly recurrence expansion, duration preservation across
-  generated occurrences, multi-week intervals, and the `until` cutoff.
-- `src/lib/gpa.ts` (`src/lib/__tests__/gpa.test.ts`) — `calculateGpa`'s credit-hour weighting
-  (checked against a hand-computed expected value, not just eyeballed), classes missing a grade or
-  credit hours correctly excluded from the average, an empty class list, and `groupClassesByTerm`.
-- `src/lib/finance.ts` (`src/lib/__tests__/finance.test.ts`) — `calculateMonthlySummary`'s
-  income/expense/balance totals, transactions outside the reference month correctly excluded,
-  income-only and expense-only months (including a negative balance), and an empty list. This
-  summary calculation used to live inline in the Finance screen's `useMemo`; it was pulled out into
-  `src/lib/finance.ts` (verified behavior-unchanged in-browser afterward) so it could be tested the
-  same way as the other calculation modules.
+**Calculation logic**
 
-Nothing else in the app has tests yet — see "Other known gaps" below.
+- `src/lib/occurrences.ts` — non-recurring events in/out of range and on the range boundary, weekly
+  recurrence expansion, duration preservation across generated occurrences, multi-week intervals,
+  and the `until` cutoff.
+- `src/lib/gpa.ts` — `calculateGpa`'s credit-hour weighting (checked against a hand-computed
+  expected value, not just eyeballed), classes missing a grade or credit hours correctly excluded
+  from the average, an empty class list, and `groupClassesByTerm`.
+- `src/lib/finance.ts` — `calculateMonthlySummary`'s income/expense/balance totals, transactions
+  outside the reference month excluded, income-only/expense-only months (including a negative
+  balance), and an empty list. This calculation used to live inline in the Finance screen's
+  `useMemo`; it was pulled out into `src/lib/finance.ts` (verified behavior-unchanged in-browser
+  afterward) so it could be tested like the other calculation modules.
+- `src/lib/notifications.ts` — `planScheduledReminders` (the pure "what to schedule and when" half
+  of the reminder sync, split out from the `expo-notifications`-calling half so the scheduling
+  algorithm itself doesn't need a native environment to test): the 14-day window, skipping reminders
+  whose trigger time has already passed, multiple reminders per event, multiple events, a custom
+  window size, and the reminder body's singular/plural time and optional-location formatting. Plus
+  `syncScheduledReminders`'s and the permission helpers' behavior under the natural test-environment
+  Platform.OS ("web": scheduling APIs are never touched, matching the real web no-scheduling
+  limitation described in "Reminders" above).
+- `src/lib/studyGuidePdf.ts` — `escapeHtml` (the AI-generated-content escaping that keeps a lecture
+  transcript's stray `<`/`&` from breaking the exported PDF's HTML) and `buildStudyGuideHtml`'s
+  per-section rendering and omission-when-empty, both exported from the module specifically for this.
+
+**Client-side error handling** (mocked `fetch`)
+
+- `src/lib/studyAi.ts` and `src/lib/collegeMatchAi.ts` — success responses parsed correctly, a JSON
+  `{error}` body surfaced verbatim, and a non-JSON error body falling back to a generic
+  "Request failed with status N" message, for every API-route wrapper (transcription, per-lecture
+  generation, Unit Study Guide generation, College Match guidance).
+- `src/lib/audioUpload.ts` — the web (fetch-a-blob-URI) vs. native (`{uri, name, type}` descriptor)
+  branches.
+
+**Configuration/degradation branches**
+
+- `src/lib/supabase.ts` — the client is `null` unless both Supabase env vars are set.
+- `src/lib/purchases.ts` — `tierFromEntitlements` (pure), and every exported function's behavior
+  when RevenueCat isn't configured (the state this sandbox is naturally in, with no
+  `EXPO_PUBLIC_REVENUECAT_API_KEY` set) — degrading to the free tier instead of touching the SDK.
+- `src/lib/mmkvStorage.ts` — both the sync (zustand) and async (Supabase auth) storage adapters
+  degrade to `null`/no-op instead of throwing when the underlying MMKV call throws, the exact
+  scenario that crashed the app during static rendering before this wrapper existed (see
+  "Verification notes (Subscriptions & auth)" below).
+
+**Zustand stores** (`src/state/__tests__/`, driven headless via each store's `getState()`/`setState()`
+— no React needed)
+
+- CRUD stores (`notesStore`, `campusResourcesStore`, `careerStore`, `collegeMatchStore`,
+  `goalsStore`, `scheduleStore`, `classesStore`): seeding, id assignment on create, forced initial
+  status on create where the store enforces one (e.g. a new job application always starts "saved"
+  regardless of what's passed in), patch-merge on update touching only the targeted record, and
+  remove.
+- `studyStore` — course/unit/lecture creation defaults (a new unit's study guide always starts
+  `not_generated`; a new lecture always starts `pending`/`not_generated`), patch-merging into a
+  lecture or a unit's nested `studyGuide`, and the `courseByClassId` lookup.
+- `authStore` and `subscriptionStore` — behavior when Supabase/RevenueCat aren't configured (the
+  state this sandbox is naturally in): `init()` finishes without a session, `signUp`/`signIn`
+  surface a clear "not configured" error, `purchase()` rejects instead of silently unlocking
+  Platinum, `refresh()`/`restore()` resolve to the free tier without touching the SDK.
 
 ## Scripts
 
@@ -208,9 +255,15 @@ Beyond the roadmap items above:
 
 - **Only auth talks to Supabase.** No screen syncs its actual data (classes, schedule, study
   materials, etc.) to the cloud yet — everything except the signed-in session is local-only.
-- **Test coverage is minimal.** Only three pure-logic modules (`occurrences.ts`, `gpa.ts`,
-  `finance.ts`) have Jest tests (see "Testing" above) — stores, screens, and API routes have none
-  yet, and there's no Detox/Playwright e2e coverage.
+- **No screen/component or API-route test coverage.** "Testing" above covers every `src/lib/`
+  module and every Zustand store, but nothing renders a screen — that would need `jest-expo`'s React
+  Native preset plus mocking Tamagui's provider and `expo-router`'s navigation context, which hasn't
+  been set up. The four `+api.ts` server routes (transcription, per-lecture generation, Unit Study
+  Guide generation, College Match guidance) are also untested directly — their client-side callers
+  in `src/lib/studyAi.ts`/`collegeMatchAi.ts` are covered, but not the route handlers' own
+  request-parsing or their calls into the `ai` SDK. There's no Detox/Playwright e2e coverage either.
+  Everything currently tested was verified with `jest-expo`'s lightweight `node` preset (no RN
+  rendering environment), which is why it stops at "logic and state," not "UI."
 - **Only tested in a web browser (Chromium)** — never run on a real iOS/Android device or
   simulator. The audio recording, permissions, and native subscription flows in particular should
   be smoke-tested on a real device before shipping; this session could only validate them through

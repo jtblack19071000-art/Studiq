@@ -3,7 +3,7 @@ import * as Sharing from 'expo-sharing';
 
 import type { UnitStudyGuide } from '@/src/types';
 
-function escapeHtml(text: string): string {
+export function escapeHtml(text: string): string {
   return text
     .replace(/&/g, '&amp;')
     .replace(/</g, '&lt;')
@@ -18,7 +18,7 @@ function listSection(title: string, items: string[] | undefined): string {
   `;
 }
 
-function buildStudyGuideHtml(unitTitle: string, guide: UnitStudyGuide): string {
+export function buildStudyGuideHtml(unitTitle: string, guide: UnitStudyGuide): string {
   const vocabularyHtml =
     guide.vocabulary && guide.vocabulary.length > 0
       ? `<h2>Vocabulary</h2><dl>${guide.vocabulary

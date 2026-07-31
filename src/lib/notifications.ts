@@ -46,6 +46,46 @@ function reminderBody(minutesBefore: number, location: string | undefined): stri
   return `Starts in ${timing}${location ? ` · ${location}` : ''}`;
 }
 
+export interface ScheduledReminderPlan {
+  title: string;
+  body: string;
+  triggerDate: Date;
+}
+
+/**
+ * Pure: figures out which reminders should fire and when, within `windowDays` of `now`, without
+ * touching any notification API. Split out from syncScheduledReminders so the actual scheduling
+ * decision — the part worth guarding with tests — doesn't require a native environment to exercise.
+ */
+export function planScheduledReminders(
+  events: ScheduleEvent[],
+  now: Date,
+  windowDays: number = SYNC_WINDOW_DAYS,
+): ScheduledReminderPlan[] {
+  const rangeEnd = new Date(now.getTime() + windowDays * 24 * 60 * 60 * 1000);
+  const plan: ScheduledReminderPlan[] = [];
+
+  for (const event of events) {
+    if (event.reminders.length === 0) continue;
+
+    const occurrences = getOccurrencesInRange(event, now, rangeEnd);
+    for (const occurrence of occurrences) {
+      for (const reminder of event.reminders) {
+        const triggerDate = new Date(occurrence.startsAt.getTime() - reminder.minutesBefore * 60 * 1000);
+        if (triggerDate <= now) continue;
+
+        plan.push({
+          title: event.title,
+          body: reminderBody(reminder.minutesBefore, event.location),
+          triggerDate,
+        });
+      }
+    }
+  }
+
+  return plan;
+}
+
 /**
  * Re-schedules every upcoming reminder from scratch. Simpler and more robust than tracking which
  * individual notifications are stale after an edit — this app doesn't schedule notifications for
@@ -57,26 +97,10 @@ export async function syncScheduledReminders(events: ScheduleEvent[]): Promise<v
 
   await Notifications.cancelAllScheduledNotificationsAsync();
 
-  const now = new Date();
-  const rangeEnd = new Date(now.getTime() + SYNC_WINDOW_DAYS * 24 * 60 * 60 * 1000);
-
-  for (const event of events) {
-    if (event.reminders.length === 0) continue;
-
-    const occurrences = getOccurrencesInRange(event, now, rangeEnd);
-    for (const occurrence of occurrences) {
-      for (const reminder of event.reminders) {
-        const triggerDate = new Date(occurrence.startsAt.getTime() - reminder.minutesBefore * 60 * 1000);
-        if (triggerDate <= now) continue;
-
-        await Notifications.scheduleNotificationAsync({
-          content: {
-            title: event.title,
-            body: reminderBody(reminder.minutesBefore, event.location),
-          },
-          trigger: { type: Notifications.SchedulableTriggerInputTypes.DATE, date: triggerDate },
-        });
-      }
-    }
+  for (const reminder of planScheduledReminders(events, new Date())) {
+    await Notifications.scheduleNotificationAsync({
+      content: { title: reminder.title, body: reminder.body },
+      trigger: { type: Notifications.SchedulableTriggerInputTypes.DATE, date: reminder.triggerDate },
+    });
   }
 }
