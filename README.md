@@ -18,6 +18,8 @@ AI study workspace, in place of paper planners and scattered productivity apps.
 - [Jest](https://jestjs.io) (via [`jest-expo`](https://github.com/expo/expo/tree/main/packages/jest-expo)) for unit tests — see "Testing" below
 - [EAS Build](https://docs.expo.dev/build/introduction/) (`expo-dev-client`) for installable dev
   builds on a physical device — see "Running on a physical device" below
+- [Vercel](https://vercel.com) for a free static web preview deploy — see "Deploying a free
+  preview" below
 
 ## Setup
 
@@ -41,6 +43,40 @@ Without the AI keys configured, recording still works fully (audio is captured a
 transcription/generation fail with a clear in-app error rather than silently doing nothing. Without
 Supabase configured, Platinum features show "sign in required, cloud sync isn't configured" instead
 of a sign-in form. Without the RevenueCat key, Platinum shows as unavailable rather than crashing.
+
+## Deploying a free preview (web)
+
+The cheapest way to get this in front of real people — no $99/year Apple fee, no $25 Google Play
+fee, no app-store review — is a free static web deploy. Studiq already builds to a static site
+(`web.output: "static"` in `app.json`), so any static host works. [Vercel](https://vercel.com)'s
+free Hobby plan is the easiest: no credit card, and it deploys straight from the GitHub repo this
+project is already pushed to.
+
+1. Go to [vercel.com](https://vercel.com) and sign up free (GitHub sign-in is fastest).
+2. **Add New… → Project**, then **Import** this repo (`jtblack19071000-art/Studiq`).
+3. Vercel reads `vercel.json` (already in the repo) automatically — build command
+   `npm run build:web`, output directory `dist`. No settings to fill in; just click **Deploy**.
+4. A couple minutes later you get a public `https://<something>.vercel.app` URL — share it with
+   anyone, no install needed, works on phone or desktop browsers. Every future push to `main`
+   redeploys it automatically.
+
+**What won't work in this mode**: the four AI API routes (transcription, per-lecture generation,
+Unit Study Guide generation, College Match guidance) are server code, and a static export
+deliberately excludes them (`web.output` would need to be `"server"`, which needs an actual Node
+host, not just static file hosting). They fail with a clear in-app error rather than crashing —
+same honest-degradation behavior as running locally without the `OPENAI_API_KEY`/`ANTHROPIC_API_KEY`
+env vars set. Everything else — Schedule, the week grid calendar, Classes, GPA Tracker, Finance,
+Goals, Career Hub, Campus Resources, lecture recording (capture only, not transcription),
+Settings — works exactly as it does locally. If you later want the AI routes live too, that's a
+bigger step (Vercel does support Expo Router's Node/server output via its serverless functions,
+but it's more setup and means paying for OpenAI/Anthropic API usage on a publicly-reachable URL —
+worth doing deliberately, not as a default).
+
+`vercel.json`'s `rewrites` entry sends any URL Vercel doesn't find a static file for (e.g. a
+dynamic route like `/study/<some-real-id>`) to `index.html`, where Expo Router's client-side
+routing takes over — the standard pattern for deploying a client-rendered Expo Router app to a
+static host. Routes that do have a matching static file (e.g. `/schedule`) are served directly by
+Vercel's default clean-URL resolution, no rewrite needed.
 
 ## Running on a physical device (EAS Build)
 
