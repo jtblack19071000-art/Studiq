@@ -9,20 +9,19 @@ beforeEach(() => {
 });
 
 describe('useStudyStore', () => {
-  it('seeds with a starter course, unit, and lecture', () => {
+  it('starts blank so every student begins with their own courses, not sample data', () => {
     const state = useStudyStore.getState();
-    expect(state.courses.length).toBeGreaterThan(0);
-    expect(state.units.length).toBeGreaterThan(0);
-    expect(state.lectures.length).toBeGreaterThan(0);
+    expect(state.courses).toEqual([]);
+    expect(state.units).toEqual([]);
+    expect(state.lectures).toEqual([]);
   });
 
   it('addCourse assigns an id and createdAt', () => {
-    const before = useStudyStore.getState().courses.length;
     const created = useStudyStore.getState().addCourse({ classId: 'class-1', title: 'Intro to Physics' });
 
     expect(created.id).toBeTruthy();
     expect(created.createdAt).toBeTruthy();
-    expect(useStudyStore.getState().courses).toHaveLength(before + 1);
+    expect(useStudyStore.getState().courses).toEqual([created]);
   });
 
   it('addUnit always starts with a not_generated study guide', () => {
@@ -44,26 +43,46 @@ describe('useStudyStore', () => {
   });
 
   it('updateLecture merges a patch onto only the targeted lecture', () => {
-    const seededTranscript = useStudyStore.getState().lectures[0].transcript;
-    const created = useStudyStore.getState().addLecture({
+    const first = useStudyStore.getState().addLecture({
       unitId: 'unit-1',
       title: 'Lecture 1',
       recordedAt: '2024-03-01T00:00:00.000Z',
       durationSeconds: 600,
     });
-    const seededId = useStudyStore.getState().lectures[0].id;
+    const second = useStudyStore.getState().addLecture({
+      unitId: 'unit-1',
+      title: 'Lecture 2',
+      recordedAt: '2024-03-08T00:00:00.000Z',
+      durationSeconds: 600,
+    });
 
-    useStudyStore.getState().updateLecture(created.id, {
+    useStudyStore.getState().updateLecture(first.id, {
       transcriptionStatus: 'transcribed',
       transcript: 'Full transcript text.',
     });
 
     const lectures = useStudyStore.getState().lectures;
-    const updated = lectures.find((lecture) => lecture.id === created.id);
-    expect(updated?.transcriptionStatus).toBe('transcribed');
-    expect(updated?.transcript).toBe('Full transcript text.');
-    // The seeded lecture is untouched by patching a different lecture.
-    expect(lectures.find((lecture) => lecture.id === seededId)?.transcript).toBe(seededTranscript);
+    expect(lectures.find((lecture) => lecture.id === first.id)?.transcript).toBe('Full transcript text.');
+    expect(lectures.find((lecture) => lecture.id === second.id)?.transcript).toBeUndefined();
+  });
+
+  it('removeLecture removes only the targeted lecture', () => {
+    const first = useStudyStore.getState().addLecture({
+      unitId: 'unit-1',
+      title: 'Lecture 1',
+      recordedAt: '2024-03-01T00:00:00.000Z',
+      durationSeconds: 600,
+    });
+    const second = useStudyStore.getState().addLecture({
+      unitId: 'unit-1',
+      title: 'Lecture 2',
+      recordedAt: '2024-03-08T00:00:00.000Z',
+      durationSeconds: 600,
+    });
+
+    useStudyStore.getState().removeLecture(first.id);
+
+    expect(useStudyStore.getState().lectures).toEqual([second]);
   });
 
   it('updateUnitStudyGuide merges a patch into the existing studyGuide rather than replacing it', () => {
@@ -77,9 +96,9 @@ describe('useStudyStore', () => {
   });
 
   it('courseByClassId finds the course linked to a class, or undefined if none exists', () => {
-    const seededCourse = useStudyStore.getState().courses[0];
+    const created = useStudyStore.getState().addCourse({ classId: 'class-1', title: 'Intro to Physics' });
 
-    expect(useStudyStore.getState().courseByClassId(seededCourse.classId)).toEqual(seededCourse);
+    expect(useStudyStore.getState().courseByClassId(created.classId)).toEqual(created);
     expect(useStudyStore.getState().courseByClassId('no-such-class')).toBeUndefined();
   });
 });

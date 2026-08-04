@@ -1,7 +1,8 @@
 import { format } from 'date-fns';
-import { useLocalSearchParams } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 import { useState } from 'react';
-import { Button, H2, Paragraph, Text, YStack } from 'tamagui';
+import { Alert, Platform } from 'react-native';
+import { Button, H2, Input, Paragraph, Text, XStack, YStack } from 'tamagui';
 
 import { Card } from '@/src/components/Card';
 import { EmptyState } from '@/src/components/EmptyState';
@@ -13,11 +14,18 @@ import { useStudyStore } from '@/src/state/studyStore';
 import { useSubscriptionStore } from '@/src/state/subscriptionStore';
 
 export default function LectureDetailScreen() {
-  const { lectureId } = useLocalSearchParams<{ courseId: string; unitId: string; lectureId: string }>();
+  const { courseId, unitId, lectureId } = useLocalSearchParams<{
+    courseId: string;
+    unitId: string;
+    lectureId: string;
+  }>();
   const lecture = useStudyStore((state) => state.lectures.find((l) => l.id === lectureId));
   const updateLecture = useStudyStore((state) => state.updateLecture);
+  const removeLecture = useStudyStore((state) => state.removeLecture);
   const isPlatinum = useSubscriptionStore((state) => state.tier === 'platinum');
   const [generateError, setGenerateError] = useState<string | null>(null);
+  const [isRenaming, setIsRenaming] = useState(false);
+  const [titleDraft, setTitleDraft] = useState('');
 
   if (!lecture) {
     return (
@@ -25,6 +33,37 @@ export default function LectureDetailScreen() {
         <EmptyState message="Lecture not found." />
       </Screen>
     );
+  }
+
+  function handleStartRename() {
+    setTitleDraft(lecture!.title);
+    setIsRenaming(true);
+  }
+
+  function handleSaveRename() {
+    if (titleDraft.trim()) {
+      updateLecture(lectureId!, { title: titleDraft.trim() });
+    }
+    setIsRenaming(false);
+  }
+
+  function handleDelete() {
+    function performDelete() {
+      removeLecture(lecture!.id);
+      router.replace(`/study/${courseId}/${unitId}`);
+    }
+
+    if (Platform.OS === 'web') {
+      if (window.confirm(`Delete "${lecture!.title}"? This can't be undone.`)) {
+        performDelete();
+      }
+      return;
+    }
+
+    Alert.alert('Delete lecture?', `"${lecture!.title}" and its transcript/materials will be removed.`, [
+      { text: 'Cancel', style: 'cancel' },
+      { text: 'Delete', style: 'destructive', onPress: performDelete },
+    ]);
   }
 
   async function handleGenerateMaterials() {
@@ -43,14 +82,36 @@ export default function LectureDetailScreen() {
 
   return (
     <Screen>
-      <YStack gap="$1" paddingTop="$2">
-        <H2>{lecture.title}</H2>
+      <YStack gap="$2" paddingTop="$2">
+        {isRenaming ? (
+          <XStack gap="$2" alignItems="center">
+            <Input flex={1} value={titleDraft} onChangeText={setTitleDraft} autoFocus />
+            <Button size="$3" theme="active" onPress={handleSaveRename}>
+              Save
+            </Button>
+            <Button size="$3" chromeless onPress={() => setIsRenaming(false)}>
+              Cancel
+            </Button>
+          </XStack>
+        ) : (
+          <H2>{lecture.title}</H2>
+        )}
         <Paragraph color="$color10">
           {format(new Date(lecture.recordedAt), 'EEE MMM d, h:mm a')}
           {lecture.durationSeconds > 0
             ? ` · ${Math.floor(lecture.durationSeconds / 60)}:${(lecture.durationSeconds % 60).toString().padStart(2, '0')}`
             : ''}
         </Paragraph>
+        {!isRenaming ? (
+          <XStack gap="$3">
+            <Button size="$3" onPress={handleStartRename}>
+              ✏️ Rename
+            </Button>
+            <Button size="$3" theme="red" onPress={handleDelete}>
+              🗑️ Delete
+            </Button>
+          </XStack>
+        ) : null}
       </YStack>
 
       <YStack gap="$2">

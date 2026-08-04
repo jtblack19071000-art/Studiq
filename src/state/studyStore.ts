@@ -13,52 +13,22 @@ interface StudyState {
   addUnit: (input: Omit<StudyUnit, 'id' | 'createdAt' | 'studyGuide'>) => StudyUnit;
   addLecture: (input: Omit<Lecture, 'id' | 'transcriptionStatus' | 'generationStatus'>) => Lecture;
   updateLecture: (id: string, patch: Partial<Omit<Lecture, 'id'>>) => void;
+  removeLecture: (id: string) => void;
   updateUnitStudyGuide: (unitId: string, patch: Partial<UnitStudyGuide>) => void;
   courseByClassId: (classId: string) => StudyCourse | undefined;
 }
 
-const seedCourseId = 'seed-course-orgo';
-const seedUnitId = 'seed-unit-1';
-
-const seedCourses: StudyCourse[] = [
-  {
-    id: seedCourseId,
-    classId: 'seed-class-orgo',
-    title: 'Organic Chemistry II',
-    createdAt: new Date().toISOString(),
-  },
-];
-
-const seedUnits: StudyUnit[] = [
-  {
-    id: seedUnitId,
-    courseId: seedCourseId,
-    title: 'Unit 1 — Nucleophilic Substitution',
-    createdAt: new Date().toISOString(),
-    studyGuide: { status: 'not_generated' },
-  },
-];
-
-const seedLectures: Lecture[] = [
-  {
-    id: 'seed-lecture-1',
-    unitId: seedUnitId,
-    title: 'Lecture 3 — SN1 vs SN2',
-    recordedAt: new Date().toISOString(),
-    durationSeconds: 2820,
-    transcriptionStatus: 'transcribed',
-    transcript: 'Full transcript will appear here once a real lecture is recorded.',
-    generationStatus: 'ready',
-    generatedSummary: 'Placeholder summary — this seed lecture has no real audio behind it.',
-  },
-];
+/** Drops any leftover pre-launch sample content (ids prefixed `seed-`) while keeping data the user entered themselves. */
+function dropSeeds<T extends { id: string }>(items: T[] | undefined): T[] {
+  return (items ?? []).filter((item) => !item.id.startsWith('seed-'));
+}
 
 export const useStudyStore = create<StudyState>()(
   persist(
     (set, get) => ({
-      courses: seedCourses,
-      units: seedUnits,
-      lectures: seedLectures,
+      courses: [],
+      units: [],
+      lectures: [],
       addCourse: (input) => {
         const created: StudyCourse = { ...input, id: createId(), createdAt: new Date().toISOString() };
         set((state) => ({ courses: [...state.courses, created] }));
@@ -89,6 +59,9 @@ export const useStudyStore = create<StudyState>()(
           lectures: state.lectures.map((lecture) => (lecture.id === id ? { ...lecture, ...patch } : lecture)),
         }));
       },
+      removeLecture: (id) => {
+        set((state) => ({ lectures: state.lectures.filter((lecture) => lecture.id !== id) }));
+      },
       updateUnitStudyGuide: (unitId, patch) => {
         set((state) => ({
           units: state.units.map((unit) =>
@@ -98,6 +71,19 @@ export const useStudyStore = create<StudyState>()(
       },
       courseByClassId: (classId) => get().courses.find((course) => course.classId === classId),
     }),
-    { name: 'studiq-study', storage: createJSONStorage(() => mmkvStateStorage) },
+    {
+      name: 'studiq-study',
+      storage: createJSONStorage(() => mmkvStateStorage),
+      version: 2,
+      migrate: (persistedState) => {
+        const state = persistedState as StudyState;
+        return {
+          ...state,
+          courses: dropSeeds(state?.courses),
+          units: dropSeeds(state?.units),
+          lectures: dropSeeds(state?.lectures),
+        };
+      },
+    },
   ),
 );
