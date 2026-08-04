@@ -1,7 +1,7 @@
 import { format } from 'date-fns';
 import { Link, router } from 'expo-router';
 import { useMemo } from 'react';
-import { Button, H2, Paragraph, Text, TextArea, YStack } from 'tamagui';
+import { Button, H1, Paragraph, Text, TextArea, YStack } from 'tamagui';
 
 import { AgendaItem } from '@/src/components/AgendaItem';
 import { Card } from '@/src/components/Card';
@@ -13,6 +13,15 @@ import { getOccurrencesInRange } from '@/src/lib/occurrences';
 import { useClassesStore } from '@/src/state/classesStore';
 import { useNotesStore } from '@/src/state/notesStore';
 import { useScheduleStore } from '@/src/state/scheduleStore';
+import { ACCENT_SOFT_BG, ACCENT_TINT, useThemeStore } from '@/src/state/themeStore';
+
+function greeting(): string {
+  const hour = new Date().getHours();
+  if (hour < 5) return 'Up late 🌙';
+  if (hour < 12) return 'Good morning ☀️';
+  if (hour < 17) return 'Good afternoon 👋';
+  return 'Good evening 🌆';
+}
 
 function openEventDetail(occurrence: EventOccurrence) {
   router.push({
@@ -38,6 +47,7 @@ function endOfToday() {
 }
 
 export default function HomeScreen() {
+  const accentColor = useThemeStore((state) => state.accentColor);
   const events = useScheduleStore((state) => state.events);
   const assignments = useClassesStore((state) => state.assignments);
   const exams = useClassesStore((state) => state.exams);
@@ -74,24 +84,38 @@ export default function HomeScreen() {
       .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
   }, [exams]);
 
+  const eventCount = todaysOccurrences.length;
+  const dueSoonCount = upcomingAssignments.length + upcomingExams.length;
+
   return (
     <Screen>
-      <YStack gap="$1" paddingTop="$2">
-        <Paragraph color="$color10">{format(new Date(), 'EEEE, MMMM d')}</Paragraph>
-        <H2>Today</H2>
+      <YStack
+        borderRadius="$8"
+        padding="$5"
+        gap="$1"
+        marginTop="$2"
+        style={{ backgroundColor: ACCENT_SOFT_BG[accentColor] }}>
+        <Text fontWeight="700" fontSize="$5" style={{ color: ACCENT_TINT[accentColor] }}>
+          {greeting()}
+        </Text>
+        <H1 fontSize="$9">{format(new Date(), 'EEEE, MMM d')}</H1>
+        <Paragraph color="$color11" fontSize="$4">
+          {eventCount === 0 ? 'Nothing on the calendar today.' : `${eventCount} thing${eventCount === 1 ? '' : 's'} on today`}
+          {dueSoonCount > 0 ? ` · ${dueSoonCount} due soon` : ''}
+        </Paragraph>
       </YStack>
 
       <Link href="/modal" asChild>
-        <Button size="$4" theme="active">
-          + Quick add
+        <Button size="$4" theme="active" borderRadius="$10">
+          ✚ Quick add
         </Button>
       </Link>
 
       <YStack gap="$2">
-        <SectionHeader title="Timeline" />
+        <SectionHeader title="Timeline" emoji="🗓️" />
         <Card>
           {todaysOccurrences.length === 0 ? (
-            <EmptyState message="Nothing scheduled today." />
+            <EmptyState emoji="🌿" message="Nothing scheduled today." />
           ) : (
             todaysOccurrences.map((occurrence, index) => (
               <AgendaItem
@@ -106,10 +130,10 @@ export default function HomeScreen() {
       </YStack>
 
       <YStack gap="$2">
-        <SectionHeader title="Upcoming assignments" />
+        <SectionHeader title="Upcoming assignments" emoji="📌" />
         <Card>
           {upcomingAssignments.length === 0 ? (
-            <EmptyState message="No assignments due in the next 7 days." />
+            <EmptyState emoji="🎉" message="No assignments due in the next 7 days." />
           ) : (
             upcomingAssignments.map((assignment) => {
               const studiqClass = classes.find((c) => c.id === assignment.classId);
@@ -127,10 +151,10 @@ export default function HomeScreen() {
       </YStack>
 
       <YStack gap="$2">
-        <SectionHeader title="Upcoming exams" />
+        <SectionHeader title="Upcoming exams" emoji="🧪" />
         <Card>
           {upcomingExams.length === 0 ? (
-            <EmptyState message="No exams in the next 14 days." />
+            <EmptyState emoji="😌" message="No exams in the next 14 days." />
           ) : (
             upcomingExams.map((exam) => {
               const studiqClass = classes.find((c) => c.id === exam.classId);
@@ -148,7 +172,7 @@ export default function HomeScreen() {
       </YStack>
 
       <YStack gap="$2">
-        <SectionHeader title="Daily note" />
+        <SectionHeader title="Daily note" emoji="🗒️" />
         <Card>
           <TextArea
             placeholder="Anything worth remembering about today..."

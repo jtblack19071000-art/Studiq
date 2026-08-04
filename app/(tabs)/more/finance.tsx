@@ -57,14 +57,14 @@ export default function FinanceScreen() {
   return (
     <Screen>
       <YStack gap="$1" paddingTop="$2">
-        <H2>Finance</H2>
+        <H2>💸 Finance</H2>
       </YStack>
 
       <Card>
         <XStack justifyContent="space-between">
           <YStack alignItems="center" flex={1}>
             <Text color="$color10" fontSize="$2">
-              Income
+              💰 Income
             </Text>
             <Text fontWeight="700" fontSize="$6" color="$green10">
               {formatCurrency(summary.income)}
@@ -72,7 +72,7 @@ export default function FinanceScreen() {
           </YStack>
           <YStack alignItems="center" flex={1}>
             <Text color="$color10" fontSize="$2">
-              Expenses
+              🧾 Expenses
             </Text>
             <Text fontWeight="700" fontSize="$6" color="$red10">
               {formatCurrency(summary.expenses)}
@@ -80,7 +80,7 @@ export default function FinanceScreen() {
           </YStack>
           <YStack alignItems="center" flex={1}>
             <Text color="$color10" fontSize="$2">
-              Balance
+              ⚖️ Balance
             </Text>
             <Text fontWeight="700" fontSize="$6">
               {formatCurrency(summary.balance)}
@@ -95,7 +95,7 @@ export default function FinanceScreen() {
       <FinancialProfileSection />
 
       <YStack gap="$2">
-        <SectionHeader title="Add transaction" />
+        <SectionHeader title="Add transaction" emoji="➕" />
         <Card gap="$3">
           <XStack gap="$2">
             <Input flex={1} placeholder="Title" value={title} onChangeText={setTitle} />
@@ -128,10 +128,10 @@ export default function FinanceScreen() {
       </YStack>
 
       <YStack gap="$2">
-        <SectionHeader title="Recent transactions" />
+        <SectionHeader title="Recent transactions" emoji="🧾" />
         {transactions.length === 0 ? (
           <Card>
-            <EmptyState message="No transactions yet." />
+            <EmptyState emoji="💳" message="No transactions yet." />
           </Card>
         ) : (
           <YStack gap="$2">
@@ -173,7 +173,7 @@ function FinancialProfileSection() {
 
   return (
     <YStack gap="$2">
-      <SectionHeader title="Financial profile" />
+      <SectionHeader title="Financial profile" emoji="🧑‍🎓" />
       <Card gap="$3">
         <Paragraph color="$color10" fontSize="$3">
           Set this up once — your school, jobs, and scholarships — so Studiq can estimate your monthly income.

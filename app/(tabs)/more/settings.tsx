@@ -55,11 +55,11 @@ export default function SettingsScreen() {
   return (
     <Screen>
       <YStack gap="$1" paddingTop="$2">
-        <H2>Settings</H2>
+        <H2>⚙️ Settings</H2>
       </YStack>
 
       <YStack gap="$2">
-        <SectionHeader title="Account & sync" />
+        <SectionHeader title="Account & sync" emoji="☁️" />
         <Card gap="$3">
           <YStack>
             <Text fontWeight="600">Cloud sync</Text>
@@ -85,7 +85,7 @@ export default function SettingsScreen() {
       </YStack>
 
       <YStack gap="$2">
-        <SectionHeader title="Subscription" />
+        <SectionHeader title="Subscription" emoji="💎" />
         <Card>
           <Text fontWeight="600">
             Current plan: {tier === 'platinum' ? 'Platinum' : 'Free'}
@@ -105,7 +105,7 @@ export default function SettingsScreen() {
       </YStack>
 
       <YStack gap="$2">
-        <SectionHeader title="Reminders & notifications" />
+        <SectionHeader title="Reminders & notifications" emoji="🔔" />
         <Card gap="$2">
           {!notificationsSchedulingSupported ? (
             <Paragraph color="$color10" fontSize="$3">
@@ -132,7 +132,7 @@ export default function SettingsScreen() {
       <AppearanceSection />
 
       <YStack gap="$2">
-        <SectionHeader title="About" />
+        <SectionHeader title="About" emoji="ℹ️" />
         <Card>
           <Paragraph color="$color10" fontSize="$3">
             Studiq v{Constants.expoConfig?.version ?? '1.0.0'}

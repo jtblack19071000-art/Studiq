@@ -41,14 +41,14 @@ export default function CampusResourcesScreen() {
   return (
     <Screen>
       <YStack gap="$1" paddingTop="$2">
-        <H2>Campus Resources</H2>
+        <H2>🧭 Campus Resources</H2>
         <Paragraph color="$color10">
           Your personal directory — add the offices and services your campus offers.
         </Paragraph>
       </YStack>
 
       <YStack gap="$2">
-        <SectionHeader title="Add resource" />
+        <SectionHeader title="Add resource" emoji="➕" />
         <Card gap="$3">
           <Input placeholder="Name, e.g. Writing Center" value={name} onChangeText={setName} />
           <XStack flexWrap="wrap" gap="$2">
@@ -72,10 +72,10 @@ export default function CampusResourcesScreen() {
       </YStack>
 
       <YStack gap="$2">
-        <SectionHeader title="Directory" />
+        <SectionHeader title="Directory" emoji="📇" />
         {resources.length === 0 ? (
           <Card>
-            <EmptyState message="No resources added yet." />
+            <EmptyState emoji="🧭" message="No resources added yet." />
           </Card>
         ) : (
           <YStack gap="$3">

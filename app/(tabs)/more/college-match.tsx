@@ -72,7 +72,7 @@ export default function CollegeMatchScreen() {
   return (
     <Screen>
       <YStack gap="$1" paddingTop="$2">
-        <H2>College Match</H2>
+        <H2>🏫 College Match</H2>
         <Paragraph color="$color10">
           An AI-guided best-fit quiz — not a database match, since there isn&apos;t one, but honest
           reasoning over your own preferences.
@@ -81,7 +81,7 @@ export default function CollegeMatchScreen() {
 
       <PlatinumGate>
         <YStack gap="$2">
-          <SectionHeader title="Your preferences" />
+          <SectionHeader title="Your preferences" emoji="🧑‍🎓" />
           <Card gap="$3">
             <Input
               placeholder="Intended major"
@@ -113,7 +113,7 @@ export default function CollegeMatchScreen() {
         </YStack>
 
         <YStack gap="$2">
-          <SectionHeader title="Add a school" />
+          <SectionHeader title="Add a school" emoji="➕" />
           <Card gap="$3">
             <Input placeholder="School name" value={name} onChangeText={setName} />
             <Input placeholder="Program (optional)" value={program} onChangeText={setProgram} />
@@ -126,10 +126,10 @@ export default function CollegeMatchScreen() {
         </YStack>
 
         <YStack gap="$2">
-          <SectionHeader title="Saved schools" />
+          <SectionHeader title="Saved schools" emoji="🏫" />
           {schools.length === 0 ? (
             <Card>
-              <EmptyState message="No schools saved yet." />
+              <EmptyState emoji="🏫" message="No schools saved yet." />
             </Card>
           ) : (
             <YStack gap="$3">
@@ -168,7 +168,7 @@ export default function CollegeMatchScreen() {
         </YStack>
 
         <YStack gap="$2">
-          <SectionHeader title="AI best-fit guidance" />
+          <SectionHeader title="AI best-fit guidance" emoji="✨" />
           <Button theme="active" onPress={handleGetGuidance} disabled={guidanceLoading}>
             {guidanceLoading ? 'Thinking…' : 'Get AI guidance'}
           </Button>

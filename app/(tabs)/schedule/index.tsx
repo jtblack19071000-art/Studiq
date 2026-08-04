@@ -65,7 +65,7 @@ export default function ScheduleScreen() {
   return (
     <Screen scroll={scroll}>
       <YStack gap="$1" paddingTop="$2">
-        <H2>Schedule</H2>
+        <H2>📅 Schedule</H2>
       </YStack>
 
       <XStack gap="$2">

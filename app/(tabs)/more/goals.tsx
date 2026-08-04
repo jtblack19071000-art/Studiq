@@ -20,7 +20,7 @@ function GoalCard({ goal }: { goal: Goal }) {
   const removeGoal = useGoalsStore((state) => state.removeGoal);
 
   return (
-    <Card borderLeftWidth={4} style={{ borderLeftColor: goal.status === 'completed' ? '#4C9F4C' : '#8A8F98' }}>
+    <Card accentColor={goal.status === 'completed' ? '#4C9F4C' : '#8A8F98'}>
       <XStack justifyContent="space-between" alignItems="flex-start">
         <YStack flex={1}>
           <Text fontWeight="700" fontSize="$5">
@@ -82,11 +82,11 @@ export default function GoalsScreen() {
   return (
     <Screen>
       <YStack gap="$1" paddingTop="$2">
-        <H2>Goals</H2>
+        <H2>🎯 Goals</H2>
       </YStack>
 
       <YStack gap="$2">
-        <SectionHeader title="Add goal" />
+        <SectionHeader title="Add goal" emoji="➕" />
         <Card gap="$3">
           <Input placeholder="What do you want to accomplish?" value={title} onChangeText={setTitle} />
           <Input
@@ -113,11 +113,11 @@ export default function GoalsScreen() {
       </YStack>
 
       {goals.length === 0 ? (
-        <EmptyState message="No goals yet." />
+        <EmptyState emoji="🎯" message="No goals yet." />
       ) : (
         <>
           <YStack gap="$2">
-            <SectionHeader title="In progress" />
+            <SectionHeader title="In progress" emoji="🚀" />
             {grouped.in_progress.length === 0 ? (
               <Card>
                 <EmptyState message="Nothing in progress." />
@@ -132,7 +132,7 @@ export default function GoalsScreen() {
           </YStack>
 
           <YStack gap="$2">
-            <SectionHeader title="Not started" />
+            <SectionHeader title="Not started" emoji="🗓️" />
             {grouped.not_started.length === 0 ? (
               <Card>
                 <EmptyState message="Nothing here." />
@@ -147,7 +147,7 @@ export default function GoalsScreen() {
           </YStack>
 
           <YStack gap="$2">
-            <SectionHeader title="Completed" />
+            <SectionHeader title="Completed" emoji="✅" />
             {grouped.completed.length === 0 ? (
               <Card>
                 <EmptyState message="Nothing completed yet." />

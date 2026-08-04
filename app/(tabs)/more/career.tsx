@@ -34,12 +34,12 @@ export default function CareerScreen() {
   return (
     <Screen>
       <YStack gap="$1" paddingTop="$2">
-        <H2>Career Hub</H2>
+        <H2>💼 Career Hub</H2>
         <Paragraph color="$color10">Track internship and job applications from saved to offer.</Paragraph>
       </YStack>
 
       <YStack gap="$2">
-        <SectionHeader title="Add application" />
+        <SectionHeader title="Add application" emoji="➕" />
         <Card gap="$3">
           <Input placeholder="Company" value={company} onChangeText={setCompany} />
           <Input placeholder="Role" value={role} onChangeText={setRole} />
@@ -51,10 +51,10 @@ export default function CareerScreen() {
       </YStack>
 
       <YStack gap="$2">
-        <SectionHeader title="Applications" />
+        <SectionHeader title="Applications" emoji="📋" />
         {applications.length === 0 ? (
           <Card>
-            <EmptyState message="No applications tracked yet." />
+            <EmptyState emoji="💼" message="No applications tracked yet." />
           </Card>
         ) : (
           <YStack gap="$3">

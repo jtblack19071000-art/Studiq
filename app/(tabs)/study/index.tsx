@@ -1,5 +1,5 @@
 import { router } from 'expo-router';
-import { H2, Paragraph, Text, YStack } from 'tamagui';
+import { H1, Paragraph, Text, YStack } from 'tamagui';
 
 import { Card } from '@/src/components/Card';
 import { EmptyState } from '@/src/components/EmptyState';
@@ -15,14 +15,14 @@ export default function StudyScreen() {
   return (
     <Screen>
       <YStack gap="$1" paddingTop="$2">
-        <H2>Study</H2>
+        <H1 fontSize="$9">🎙️ Study</H1>
         <Paragraph color="$color10">
           Record lectures by unit, then generate a study guide from everything in that unit.
         </Paragraph>
       </YStack>
 
       {courses.length === 0 ? (
-        <EmptyState message="Open a class and tap 'Open Study workspace' to get started." />
+        <EmptyState emoji="📚" message="Open a class and tap 'Open Study workspace' to get started." />
       ) : (
         <YStack gap="$3">
           {courses.map((course) => {
@@ -32,14 +32,13 @@ export default function StudyScreen() {
               <Card
                 key={course.id}
                 onPress={() => router.push(`/study/${course.id}`)}
-                pressStyle={{ opacity: 0.7 }}
-                borderLeftWidth={4}
-                style={{ borderLeftColor: studiqClass?.color ?? '#8A8F98' }}>
-                <Text fontWeight="700" fontSize="$5">
+                pressStyle={{ opacity: 0.7, scale: 0.99 }}
+                accentColor={studiqClass?.color ?? '#8A8F98'}>
+                <Text fontWeight="700" fontSize="$6">
                   {course.title}
                 </Text>
                 <Paragraph color="$color10">
-                  {unitCount} unit{unitCount === 1 ? '' : 's'}
+                  📗 {unitCount} unit{unitCount === 1 ? '' : 's'}
                 </Paragraph>
               </Card>
             );

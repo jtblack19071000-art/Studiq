@@ -19,11 +19,11 @@ export default function GpaScreen() {
   return (
     <Screen>
       <YStack gap="$1" paddingTop="$2">
-        <H2>GPA Tracker</H2>
+        <H2>🎓 GPA Tracker</H2>
       </YStack>
 
-      <Card alignItems="center" paddingVertical="$5">
-        <Text fontSize="$10" fontWeight="700">
+      <Card alignItems="center" paddingVertical="$5" style={{ backgroundColor: 'rgba(59, 111, 224, 0.1)' }}>
+        <Text fontSize="$10" fontWeight="800">
           {overall.gpa !== null ? overall.gpa.toFixed(2) : '—'}
         </Text>
         <Paragraph color="$color10">
@@ -32,7 +32,7 @@ export default function GpaScreen() {
       </Card>
 
       {classes.length === 0 ? (
-        <EmptyState message="Add classes from the Classes tab to start tracking your GPA." />
+        <EmptyState emoji="🎓" message="Add classes from the Classes tab to start tracking your GPA." />
       ) : (
         Array.from(termGroups.entries()).map(([term, termClasses]) => {
           const termGpa = calculateGpa(termClasses);

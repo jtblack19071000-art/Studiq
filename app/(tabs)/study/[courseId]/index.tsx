@@ -54,21 +54,22 @@ export default function CourseUnitsScreen() {
       </XStack>
 
       {units.length === 0 ? (
-        <EmptyState message="No units yet. Create one above to start recording lectures." />
+        <EmptyState emoji="🗂️" message="No units yet. Create one above to start recording lectures." />
       ) : (
         <YStack gap="$3">
           {units.map((unit) => {
             const lectureCount = lectures.filter((lecture) => lecture.unitId === unit.id).length;
+            const studyGuideReady = unit.studyGuide.status === 'ready';
             return (
               <Card
                 key={unit.id}
                 onPress={() => router.push(`/study/${course.id}/${unit.id}`)}
-                pressStyle={{ opacity: 0.7 }}>
-                <Text fontWeight="700" fontSize="$5">
+                pressStyle={{ opacity: 0.7, scale: 0.99 }}>
+                <Text fontWeight="700" fontSize="$6">
                   {unit.title}
                 </Text>
                 <Paragraph color="$color10">
-                  {lectureCount} lecture{lectureCount === 1 ? '' : 's'} · Study guide:{' '}
+                  🎙️ {lectureCount} lecture{lectureCount === 1 ? '' : 's'} · {studyGuideReady ? '✅' : '📄'} study guide{' '}
                   {unit.studyGuide.status.replace('_', ' ')}
                 </Paragraph>
               </Card>

@@ -16,6 +16,14 @@ export const ACCENT_TINT: Record<AccentColor, string> = {
   yellow: '#E0B93B',
 };
 
+/** Translucent version of ACCENT_TINT for hero/highlight card backgrounds — works over light or dark. */
+export const ACCENT_SOFT_BG: Record<AccentColor, string> = {
+  blue: 'rgba(59, 111, 224, 0.14)',
+  green: 'rgba(76, 159, 76, 0.14)',
+  red: 'rgba(224, 71, 59, 0.14)',
+  yellow: 'rgba(224, 185, 59, 0.18)',
+};
+
 interface ThemeState {
   accentColor: AccentColor;
   colorSchemeOverride: ColorSchemeOverride;
