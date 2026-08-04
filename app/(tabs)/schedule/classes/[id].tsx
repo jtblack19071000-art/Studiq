@@ -1,7 +1,7 @@
 import { format } from 'date-fns';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useMemo } from 'react';
-import { Button, H2, Paragraph, Text, YStack } from 'tamagui';
+import { Button, H2, Paragraph, Text, XStack, YStack } from 'tamagui';
 
 import { Card } from '@/src/components/Card';
 import { EmptyState } from '@/src/components/EmptyState';
@@ -55,9 +55,14 @@ export default function ClassDetailScreen() {
         </Paragraph>
       </YStack>
 
-      <Button size="$4" theme="active" onPress={goToStudyWorkspace}>
-        Open Study workspace
-      </Button>
+      <XStack gap="$3">
+        <Button flex={1} size="$4" theme="active" onPress={goToStudyWorkspace}>
+          Open Study workspace
+        </Button>
+        <Button size="$4" onPress={() => router.push(`/schedule/classes/${studiqClass.id}/edit`)}>
+          Edit
+        </Button>
+      </XStack>
 
       <YStack gap="$2">
         <SectionHeader title="Professor" />

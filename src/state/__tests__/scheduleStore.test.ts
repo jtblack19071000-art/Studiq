@@ -17,23 +17,20 @@ beforeEach(() => {
 });
 
 describe('useScheduleStore', () => {
-  it('seeds with starter events', () => {
-    expect(useScheduleStore.getState().events.length).toBeGreaterThan(0);
+  it('starts blank so every student begins with their own schedule, not sample data', () => {
+    expect(useScheduleStore.getState().events).toEqual([]);
   });
 
   it('addEvent assigns an id and appends to the list', () => {
-    const before = useScheduleStore.getState().events.length;
     const created = useScheduleStore.getState().addEvent(baseInput);
 
     expect(created.id).toBeTruthy();
-    const events = useScheduleStore.getState().events;
-    expect(events).toHaveLength(before + 1);
-    expect(events[events.length - 1]).toEqual(created);
+    expect(useScheduleStore.getState().events).toEqual([created]);
   });
 
   it('updateEvent merges a partial patch onto only the targeted event', () => {
     const created = useScheduleStore.getState().addEvent(baseInput);
-    const seededId = useScheduleStore.getState().events[0].id;
+    const other = useScheduleStore.getState().addEvent({ ...baseInput, title: 'Other event' });
 
     useScheduleStore.getState().updateEvent(created.id, { title: 'Renamed session', location: 'Library' });
 
@@ -44,7 +41,7 @@ describe('useScheduleStore', () => {
       location: 'Library',
       startsAt: baseInput.startsAt, // untouched fields survive the patch
     });
-    expect(events.find((event) => event.id === seededId)?.title).not.toBe('Renamed session');
+    expect(events.find((event) => event.id === other.id)?.title).toBe('Other event');
   });
 
   it('removeEvent removes only the targeted event', () => {

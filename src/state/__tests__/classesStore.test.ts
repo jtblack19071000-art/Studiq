@@ -17,38 +17,62 @@ beforeEach(() => {
 });
 
 describe('useClassesStore', () => {
-  it('seeds with starter classes, assignments, exams, and announcements', () => {
+  it('starts blank so every student begins with their own classes, not sample data', () => {
     const state = useClassesStore.getState();
-    expect(state.classes.length).toBeGreaterThan(0);
-    expect(state.assignments.length).toBeGreaterThan(0);
-    expect(state.exams.length).toBeGreaterThan(0);
-    expect(state.announcements.length).toBeGreaterThan(0);
+    expect(state.classes).toEqual([]);
+    expect(state.assignments).toEqual([]);
+    expect(state.exams).toEqual([]);
+    expect(state.announcements).toEqual([]);
     expect(state.files).toEqual([]);
     expect(state.grades).toEqual([]);
   });
 
   it('addClass assigns an id and appends to the list', () => {
-    const before = useClassesStore.getState().classes.length;
     const created = useClassesStore.getState().addClass(baseClassInput);
 
     expect(created.id).toBeTruthy();
-    expect(useClassesStore.getState().classes).toHaveLength(before + 1);
+    expect(useClassesStore.getState().classes).toEqual([created]);
   });
 
   it('updateClass merges a patch (e.g. credit hours + final grade) onto only the targeted class', () => {
-    const created = useClassesStore.getState().addClass(baseClassInput);
-    const seededId = useClassesStore.getState().classes[0].id;
+    const first = useClassesStore.getState().addClass(baseClassInput);
+    const second = useClassesStore.getState().addClass({ ...baseClassInput, name: 'Physics I', code: 'PHYS 101' });
 
-    useClassesStore.getState().updateClass(created.id, { creditHours: 4, finalGrade: 'A-' });
+    useClassesStore.getState().updateClass(first.id, { creditHours: 4, finalGrade: 'A-' });
 
     const classes = useClassesStore.getState().classes;
-    const updated = classes.find((studiqClass) => studiqClass.id === created.id);
-    expect(updated).toMatchObject({ creditHours: 4, finalGrade: 'A-', name: baseClassInput.name });
-    expect(classes.find((studiqClass) => studiqClass.id === seededId)?.finalGrade).not.toBe('A-');
+    expect(classes.find((studiqClass) => studiqClass.id === first.id)).toMatchObject({
+      creditHours: 4,
+      finalGrade: 'A-',
+    });
+    expect(classes.find((studiqClass) => studiqClass.id === second.id)?.finalGrade).toBeUndefined();
+  });
+
+  it('removeClass deletes the class and cascades to its assignments, exams, and announcements', () => {
+    const target = useClassesStore.getState().addClass(baseClassInput);
+    const other = useClassesStore.getState().addClass({ ...baseClassInput, name: 'Physics I', code: 'PHYS 101' });
+
+    useClassesStore.getState().addAssignment({
+      classId: target.id,
+      title: 'Homework 1',
+      dueAt: '2024-03-10T23:59:00.000Z',
+      status: 'not_started',
+    });
+    const keptAssignment = useClassesStore.getState().addAssignment({
+      classId: other.id,
+      title: 'Lab report',
+      dueAt: '2024-03-10T23:59:00.000Z',
+      status: 'not_started',
+    });
+
+    useClassesStore.getState().removeClass(target.id);
+
+    const state = useClassesStore.getState();
+    expect(state.classes).toEqual([other]);
+    expect(state.assignments).toEqual([keptAssignment]);
   });
 
   it('addAssignment assigns an id and appends to the list', () => {
-    const before = useClassesStore.getState().assignments.length;
     const created = useClassesStore.getState().addAssignment({
       classId: 'class-1',
       title: 'Homework 1',
@@ -57,29 +81,34 @@ describe('useClassesStore', () => {
     });
 
     expect(created.id).toBeTruthy();
-    expect(useClassesStore.getState().assignments).toHaveLength(before + 1);
+    expect(useClassesStore.getState().assignments).toEqual([created]);
   });
 
   it('updateAssignmentStatus updates only the targeted assignment', () => {
-    const created = useClassesStore.getState().addAssignment({
+    const first = useClassesStore.getState().addAssignment({
       classId: 'class-1',
       title: 'Homework 1',
       dueAt: '2024-03-10T23:59:00.000Z',
       status: 'not_started',
     });
-    const seededId = useClassesStore.getState().assignments[0].id;
+    const second = useClassesStore.getState().addAssignment({
+      classId: 'class-1',
+      title: 'Homework 2',
+      dueAt: '2024-03-17T23:59:00.000Z',
+      status: 'not_started',
+    });
 
-    useClassesStore.getState().updateAssignmentStatus(created.id, 'submitted');
+    useClassesStore.getState().updateAssignmentStatus(first.id, 'submitted');
 
     const assignments = useClassesStore.getState().assignments;
-    expect(assignments.find((a) => a.id === created.id)?.status).toBe('submitted');
-    expect(assignments.find((a) => a.id === seededId)?.status).not.toBe('submitted');
+    expect(assignments.find((a) => a.id === first.id)?.status).toBe('submitted');
+    expect(assignments.find((a) => a.id === second.id)?.status).toBe('not_started');
   });
 
   it('classById finds a class by id, or undefined if none exists', () => {
-    const seededClass = useClassesStore.getState().classes[0];
+    const created = useClassesStore.getState().addClass(baseClassInput);
 
-    expect(useClassesStore.getState().classById(seededClass.id)).toEqual(seededClass);
+    expect(useClassesStore.getState().classById(created.id)).toEqual(created);
     expect(useClassesStore.getState().classById('no-such-class')).toBeUndefined();
   });
 });

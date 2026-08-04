@@ -272,29 +272,35 @@ function MonthView({
 }
 
 function ClassesList({ classes }: { classes: ReturnType<typeof useClassesStore.getState>['classes'] }) {
-  return classes.length === 0 ? (
-    <EmptyState message="No classes yet. Import a syllabus or add one manually." />
-  ) : (
+  return (
     <YStack gap="$3">
-      {classes.map((studiqClass) => (
-        <Card
-          key={studiqClass.id}
-          onPress={() => router.push(`/schedule/classes/${studiqClass.id}`)}
-          pressStyle={{ opacity: 0.7 }}
-          borderLeftWidth={4}
-          style={{ borderLeftColor: studiqClass.color }}>
-          <Text fontWeight="700" fontSize="$5">
-            {studiqClass.name}
-          </Text>
-          <Paragraph color="$color10">
-            {studiqClass.code} · {studiqClass.term}
-          </Paragraph>
-          <Paragraph color="$color10" fontSize="$3">
-            {studiqClass.professor.name}
-            {studiqClass.classroom ? ` · ${studiqClass.classroom}` : ''}
-          </Paragraph>
-        </Card>
-      ))}
+      <Button size="$4" theme="active" onPress={() => router.push('/schedule/classes/new')}>
+        + Add class
+      </Button>
+
+      {classes.length === 0 ? (
+        <EmptyState message="No classes yet. Add your first one above — it'll show up on your Schedule too if you set a meeting time." />
+      ) : (
+        classes.map((studiqClass) => (
+          <Card
+            key={studiqClass.id}
+            onPress={() => router.push(`/schedule/classes/${studiqClass.id}`)}
+            pressStyle={{ opacity: 0.7 }}
+            borderLeftWidth={4}
+            style={{ borderLeftColor: studiqClass.color }}>
+            <Text fontWeight="700" fontSize="$5">
+              {studiqClass.name}
+            </Text>
+            <Paragraph color="$color10">
+              {studiqClass.code} · {studiqClass.term}
+            </Paragraph>
+            <Paragraph color="$color10" fontSize="$3">
+              {studiqClass.professor.name}
+              {studiqClass.classroom ? ` · ${studiqClass.classroom}` : ''}
+            </Paragraph>
+          </Card>
+        ))
+      )}
     </YStack>
   );
 }

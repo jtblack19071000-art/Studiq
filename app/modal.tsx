@@ -4,6 +4,7 @@ import { Alert, Platform } from 'react-native';
 import { Button, H3, Input, Label, Paragraph, XStack, YStack } from 'tamagui';
 
 import { createId } from '@/src/lib/id';
+import { parseTimeToday } from '@/src/lib/time';
 import { useScheduleStore } from '@/src/state/scheduleStore';
 import { EVENT_COLOR_SWATCHES, eventCategoryLabels, type EventCategory } from '@/src/types';
 
@@ -17,17 +18,6 @@ const REMINDER_OPTIONS: { label: string; minutesBefore: number | null }[] = [
   { label: '1 hour before', minutesBefore: 60 },
   { label: '1 day before', minutesBefore: 60 * 24 },
 ];
-
-function parseTimeToday(time: string): Date | null {
-  const match = /^(\d{1,2}):(\d{2})$/.exec(time.trim());
-  if (!match) return null;
-  const hours = Number(match[1]);
-  const minutes = Number(match[2]);
-  if (hours > 23 || minutes > 59) return null;
-  const date = new Date();
-  date.setHours(hours, minutes, 0, 0);
-  return date;
-}
 
 export default function QuickAddModal() {
   const addEvent = useScheduleStore((state) => state.addEvent);
