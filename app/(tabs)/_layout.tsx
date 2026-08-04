@@ -1,13 +1,21 @@
-import { Ionicons } from '@expo/vector-icons';
 import { Tabs } from 'expo-router';
-import type { ColorValue } from 'react-native';
+import { Text } from 'tamagui';
 
 import Colors from '@/constants/Colors';
 import { useColorScheme } from '@/components/useColorScheme';
 import { useClientOnlyValue } from '@/components/useClientOnlyValue';
 
-function TabIcon({ name, color }: { name: keyof typeof Ionicons.glyphMap; color: ColorValue }) {
-  return <Ionicons name={name} size={24} color={color} />;
+/**
+ * Plain-text glyphs, not an icon-font library — every icon-font path (expo-symbols,
+ * @expo/vector-icons) pulls in expo-font, whose web module reads a `globalThis.expo` singleton
+ * that two of Expo static export's own concurrent bundling passes (client + SSR) race to
+ * initialize, deterministically crashing the export on slower build machines (reproduced on
+ * Vercel every time, never locally). Text glyphs need no font loading at all, so this bug class
+ * doesn't apply here. Trade-off: emoji are inherently colored, so they don't re-tint when a tab
+ * is active the way a monochrome icon font would — the label text below still does.
+ */
+function TabIcon({ glyph }: { glyph: string }) {
+  return <Text fontSize={22}>{glyph}</Text>;
 }
 
 export default function TabLayout() {
@@ -23,7 +31,7 @@ export default function TabLayout() {
         name="index"
         options={{
           title: 'Home',
-          tabBarIcon: ({ color }) => <TabIcon name="home-outline" color={color} />,
+          tabBarIcon: () => <TabIcon glyph="🏠" />,
         }}
       />
       <Tabs.Screen
@@ -31,7 +39,7 @@ export default function TabLayout() {
         options={{
           title: 'Schedule',
           headerShown: false,
-          tabBarIcon: ({ color }) => <TabIcon name="calendar-outline" color={color} />,
+          tabBarIcon: () => <TabIcon glyph="📅" />,
         }}
       />
       <Tabs.Screen
@@ -39,7 +47,7 @@ export default function TabLayout() {
         options={{
           title: 'Study',
           headerShown: false,
-          tabBarIcon: ({ color }) => <TabIcon name="mic-outline" color={color} />,
+          tabBarIcon: () => <TabIcon glyph="🎙️" />,
         }}
       />
       <Tabs.Screen
@@ -47,7 +55,7 @@ export default function TabLayout() {
         options={{
           title: 'More',
           headerShown: false,
-          tabBarIcon: ({ color }) => <TabIcon name="ellipsis-horizontal-circle-outline" color={color} />,
+          tabBarIcon: () => <TabIcon glyph="⋯" />,
         }}
       />
     </Tabs>
