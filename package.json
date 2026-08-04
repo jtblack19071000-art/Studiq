@@ -2,6 +2,9 @@
   "name": "studiq",
   "main": "expo-router/entry",
   "version": "1.0.0",
+  "engines": {
+    "node": "22.x"
+  },
   "dependencies": {
     "@ai-sdk/anthropic": "^4.0.24",
     "@ai-sdk/openai": "^4.0.24",
