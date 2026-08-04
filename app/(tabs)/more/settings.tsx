@@ -1,6 +1,6 @@
 import Constants from 'expo-constants';
 import { useEffect, useState } from 'react';
-import { Button, H2, Paragraph, Text, YStack } from 'tamagui';
+import { Button, H2, Paragraph, Text, XStack, YStack } from 'tamagui';
 
 import { AuthForm } from '@/src/components/AuthForm';
 import { Card } from '@/src/components/Card';
@@ -17,6 +17,20 @@ import { supabase } from '@/src/lib/supabase';
 import { useAuthStore } from '@/src/state/authStore';
 import { useScheduleStore } from '@/src/state/scheduleStore';
 import { useSubscriptionStore } from '@/src/state/subscriptionStore';
+import { ACCENT_COLORS, ACCENT_TINT, useThemeStore, type ColorSchemeOverride } from '@/src/state/themeStore';
+
+const COLOR_SCHEME_OPTIONS: { value: ColorSchemeOverride; label: string }[] = [
+  { value: 'system', label: 'System' },
+  { value: 'light', label: 'Light' },
+  { value: 'dark', label: 'Dark' },
+];
+
+const ACCENT_LABELS: Record<(typeof ACCENT_COLORS)[number], string> = {
+  blue: 'Blue',
+  green: 'Green',
+  red: 'Red',
+  yellow: 'Yellow',
+};
 
 export default function SettingsScreen() {
   const session = useAuthStore((state) => state.session);
@@ -115,14 +129,7 @@ export default function SettingsScreen() {
         </Card>
       </YStack>
 
-      <YStack gap="$2">
-        <SectionHeader title="Appearance" />
-        <Card>
-          <Paragraph color="$color10" fontSize="$3">
-            Studiq follows your device&apos;s light/dark setting automatically.
-          </Paragraph>
-        </Card>
-      </YStack>
+      <AppearanceSection />
 
       <YStack gap="$2">
         <SectionHeader title="About" />
@@ -133,5 +140,65 @@ export default function SettingsScreen() {
         </Card>
       </YStack>
     </Screen>
+  );
+}
+
+function AppearanceSection() {
+  const accentColor = useThemeStore((state) => state.accentColor);
+  const setAccentColor = useThemeStore((state) => state.setAccentColor);
+  const colorSchemeOverride = useThemeStore((state) => state.colorSchemeOverride);
+  const setColorSchemeOverride = useThemeStore((state) => state.setColorSchemeOverride);
+
+  return (
+    <YStack gap="$2">
+      <SectionHeader title="Appearance" />
+      <Card gap="$3">
+        <YStack gap="$2">
+          <Text fontWeight="600" fontSize="$3">
+            Theme
+          </Text>
+          <XStack gap="$2">
+            {COLOR_SCHEME_OPTIONS.map((option) => (
+              <Button
+                key={option.value}
+                flex={1}
+                size="$3"
+                theme={colorSchemeOverride === option.value ? 'active' : undefined}
+                onPress={() => setColorSchemeOverride(option.value)}>
+                {option.label}
+              </Button>
+            ))}
+          </XStack>
+        </YStack>
+
+        <YStack gap="$2">
+          <Text fontWeight="600" fontSize="$3">
+            Accent color
+          </Text>
+          <XStack flexWrap="wrap" gap="$2">
+            {ACCENT_COLORS.map((color) => (
+              <YStack
+                key={color}
+                alignItems="center"
+                gap="$1"
+                onPress={() => setAccentColor(color)}
+                pressStyle={{ opacity: 0.7 }}>
+                <YStack
+                  width={36}
+                  height={36}
+                  borderRadius={18}
+                  borderWidth={accentColor === color ? 3 : 0}
+                  borderColor="$color12"
+                  style={{ backgroundColor: ACCENT_TINT[color] }}
+                />
+                <Text fontSize="$1" color="$color10">
+                  {ACCENT_LABELS[color]}
+                </Text>
+              </YStack>
+            ))}
+          </XStack>
+        </YStack>
+      </Card>
+    </YStack>
   );
 }

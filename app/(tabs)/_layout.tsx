@@ -1,9 +1,8 @@
 import { Tabs } from 'expo-router';
 import { Text } from 'tamagui';
 
-import Colors from '@/constants/Colors';
-import { useColorScheme } from '@/components/useColorScheme';
 import { useClientOnlyValue } from '@/components/useClientOnlyValue';
+import { ACCENT_TINT, useThemeStore } from '@/src/state/themeStore';
 
 /**
  * Plain-text glyphs, not an icon-font library — every icon-font path (expo-symbols,
@@ -19,12 +18,12 @@ function TabIcon({ glyph }: { glyph: string }) {
 }
 
 export default function TabLayout() {
-  const colorScheme = useColorScheme();
+  const accentColor = useThemeStore((state) => state.accentColor);
 
   return (
     <Tabs
       screenOptions={{
-        tabBarActiveTintColor: Colors[colorScheme].tint,
+        tabBarActiveTintColor: ACCENT_TINT[accentColor],
         headerShown: useClientOnlyValue(false, true),
       }}>
       <Tabs.Screen

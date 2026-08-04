@@ -2,7 +2,7 @@ import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { useEffect } from 'react';
 import 'react-native-reanimated';
-import { TamaguiProvider } from 'tamagui';
+import { TamaguiProvider, Theme } from 'tamagui';
 
 import { useColorScheme } from '@/components/useColorScheme';
 import { syncScheduledReminders } from '@/src/lib/notifications';
@@ -10,6 +10,7 @@ import { configurePurchases } from '@/src/lib/purchases';
 import { useAuthStore } from '@/src/state/authStore';
 import { useScheduleStore } from '@/src/state/scheduleStore';
 import { useSubscriptionStore } from '@/src/state/subscriptionStore';
+import { useThemeStore } from '@/src/state/themeStore';
 import tamaguiConfig from '@/src/theme/tamagui.config';
 
 export {
@@ -35,6 +36,7 @@ export default function RootLayout() {
 
 function RootLayoutNav() {
   const colorScheme = useColorScheme();
+  const accentColor = useThemeStore((state) => state.accentColor);
   const initAuth = useAuthStore((state) => state.init);
   const userId = useAuthStore((state) => state.user?.id ?? null);
   const refreshSubscription = useSubscriptionStore((state) => state.refresh);
@@ -60,11 +62,16 @@ function RootLayoutNav() {
 
   return (
     <TamaguiProvider config={tamaguiConfig} defaultTheme={colorScheme}>
-      <Stack>
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-        <Stack.Screen name="modal" options={{ presentation: 'modal' }} />
-        <Stack.Screen name="event-detail" options={{ presentation: 'modal', title: 'Event' }} />
-      </Stack>
+      {/* Accent color is a Tamagui sub-theme layered via nested <Theme>, not a flat "light_blue"
+          string — Tamagui's web CSS only extracts variables for the nested-descendant selector
+          form (e.g. `:root.t_dark .t_blue`), not a combined single-class name. */}
+      <Theme name={accentColor}>
+        <Stack>
+          <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+          <Stack.Screen name="modal" options={{ presentation: 'modal' }} />
+          <Stack.Screen name="event-detail" options={{ presentation: 'modal', title: 'Event' }} />
+        </Stack>
+      </Theme>
     </TamaguiProvider>
   );
 }
