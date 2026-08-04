@@ -34,3 +34,32 @@ export interface Transaction {
   date: string;
   notes?: string;
 }
+
+export type JobPayType = 'hourly' | 'salary';
+
+export interface Job {
+  id: ID;
+  title: string;
+  payType: JobPayType;
+  /** Hourly rate in dollars if payType is 'hourly', or annual salary in dollars if 'salary'. */
+  rate: number;
+  /** Only meaningful for hourly jobs. */
+  hoursPerWeek?: number;
+  employer?: string;
+}
+
+export type ScholarshipFrequency = 'one_time' | 'semester' | 'year';
+
+export interface Scholarship {
+  id: ID;
+  name: string;
+  amount: number;
+  frequency: ScholarshipFrequency;
+}
+
+export interface FinancialProfile {
+  schoolName?: string;
+  major?: string;
+  jobs: Job[];
+  scholarships: Scholarship[];
+}
