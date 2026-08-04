@@ -1,5 +1,4 @@
-import type { AndroidSymbol, SFSymbol } from 'expo-symbols';
-import { SymbolView } from 'expo-symbols';
+import { Ionicons } from '@expo/vector-icons';
 import { Tabs } from 'expo-router';
 import type { ColorValue } from 'react-native';
 
@@ -7,18 +6,8 @@ import Colors from '@/constants/Colors';
 import { useColorScheme } from '@/components/useColorScheme';
 import { useClientOnlyValue } from '@/components/useClientOnlyValue';
 
-function TabIcon({
-  ios,
-  android,
-  color,
-}: {
-  ios: SFSymbol;
-  android: AndroidSymbol;
-  color: ColorValue;
-}) {
-  return (
-    <SymbolView name={{ ios, android, web: android }} tintColor={color} size={26} />
-  );
+function TabIcon({ name, color }: { name: keyof typeof Ionicons.glyphMap; color: ColorValue }) {
+  return <Ionicons name={name} size={24} color={color} />;
 }
 
 export default function TabLayout() {
@@ -34,7 +23,7 @@ export default function TabLayout() {
         name="index"
         options={{
           title: 'Home',
-          tabBarIcon: ({ color }) => <TabIcon ios="house" android="home" color={color} />,
+          tabBarIcon: ({ color }) => <TabIcon name="home-outline" color={color} />,
         }}
       />
       <Tabs.Screen
@@ -42,9 +31,7 @@ export default function TabLayout() {
         options={{
           title: 'Schedule',
           headerShown: false,
-          tabBarIcon: ({ color }) => (
-            <TabIcon ios="calendar" android="calendar_month" color={color} />
-          ),
+          tabBarIcon: ({ color }) => <TabIcon name="calendar-outline" color={color} />,
         }}
       />
       <Tabs.Screen
@@ -52,7 +39,7 @@ export default function TabLayout() {
         options={{
           title: 'Study',
           headerShown: false,
-          tabBarIcon: ({ color }) => <TabIcon ios="waveform" android="graphic_eq" color={color} />,
+          tabBarIcon: ({ color }) => <TabIcon name="mic-outline" color={color} />,
         }}
       />
       <Tabs.Screen
@@ -60,9 +47,7 @@ export default function TabLayout() {
         options={{
           title: 'More',
           headerShown: false,
-          tabBarIcon: ({ color }) => (
-            <TabIcon ios="ellipsis.circle" android="more_horiz" color={color} />
-          ),
+          tabBarIcon: ({ color }) => <TabIcon name="ellipsis-horizontal-circle-outline" color={color} />,
         }}
       />
     </Tabs>
