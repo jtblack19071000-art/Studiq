@@ -1,6 +1,6 @@
 /// <reference types="jest" />
 
-import { formatTimeOfDay, parseTimeToday } from '@/src/lib/time';
+import { formatTimeOfDay, parseFlexibleDate, parseTimeToday } from '@/src/lib/time';
 
 function hm(date: Date | null): string | null {
   if (!date) return null;
@@ -48,6 +48,43 @@ describe('parseTimeToday', () => {
     const start = parseTimeToday('1:30 PM')!;
     const end = parseTimeToday('2:20 PM')!;
     expect(end.getTime()).toBeGreaterThan(start.getTime());
+  });
+});
+
+describe('parseFlexibleDate', () => {
+  it('parses a date that already includes a year', () => {
+    const date = parseFlexibleDate('Feb 14, 2026')!;
+    expect(date.getFullYear()).toBe(2026);
+    expect(date.getMonth()).toBe(1);
+    expect(date.getDate()).toBe(14);
+  });
+
+  it('assumes the current year when none is given', () => {
+    const date = parseFlexibleDate('March 3')!;
+    expect(date.getFullYear()).toBe(new Date().getFullYear());
+    expect(date.getMonth()).toBe(2);
+    expect(date.getDate()).toBe(3);
+  });
+
+  it('accepts numeric formats like "2/14/2026" and "2026-02-14"', () => {
+    expect(parseFlexibleDate('2/14/2026')!.getMonth()).toBe(1);
+    expect(parseFlexibleDate('2026-02-14')!.getFullYear()).toBe(2026);
+  });
+
+  it('defaults to noon local time when no hour is given', () => {
+    const date = parseFlexibleDate('Feb 14, 2026')!;
+    expect(date.getHours()).toBe(12);
+  });
+
+  it('respects a custom hour', () => {
+    const date = parseFlexibleDate('Feb 14, 2026', 23)!;
+    expect(date.getHours()).toBe(23);
+  });
+
+  it('returns null for empty or unparseable input', () => {
+    expect(parseFlexibleDate('')).toBeNull();
+    expect(parseFlexibleDate('   ')).toBeNull();
+    expect(parseFlexibleDate('not a date at all')).toBeNull();
   });
 });
 

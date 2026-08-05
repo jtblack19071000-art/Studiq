@@ -105,6 +105,18 @@ describe('useClassesStore', () => {
     expect(assignments.find((a) => a.id === second.id)?.status).toBe('not_started');
   });
 
+  it('addExam assigns an id and appends to the list', () => {
+    const created = useClassesStore.getState().addExam({
+      classId: 'class-1',
+      title: 'Midterm',
+      type: 'midterm',
+      date: '2024-03-10T15:00:00.000Z',
+    });
+
+    expect(created.id).toBeTruthy();
+    expect(useClassesStore.getState().exams).toEqual([created]);
+  });
+
   it('classById finds a class by id, or undefined if none exists', () => {
     const created = useClassesStore.getState().addClass(baseClassInput);
 

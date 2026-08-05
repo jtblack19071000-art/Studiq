@@ -34,6 +34,28 @@ export function parseTimeToday(time: string): Date | null {
   return null;
 }
 
+/**
+ * Parses a loosely-formatted date string ("Feb 14, 2026", "2/14/2026", "2026-02-14") into a Date
+ * at the given hour (default noon local time) — for syllabus-extracted or freely-typed dates that
+ * don't follow a strict format. Assumes the current year when none is present. Returns null on
+ * invalid or empty input.
+ */
+export function parseFlexibleDate(text: string, hour = 12): Date | null {
+  const trimmed = text.trim();
+  // Bare prose with no digits at all ("not a date") isn't a date — reject it outright, since
+  // JS's Date constructor is lenient enough to sometimes parse such strings anyway.
+  if (!trimmed || !/\d/.test(trimmed)) return null;
+
+  const hasYear = /\b\d{4}\b/.test(trimmed);
+  const candidate = hasYear ? trimmed : `${trimmed} ${new Date().getFullYear()}`;
+
+  const parsed = new Date(candidate);
+  if (Number.isNaN(parsed.getTime())) return null;
+
+  parsed.setHours(hour, 0, 0, 0);
+  return parsed;
+}
+
 /** Formats an ISO datetime string as "1:30 PM" in local time, for prefilling time inputs. */
 export function formatTimeOfDay(isoDateTime: string): string {
   const date = new Date(isoDateTime);

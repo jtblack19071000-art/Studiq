@@ -27,6 +27,7 @@ interface ClassesState {
   removeClass: (id: string) => void;
   addAssignment: (input: Omit<Assignment, 'id'>) => Assignment;
   updateAssignmentStatus: (id: string, status: Assignment['status']) => void;
+  addExam: (input: Omit<Exam, 'id'>) => Exam;
   classById: (id: string) => StudiqClass | undefined;
 }
 
@@ -72,6 +73,11 @@ export const useClassesStore = create<ClassesState>()(
             assignment.id === id ? { ...assignment, status } : assignment,
           ),
         }));
+      },
+      addExam: (input) => {
+        const created: Exam = { ...input, id: createId() };
+        set((state) => ({ exams: [...state.exams, created] }));
+        return created;
       },
       classById: (id) => get().classes.find((studiqClass) => studiqClass.id === id),
     }),
