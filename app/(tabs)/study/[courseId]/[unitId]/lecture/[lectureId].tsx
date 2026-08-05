@@ -6,7 +6,7 @@ import { Button, H2, Input, Paragraph, Text, XStack, YStack } from 'tamagui';
 
 import { Card } from '@/src/components/Card';
 import { EmptyState } from '@/src/components/EmptyState';
-import { PlatinumGate } from '@/src/components/PlatinumGate';
+import { PremiumGate } from '@/src/components/PremiumGate';
 import { Screen } from '@/src/components/Screen';
 import { SectionHeader } from '@/src/components/SectionHeader';
 import { generateLectureMaterials, StudyAiError } from '@/src/lib/studyAi';
@@ -22,7 +22,7 @@ export default function LectureDetailScreen() {
   const lecture = useStudyStore((state) => state.lectures.find((l) => l.id === lectureId));
   const updateLecture = useStudyStore((state) => state.updateLecture);
   const removeLecture = useStudyStore((state) => state.removeLecture);
-  const isPlatinum = useSubscriptionStore((state) => state.tier === 'platinum');
+  const isPremium = useSubscriptionStore((state) => state.tier === 'premium');
   const [generateError, setGenerateError] = useState<string | null>(null);
   const [isRenaming, setIsRenaming] = useState(false);
   const [titleDraft, setTitleDraft] = useState('');
@@ -135,8 +135,8 @@ export default function LectureDetailScreen() {
             <Card>
               <EmptyState message="Generating study materials…" />
             </Card>
-          ) : !isPlatinum ? (
-            <PlatinumGate>{null}</PlatinumGate>
+          ) : !isPremium ? (
+            <PremiumGate>{null}</PremiumGate>
           ) : (
             <Button size="$4" theme="active" onPress={handleGenerateMaterials}>
               {lecture.generationStatus === 'failed' ? 'Retry generating materials' : 'Generate materials'}

@@ -88,16 +88,16 @@ export default function SettingsScreen() {
         <SectionHeader title="Subscription" emoji="💎" />
         <Card>
           <Text fontWeight="600">
-            Current plan: {tier === 'platinum' ? 'Platinum' : 'Free'}
+            Current plan: {tier === 'premium' ? 'Premium' : 'Free'}
           </Text>
-          {tier === 'platinum' ? (
+          {tier === 'premium' ? (
             <Paragraph color="$color10" fontSize="$3">
-              You have access to lecture recording, AI-generated study materials, and College
-              Match.
+              You have access to lecture recording, AI transcription, and AI-generated study
+              materials.
             </Paragraph>
           ) : null}
         </Card>
-        {tier !== 'platinum' && supabase && session ? (
+        {tier !== 'premium' && supabase && session ? (
           <Card>
             <Paywall />
           </Card>

@@ -9,7 +9,7 @@ import { router, useLocalSearchParams } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { Button, H2, Input, Label, Paragraph, Text, YStack } from 'tamagui';
 
-import { PlatinumGate } from '@/src/components/PlatinumGate';
+import { PremiumGate } from '@/src/components/PremiumGate';
 import { generateLectureMaterials, transcribeAudio } from '@/src/lib/studyAi';
 import { useStudyStore } from '@/src/state/studyStore';
 import { useSubscriptionStore } from '@/src/state/subscriptionStore';
@@ -65,10 +65,10 @@ export default function RecordLectureScreen() {
 
   const recorder = useAudioRecorder(RecordingPresets.HIGH_QUALITY);
   const recorderState = useAudioRecorderState(recorder, 200);
-  const isPlatinum = useSubscriptionStore((state) => state.tier === 'platinum');
+  const isPremium = useSubscriptionStore((state) => state.tier === 'premium');
 
   useEffect(() => {
-    if (!isPlatinum) return;
+    if (!isPremium) return;
     (async () => {
       const { granted } = await requestRecordingPermissionsAsync();
       if (!granted) {
@@ -78,7 +78,7 @@ export default function RecordLectureScreen() {
       await setAudioModeAsync({ allowsRecording: true, playsInSilentMode: true });
       await recorder.prepareToRecordAsync();
     })();
-  }, [recorder, isPlatinum]);
+  }, [recorder, isPremium]);
 
   function handleStart() {
     recorder.record();
@@ -125,11 +125,11 @@ export default function RecordLectureScreen() {
     );
   }
 
-  if (!isPlatinum) {
+  if (!isPremium) {
     return (
       <YStack flex={1} backgroundColor="$background" padding="$4" gap="$4">
         <H2>Record lecture</H2>
-        <PlatinumGate>{null}</PlatinumGate>
+        <PremiumGate>{null}</PremiumGate>
       </YStack>
     );
   }

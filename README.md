@@ -13,7 +13,7 @@ AI study workspace, in place of paper planners and scattered productivity apps.
 - [expo-audio](https://docs.expo.dev/versions/latest/sdk/audio/) for lecture recording
 - [Vercel AI SDK](https://ai-sdk.dev) (`ai` + `@ai-sdk/openai` + `@ai-sdk/anthropic`) for transcription (OpenAI Whisper) and structured study-material generation (Claude)
 - [expo-print](https://docs.expo.dev/versions/latest/sdk/print/) + [expo-sharing](https://docs.expo.dev/versions/latest/sdk/sharing/) for study guide PDF export
-- Supabase Auth for accounts (email/password), tied to [RevenueCat](https://www.revenuecat.com) (`react-native-purchases`) for the Platinum subscription
+- Supabase Auth for accounts (email/password), tied to [RevenueCat](https://www.revenuecat.com) (`react-native-purchases`) for the Premium subscription
 - [expo-notifications](https://docs.expo.dev/versions/latest/sdk/notifications/) for local scheduled reminders (no push server — see "Reminders" below)
 - [Jest](https://jestjs.io) (via [`jest-expo`](https://github.com/expo/expo/tree/main/packages/jest-expo)) for unit tests — see "Testing" below
 - [EAS Build](https://docs.expo.dev/build/introduction/) (`expo-dev-client`) for installable dev
@@ -35,14 +35,14 @@ Copy `.env.example` to `.env` to configure:
 - `OPENAI_API_KEY` — required for lecture transcription. Server-only; never sent to the client.
 - `ANTHROPIC_API_KEY` — required for AI-generated study materials (per-lecture, Unit Study Guide,
   and College Match guidance). Server-only; never sent to the client.
-- `EXPO_PUBLIC_REVENUECAT_API_KEY` — required for the Platinum subscription to actually charge
+- `EXPO_PUBLIC_REVENUECAT_API_KEY` — required for the Premium subscription to actually charge
   money. Safe to embed client-side (RevenueCat's SDK keys are public by design, unlike the two
   above). See "Subscriptions" below before this will do anything real.
 
 Without the AI keys configured, recording still works fully (audio is captured and saved), but
 transcription/generation fail with a clear in-app error rather than silently doing nothing. Without
-Supabase configured, Platinum features show "sign in required, cloud sync isn't configured" instead
-of a sign-in form. Without the RevenueCat key, Platinum shows as unavailable rather than crashing.
+Supabase configured, Premium features show "sign in required, cloud sync isn't configured" instead
+of a sign-in form. Without the RevenueCat key, Premium shows as unavailable rather than crashing.
 
 ## Deploying a free preview (web)
 
@@ -122,21 +122,29 @@ JS/TS/UI changes don't need a rebuild — just the dev server restart.
 
 ## Subscriptions
 
-There is **no Silver tier** — just Free and Platinum ($3/month). Platinum gates: lecture
-recording, transcription, per-lecture AI generation, Unit Study Guide generation + PDF export, and
-the College Match AI best-fit guidance. Everything else (Home, Schedule, Classes, GPA Tracker,
-Finance, Goals, Career Hub, Campus Resources) is free. Content already generated while subscribed
-stays viewable if the subscription later lapses — only generating *new* content is gated.
+There is **no Silver tier** — just Free and Premium ($5.99/month or $49.99/year). The split is
+deliberate: **free = everything organizational** (this is what gets a student to open Studiq every
+day and recommend it to a friend), **Premium = everything AI** (this is where the OpenAI/Anthropic
+API costs actually are). Concretely, Premium gates: lecture recording, transcription, per-lecture
+AI generation (notes/flashcards/quizzes/mnemonics/etc), Unit Study Guide generation + PDF export —
+all under the Study tab. **College Match is free**, even though it's AI-powered — it's meant to
+hook prospective/high-school students before they'd ever consider paying, so it stays free. Home,
+Schedule, Classes, GPA Tracker, Finance, Goals, Career Hub, and Campus Resources are all free with
+no limits (no "first 3 classes free" traps). Content already generated while subscribed stays
+viewable if the subscription later lapses — only generating *new* content is gated.
 
 Subscriptions require your own accounts; none of this can be set up or tested for real from a dev
 sandbox:
 
 1. An **App Store Connect** (iOS) and/or **Google Play Console** (Android) developer account, with
-   an auto-renewable subscription product configured in each store.
+   an auto-renewable subscription product configured in each store — set up both a monthly and an
+   annual product to match the two prices above.
 2. A **RevenueCat** account (free to start) — connect your store(s), create an entitlement named
-   exactly `platinum` (see `PLATINUM_ENTITLEMENT_ID` in `src/types/subscription.ts`), attach your
-   store products to it as an offering/package, and copy the SDK key into
-   `EXPO_PUBLIC_REVENUECAT_API_KEY`.
+   exactly `premium` (see `PREMIUM_ENTITLEMENT_ID` in `src/types/subscription.ts`), attach your
+   monthly and annual store products to it as an offering with two packages, and copy the SDK key
+   into `EXPO_PUBLIC_REVENUECAT_API_KEY`. The app reads the offering's `.monthly`/`.annual`
+   convenience packages directly (`fetchPremiumOffer` in `src/lib/purchases.ts`), so no extra
+   config is needed beyond naming them normally in RevenueCat.
 3. On **web**, RevenueCat's mobile SDK key won't work — web billing needs a separate "Web Billing"
    product/key from RevenueCat's dashboard, or you may prefer to skip web purchases entirely and
    direct web users to the mobile app to subscribe. Right now, using a non-web-billing key on web
@@ -264,7 +272,7 @@ Zustand store in `src/state/`:
 - `authStore` and `subscriptionStore` — behavior when Supabase/RevenueCat aren't configured (the
   state this sandbox is naturally in): `init()` finishes without a session, `signUp`/`signIn`
   surface a clear "not configured" error, `purchase()` rejects instead of silently unlocking
-  Platinum, `refresh()`/`restore()` resolve to the free tier without touching the SDK.
+  Premium, `refresh()`/`restore()` resolve to the free tier without touching the SDK.
 
 ## Scripts
 
@@ -281,8 +289,8 @@ npm test            # jest
 
 **Phase 1** (foundation, planner, schedule, classes), **Phase 2** (Study AI: lecture recording,
 transcription, AI-generated study materials), **Phase 3** (GPA Tracker, Finance, Goals, Career Hub,
-College Match, Campus Resources), and a **Platinum subscription** (Supabase Auth + RevenueCat)
-gating the AI-powered features are built.
+College Match, Campus Resources), and a **Premium subscription** (Supabase Auth + RevenueCat)
+gating the Study tab's AI-powered features are built.
 
 Built and working end to end:
 
@@ -320,21 +328,23 @@ Built and working end to end:
   - **Goals** — academic/career/personal/health/financial goals with status tracking
   - **Career Hub** — internship/job application tracker (saved → applied → interviewing → offer/
     accepted/rejected)
-  - **College Match** *(Platinum)* — a preferences profile (major, location, size, budget notes)
-    plus a saved-schools application tracker, and an AI "best-fit guidance" quiz. There's no
-    external college database to actually match against, so the AI reasons honestly over the
-    student's own stated preferences (what to look for, questions to ask) rather than faking a
-    "match score" against schools it has no real data on
+  - **College Match** *(free)* — a preferences profile (major, location, size, budget notes) plus a
+    saved-schools application tracker, and an AI "best-fit guidance" quiz. Kept free (despite being
+    AI-powered) since it's aimed at prospective/high-school students who wouldn't have a reason to
+    pay yet — it's a hook, not a cost center. There's no external college database to actually
+    match against, so the AI reasons honestly over the student's own stated preferences (what to
+    look for, questions to ask) rather than faking a "match score" against schools it has no real
+    data on
   - **Campus Resources** — a personal directory (name, category, contact, location) the student
     fills in with their own campus's offices, since no per-school resource data source exists
   - **Settings** — cloud sync + account status, subscription status, appearance, about
 - Local persistence (MMKV) so data survives restarts; Supabase wired for optional cloud sync
-- **Platinum subscription** ($3/month, no Silver tier) gating lecture recording, transcription, all
-  AI generation, and College Match — see "Subscriptions" above for what's required to charge real
-  money; without those accounts configured, Platinum features show a clear "not configured" state
-  rather than a broken or fake-unlocked one
+- **Premium subscription** ($5.99/month or $49.99/year, no Silver tier) gating lecture recording,
+  transcription, and all per-lecture/Unit-Study-Guide AI generation — see "Subscriptions" above for
+  what's required to charge real money; without those accounts configured, Premium features show a
+  clear "not configured" state rather than a broken or fake-unlocked one
 - **Reminders** — locally-scheduled device notifications for schedule events (see "Reminders"
-  above); free for all users, no Platinum gate
+  above); free for all users, no Premium gate
 
 Deliberately **not yet built** (see roadmap in the product spec):
 
@@ -385,9 +395,9 @@ Beyond the roadmap items above:
 
 ### Verification notes (Subscriptions & auth)
 
-- Every "not configured" state (no Supabase, no RevenueCat key) was verified in-browser: Platinum
+- Every "not configured" state (no Supabase, no RevenueCat key) was verified in-browser: Premium
   gates correctly show a plain explanatory message instead of a broken UI, on every gated screen
-  (Study recording, per-lecture generation, Unit Study Guide generation, College Match).
+  (Study recording, per-lecture generation, Unit Study Guide generation).
 - Found and fixed two real bugs during verification, not just the "happy path":
   1. Supabase's auth client reads its storage adapter eagerly in its constructor (unlike zustand's
      persist middleware, which defers this) — during static-rendering (SSG), MMKV's web shim has

@@ -7,7 +7,7 @@ import { Button, H2, Paragraph, Text, XStack, YStack } from 'tamagui';
 import { Badge, type BadgeTone } from '@/src/components/Badge';
 import { Card } from '@/src/components/Card';
 import { EmptyState } from '@/src/components/EmptyState';
-import { PlatinumGate } from '@/src/components/PlatinumGate';
+import { PremiumGate } from '@/src/components/PremiumGate';
 import { Screen } from '@/src/components/Screen';
 import { SectionHeader } from '@/src/components/SectionHeader';
 import { generateUnitStudyGuide, StudyAiError } from '@/src/lib/studyAi';
@@ -31,7 +31,7 @@ export default function UnitDetailScreen() {
   const allLectures = useStudyStore((state) => state.lectures);
   const updateUnitStudyGuide = useStudyStore((state) => state.updateUnitStudyGuide);
   const removeLecture = useStudyStore((state) => state.removeLecture);
-  const isPlatinum = useSubscriptionStore((state) => state.tier === 'platinum');
+  const isPremium = useSubscriptionStore((state) => state.tier === 'premium');
   const [studyGuideError, setStudyGuideError] = useState<string | null>(null);
 
   const lectures = useMemo(
@@ -94,8 +94,8 @@ export default function UnitDetailScreen() {
         <Button size="$4" theme="active" borderRadius="$10" onPress={() => router.push(`/study/${courseId}/${unitId}/study-guide`)}>
           📖 View Study Guide
         </Button>
-      ) : !isPlatinum ? (
-        <PlatinumGate>{null}</PlatinumGate>
+      ) : !isPremium ? (
+        <PremiumGate>{null}</PremiumGate>
       ) : (
         <Button size="$4" theme="active" borderRadius="$10" onPress={handleGenerateStudyGuide} disabled={isGeneratingStudyGuide}>
           {isGeneratingStudyGuide ? '✨ Generating…' : '✨ Generate Unit Study Guide'}

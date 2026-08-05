@@ -44,7 +44,7 @@ describe('useSubscriptionStore (RevenueCat not configured)', () => {
     expect(state.refreshing).toBe(false);
   });
 
-  it('purchase() rejects with a clear error instead of silently unlocking Platinum', async () => {
+  it('purchase() rejects with a clear error instead of silently unlocking Premium', async () => {
     await expect(useSubscriptionStore.getState().purchase()).rejects.toThrow(
       'Subscriptions are not configured.',
     );

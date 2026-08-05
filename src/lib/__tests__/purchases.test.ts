@@ -6,14 +6,14 @@
 // isPurchasesConfigured is false and every function below short-circuits before touching it.
 import Purchases from 'react-native-purchases';
 
-import { PLATINUM_ENTITLEMENT_ID } from '@/src/types';
+import { PREMIUM_ENTITLEMENT_ID } from '@/src/types';
 
 import {
   configurePurchases,
   fetchCurrentTier,
-  fetchPlatinumOffer,
+  fetchPremiumOffer,
   isPurchasesConfigured,
-  purchasePlatinum,
+  purchasePremium,
   restorePurchases,
   tierFromEntitlements,
 } from '@/src/lib/purchases';
@@ -32,11 +32,11 @@ jest.mock('react-native-purchases', () => ({
 }));
 
 describe('tierFromEntitlements (pure)', () => {
-  it('returns "platinum" when the Platinum entitlement is active', () => {
-    expect(tierFromEntitlements({ [PLATINUM_ENTITLEMENT_ID]: {} })).toBe('platinum');
+  it('returns "premium" when the Premium entitlement is active', () => {
+    expect(tierFromEntitlements({ [PREMIUM_ENTITLEMENT_ID]: {} })).toBe('premium');
   });
 
-  it('returns "free" when the Platinum entitlement is absent', () => {
+  it('returns "free" when the Premium entitlement is absent', () => {
     expect(tierFromEntitlements({})).toBe('free');
     expect(tierFromEntitlements({ some_other_entitlement: {} })).toBe('free');
   });
@@ -53,12 +53,12 @@ describe('purchases.ts (RevenueCat not configured)', () => {
     await expect(fetchCurrentTier()).resolves.toBe('free');
   });
 
-  it('fetchPlatinumOffer resolves to null without calling the SDK', async () => {
-    await expect(fetchPlatinumOffer()).resolves.toBeNull();
+  it('fetchPremiumOffer resolves to null without calling the SDK', async () => {
+    await expect(fetchPremiumOffer()).resolves.toBeNull();
   });
 
-  it('purchasePlatinum rejects with a clear error instead of silently unlocking Platinum', async () => {
-    await expect(purchasePlatinum()).rejects.toThrow('Subscriptions are not configured.');
+  it('purchasePremium rejects with a clear error instead of silently unlocking Premium', async () => {
+    await expect(purchasePremium()).rejects.toThrow('Subscriptions are not configured.');
   });
 
   it('restorePurchases resolves to "free" without calling the SDK', async () => {

@@ -1,4 +1,4 @@
-export type SubscriptionTier = 'free' | 'platinum';
+export type SubscriptionTier = 'free' | 'premium';
 
 /** Must match the entitlement identifier configured in the RevenueCat dashboard. */
-export const PLATINUM_ENTITLEMENT_ID = 'platinum';
+export const PREMIUM_ENTITLEMENT_ID = 'premium';

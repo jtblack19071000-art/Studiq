@@ -3,7 +3,6 @@ import { Button, H2, Input, Paragraph, Text, XStack, YStack } from 'tamagui';
 
 import { Card } from '@/src/components/Card';
 import { EmptyState } from '@/src/components/EmptyState';
-import { PlatinumGate } from '@/src/components/PlatinumGate';
 import { Screen } from '@/src/components/Screen';
 import { SectionHeader } from '@/src/components/SectionHeader';
 import { generateCollegeMatchGuidance, CollegeMatchAiError, type CollegeMatchGuidance } from '@/src/lib/collegeMatchAi';
@@ -75,11 +74,11 @@ export default function CollegeMatchScreen() {
         <H2>🏫 College Match</H2>
         <Paragraph color="$color10">
           An AI-guided best-fit quiz — not a database match, since there isn&apos;t one, but honest
-          reasoning over your own preferences.
+          reasoning over your own preferences. Free for everyone, prospective students included.
         </Paragraph>
       </YStack>
 
-      <PlatinumGate>
+      <YStack gap="$4">
         <YStack gap="$2">
           <SectionHeader title="Your preferences" emoji="🧑‍🎓" />
           <Card gap="$3">
@@ -210,7 +209,7 @@ export default function CollegeMatchScreen() {
             </YStack>
           ) : null}
         </YStack>
-      </PlatinumGate>
+      </YStack>
     </Screen>
   );
 }

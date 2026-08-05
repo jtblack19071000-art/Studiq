@@ -4,20 +4,20 @@ import { createJSONStorage, persist } from 'zustand/middleware';
 import { mmkvStateStorage } from '@/src/lib/mmkvStorage';
 import {
   fetchCurrentTier,
-  fetchPlatinumOffer,
+  fetchPremiumOffer,
   isPurchasesConfigured,
-  purchasePlatinum,
+  purchasePremium,
   restorePurchases,
-  type PlatinumOffer,
+  type PremiumOffer,
 } from '@/src/lib/purchases';
 import type { SubscriptionTier } from '@/src/types';
 
 interface SubscriptionState {
   tier: SubscriptionTier;
-  offer: PlatinumOffer | null;
+  offer: PremiumOffer | null;
   refreshing: boolean;
   refresh: () => Promise<void>;
-  purchase: () => Promise<void>;
+  purchase: (packageIdentifier?: string) => Promise<void>;
   restore: () => Promise<void>;
 }
 
@@ -31,7 +31,7 @@ export const useSubscriptionStore = create<SubscriptionState>()(
         if (!isPurchasesConfigured) return;
         set({ refreshing: true });
         try {
-          const [tier, offer] = await Promise.all([fetchCurrentTier(), fetchPlatinumOffer()]);
+          const [tier, offer] = await Promise.all([fetchCurrentTier(), fetchPremiumOffer()]);
           set({ tier, offer });
         } catch {
           // RevenueCat unreachable or misconfigured (e.g. invalid API key) — keep the last known
@@ -40,8 +40,8 @@ export const useSubscriptionStore = create<SubscriptionState>()(
           set({ refreshing: false });
         }
       },
-      purchase: async () => {
-        const tier = await purchasePlatinum();
+      purchase: async (packageIdentifier) => {
+        const tier = await purchasePremium(packageIdentifier);
         set({ tier });
       },
       restore: async () => {

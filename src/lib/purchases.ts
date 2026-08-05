@@ -1,6 +1,6 @@
 import Purchases from 'react-native-purchases';
 
-import { PLATINUM_ENTITLEMENT_ID, type SubscriptionTier } from '@/src/types';
+import { PREMIUM_ENTITLEMENT_ID, type SubscriptionTier } from '@/src/types';
 
 const apiKey = process.env.EXPO_PUBLIC_REVENUECAT_API_KEY;
 
@@ -38,7 +38,7 @@ export async function configurePurchases(userId: string | null): Promise<void> {
 }
 
 export function tierFromEntitlements(activeEntitlements: Record<string, unknown>): SubscriptionTier {
-  return PLATINUM_ENTITLEMENT_ID in activeEntitlements ? 'platinum' : 'free';
+  return PREMIUM_ENTITLEMENT_ID in activeEntitlements ? 'premium' : 'free';
 }
 
 export async function fetchCurrentTier(): Promise<SubscriptionTier> {
@@ -47,25 +47,37 @@ export async function fetchCurrentTier(): Promise<SubscriptionTier> {
   return tierFromEntitlements(customerInfo.entitlements.active);
 }
 
-export interface PlatinumOffer {
+export interface PackageInfo {
   packageIdentifier: string;
   priceString: string;
 }
 
-/** Fetches the current offering's package for the Platinum entitlement, if any is configured. */
-export async function fetchPlatinumOffer(): Promise<PlatinumOffer | null> {
+export interface PremiumOffer {
+  monthly: PackageInfo | null;
+  annual: PackageInfo | null;
+}
+
+function toPackageInfo(pkg: { identifier: string; product: { priceString: string } } | null): PackageInfo | null {
+  if (!pkg) return null;
+  return { packageIdentifier: pkg.identifier, priceString: pkg.product.priceString };
+}
+
+/** Fetches the current offering's monthly/annual packages for the Premium entitlement, if configured. */
+export async function fetchPremiumOffer(): Promise<PremiumOffer | null> {
   if (!isPurchasesConfigured) return null;
   const offerings = await Purchases.getOfferings();
   const current = offerings.current;
   if (!current || current.availablePackages.length === 0) return null;
-  const pkg = current.availablePackages[0];
-  return { packageIdentifier: pkg.identifier, priceString: pkg.product.priceString };
+  return { monthly: toPackageInfo(current.monthly), annual: toPackageInfo(current.annual) };
 }
 
-export async function purchasePlatinum(): Promise<SubscriptionTier> {
+export async function purchasePremium(packageIdentifier?: string): Promise<SubscriptionTier> {
   if (!isPurchasesConfigured) throw new Error('Subscriptions are not configured.');
   const offerings = await Purchases.getOfferings();
-  const pkg = offerings.current?.availablePackages[0];
+  const available = offerings.current?.availablePackages ?? [];
+  const pkg = packageIdentifier
+    ? available.find((candidate) => candidate.identifier === packageIdentifier)
+    : available[0];
   if (!pkg) throw new Error('No subscription package is configured yet.');
   const { customerInfo } = await Purchases.purchasePackage(pkg);
   return tierFromEntitlements(customerInfo.entitlements.active);

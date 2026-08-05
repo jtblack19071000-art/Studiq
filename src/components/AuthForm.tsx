@@ -27,7 +27,7 @@ export function AuthForm() {
     <YStack gap="$3">
       <H4>{mode === 'sign_in' ? 'Sign in' : 'Create an account'}</H4>
       <Paragraph color="$color10" fontSize="$3">
-        Platinum features are tied to your Studiq account so they follow you across devices.
+        Premium features are tied to your Studiq account so they follow you across devices.
       </Paragraph>
       <Input placeholder="Email" autoCapitalize="none" keyboardType="email-address" value={email} onChangeText={setEmail} />
       <Input placeholder="Password" secureTextEntry value={password} onChangeText={setPassword} />
