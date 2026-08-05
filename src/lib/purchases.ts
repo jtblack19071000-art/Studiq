@@ -1,3 +1,4 @@
+import { Platform } from 'react-native';
 import Purchases from 'react-native-purchases';
 
 import { PREMIUM_ENTITLEMENT_ID, type SubscriptionTier } from '@/src/types';
@@ -87,4 +88,36 @@ export async function restorePurchases(): Promise<SubscriptionTier> {
   if (!isPurchasesConfigured) return 'free';
   const customerInfo = await Purchases.restorePurchases();
   return tierFromEntitlements(customerInfo.entitlements.active);
+}
+
+export interface ManageSubscriptionResult {
+  /** True if the platform's native subscription-management sheet was actually opened. */
+  handled: boolean;
+  /** Set when `handled` is false — explains why, and what the user should do instead. */
+  message?: string;
+}
+
+/**
+ * Opens the platform's native subscription management (cancel, change plan, see billing history).
+ * There's no in-app "cancel" button by design — Apple/Google require using their own subscription
+ * management UI, which is exactly what this deep-links to on native. Web has no SDK equivalent
+ * here yet, so it returns guidance instead of pretending to handle it.
+ */
+export async function manageSubscription(): Promise<ManageSubscriptionResult> {
+  if (!isPurchasesConfigured) {
+    return { handled: false, message: 'Subscriptions are not configured.' };
+  }
+  if (Platform.OS === 'web') {
+    return {
+      handled: false,
+      message:
+        "Manage or cancel your subscription from the App Store or Google Play account you subscribed with — web subscription management isn't available yet.",
+    };
+  }
+  try {
+    await Purchases.showManageSubscriptions();
+    return { handled: true };
+  } catch (error) {
+    return { handled: false, message: error instanceof Error ? error.message : 'Could not open subscription management.' };
+  }
 }

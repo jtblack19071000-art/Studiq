@@ -41,4 +41,10 @@ describe('useAuthStore (cloud sync not configured)', () => {
   it('signOut() resolves without throwing when there is nothing to sign out of', async () => {
     await expect(useAuthStore.getState().signOut()).resolves.toBeUndefined();
   });
+
+  it('updateProfile() surfaces a clear "not configured" error instead of hanging or crashing', async () => {
+    await useAuthStore.getState().updateProfile({ college: 'State University' });
+
+    expect(useAuthStore.getState().error).toBe('Cloud sync is not configured.');
+  });
 });

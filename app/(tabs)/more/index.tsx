@@ -5,12 +5,14 @@ import { Card } from '@/src/components/Card';
 import { Screen } from '@/src/components/Screen';
 
 const MENU_ITEMS: { href: string; label: string; emoji: string; color: string }[] = [
+  { href: '/more/profile', label: 'Profile', emoji: '🧑‍🎓', color: '#3B6FE0' },
   { href: '/more/gpa', label: 'GPA Tracker', emoji: '🎓', color: '#3B6FE0' },
   { href: '/more/finance', label: 'Finance', emoji: '💸', color: '#4C9F4C' },
   { href: '/more/goals', label: 'Goals', emoji: '🎯', color: '#D9862B' },
   { href: '/more/career', label: 'Career Hub', emoji: '💼', color: '#7D5BD9' },
   { href: '/more/college-match', label: 'College Match', emoji: '🏫', color: '#C4478C' },
   { href: '/more/campus-resources', label: 'Campus Resources', emoji: '🧭', color: '#2BA6A4' },
+  { href: '/more/subscription', label: 'Subscription', emoji: '💎', color: '#E0B93B' },
   { href: '/more/settings', label: 'Settings', emoji: '⚙️', color: '#8A8F98' },
 ];
 

@@ -9,6 +9,7 @@ export function AuthForm() {
   const authError = useAuthStore((state) => state.error);
 
   const [mode, setMode] = useState<'sign_in' | 'sign_up'>('sign_in');
+  const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [submitting, setSubmitting] = useState(false);
@@ -18,7 +19,7 @@ export function AuthForm() {
     if (mode === 'sign_in') {
       await signIn(email.trim(), password);
     } else {
-      await signUp(email.trim(), password);
+      await signUp(email.trim(), password, name.trim() || undefined);
     }
     setSubmitting(false);
   }
@@ -30,6 +31,9 @@ export function AuthForm() {
         Your account keeps your data separate from anyone else who uses Studiq — and Premium
         features follow you across devices too.
       </Paragraph>
+      {mode === 'sign_up' ? (
+        <Input placeholder="Your name" value={name} onChangeText={setName} />
+      ) : null}
       <Input placeholder="Email" autoCapitalize="none" keyboardType="email-address" value={email} onChangeText={setEmail} />
       <Input placeholder="Password" secureTextEntry value={password} onChangeText={setPassword} />
       {authError ? <Paragraph color="$red10">{authError}</Paragraph> : null}
