@@ -1,6 +1,7 @@
-import { anthropic } from '@ai-sdk/anthropic';
 import { generateText, Output } from 'ai';
 import { z } from 'zod';
+
+import { AI_NOT_CONFIGURED_MESSAGE, resolveAiModel } from '@/src/lib/aiModel';
 
 const estimateSchema = z.object({
   estimatedHourlyRate: z.number().describe('Best single-number estimate of typical hourly pay for this role, in US dollars.'),
@@ -10,11 +11,9 @@ const estimateSchema = z.object({
 });
 
 export async function POST(request: Request): Promise<Response> {
-  if (!process.env.ANTHROPIC_API_KEY) {
-    return Response.json(
-      { error: 'AI generation is not configured. Set ANTHROPIC_API_KEY on the server.' },
-      { status: 503 },
-    );
+  const model = resolveAiModel();
+  if (!model) {
+    return Response.json({ error: AI_NOT_CONFIGURED_MESSAGE }, { status: 503 });
   }
 
   const body = await request.json();
@@ -28,7 +27,7 @@ export async function POST(request: Request): Promise<Response> {
 
   try {
     const { output } = await generateText({
-      model: anthropic('claude-sonnet-5'),
+      model,
       prompt: [
         'You are helping a college student estimate typical hourly pay for a part-time or campus',
         "job when they don't know their exact rate yet. You do not have live wage data, so reason",

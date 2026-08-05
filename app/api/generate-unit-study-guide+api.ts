@@ -1,6 +1,7 @@
-import { anthropic } from '@ai-sdk/anthropic';
 import { generateText, Output } from 'ai';
 import { z } from 'zod';
+
+import { AI_NOT_CONFIGURED_MESSAGE, resolveAiModel } from '@/src/lib/aiModel';
 
 const quizQuestionSchema = z.object({
   question: z.string(),
@@ -30,11 +31,9 @@ interface LectureInput {
 }
 
 export async function POST(request: Request): Promise<Response> {
-  if (!process.env.ANTHROPIC_API_KEY) {
-    return Response.json(
-      { error: 'AI generation is not configured. Set ANTHROPIC_API_KEY on the server.' },
-      { status: 503 },
-    );
+  const model = resolveAiModel();
+  if (!model) {
+    return Response.json({ error: AI_NOT_CONFIGURED_MESSAGE }, { status: 503 });
   }
 
   const body = await request.json();
@@ -55,7 +54,7 @@ export async function POST(request: Request): Promise<Response> {
 
   try {
     const { output } = await generateText({
-      model: anthropic('claude-sonnet-5'),
+      model,
       prompt: [
         `You are an expert study assistant. A student recorded ${usableLectures.length} lecture(s)`,
         `for the unit "${unitTitle}". Analyze ALL of the lecture transcripts below TOGETHER as one`,

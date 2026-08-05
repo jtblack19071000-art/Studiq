@@ -1,6 +1,7 @@
-import { anthropic } from '@ai-sdk/anthropic';
 import { generateText, Output } from 'ai';
 import { z } from 'zod';
+
+import { AI_NOT_CONFIGURED_MESSAGE, resolveAiModel } from '@/src/lib/aiModel';
 
 const lectureMaterialsSchema = z.object({
   notes: z.string().describe('Organized, well-structured lecture notes in markdown.'),
@@ -25,11 +26,9 @@ const lectureMaterialsSchema = z.object({
 });
 
 export async function POST(request: Request): Promise<Response> {
-  if (!process.env.ANTHROPIC_API_KEY) {
-    return Response.json(
-      { error: 'AI generation is not configured. Set ANTHROPIC_API_KEY on the server.' },
-      { status: 503 },
-    );
+  const model = resolveAiModel();
+  if (!model) {
+    return Response.json({ error: AI_NOT_CONFIGURED_MESSAGE }, { status: 503 });
   }
 
   const body = await request.json();
@@ -40,7 +39,7 @@ export async function POST(request: Request): Promise<Response> {
 
   try {
     const { output } = await generateText({
-      model: anthropic('claude-sonnet-5'),
+      model,
       prompt: [
         'You are an expert study assistant analyzing a college lecture transcript.',
         'Produce organized notes, a summary, vocabulary with definitions, any formulas mentioned,',

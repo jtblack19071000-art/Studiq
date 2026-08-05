@@ -1,6 +1,7 @@
-import { anthropic } from '@ai-sdk/anthropic';
 import { generateText, Output } from 'ai';
 import { z } from 'zod';
+
+import { AI_NOT_CONFIGURED_MESSAGE, resolveAiModel } from '@/src/lib/aiModel';
 
 const guidanceSchema = z.object({
   fitSummary: z.string().describe('A short narrative on what this student should look for in a school, given their answers.'),
@@ -17,11 +18,9 @@ interface SchoolInput {
 }
 
 export async function POST(request: Request): Promise<Response> {
-  if (!process.env.ANTHROPIC_API_KEY) {
-    return Response.json(
-      { error: 'AI generation is not configured. Set ANTHROPIC_API_KEY on the server.' },
-      { status: 503 },
-    );
+  const model = resolveAiModel();
+  if (!model) {
+    return Response.json({ error: AI_NOT_CONFIGURED_MESSAGE }, { status: 503 });
   }
 
   const body = await request.json();
@@ -50,7 +49,7 @@ export async function POST(request: Request): Promise<Response> {
 
   try {
     const { output } = await generateText({
-      model: anthropic('claude-sonnet-5'),
+      model,
       prompt: [
         "You are a thoughtful, honest college advisor. You do NOT have access to a real database",
         'of colleges, so you cannot verify facts about specific schools — never invent statistics,',

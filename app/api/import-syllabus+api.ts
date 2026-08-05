@@ -1,6 +1,7 @@
-import { anthropic } from '@ai-sdk/anthropic';
 import { generateText, Output } from 'ai';
 import { z } from 'zod';
+
+import { AI_NOT_CONFIGURED_MESSAGE, resolveAiModel } from '@/src/lib/aiModel';
 
 const WEEKDAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'] as const;
 
@@ -31,11 +32,9 @@ const syllabusSchema = z.object({
 });
 
 export async function POST(request: Request): Promise<Response> {
-  if (!process.env.ANTHROPIC_API_KEY) {
-    return Response.json(
-      { error: 'AI generation is not configured. Set ANTHROPIC_API_KEY on the server.' },
-      { status: 503 },
-    );
+  const model = resolveAiModel();
+  if (!model) {
+    return Response.json({ error: AI_NOT_CONFIGURED_MESSAGE }, { status: 503 });
   }
 
   const formData = (await request.formData()) as unknown as { get: (key: string) => unknown };
@@ -57,7 +56,7 @@ export async function POST(request: Request): Promise<Response> {
 
   try {
     const { output } = await generateText({
-      model: anthropic('claude-sonnet-5'),
+      model,
       messages: [
         {
           role: 'user',
