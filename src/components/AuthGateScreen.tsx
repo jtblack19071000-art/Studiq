@@ -1,7 +1,8 @@
-import { H1, Paragraph, Text, YStack } from 'tamagui';
+import { Image } from 'react-native';
+import { H1, Paragraph, YStack } from 'tamagui';
 
 import { AuthForm } from '@/src/components/AuthForm';
-import { ACCENT_SOFT_BG, ACCENT_TINT, useThemeStore } from '@/src/state/themeStore';
+import { ACCENT_TINT, useThemeStore } from '@/src/state/themeStore';
 
 /**
  * Full-screen sign-in/sign-up wall shown whenever cloud sync is configured (EXPO_PUBLIC_SUPABASE_URL
@@ -14,15 +15,11 @@ export function AuthGateScreen() {
   return (
     <YStack flex={1} backgroundColor="$background" justifyContent="center" padding="$5" gap="$6">
       <YStack alignItems="center" gap="$2">
-        <YStack
-          width={72}
-          height={72}
-          borderRadius="$8"
-          alignItems="center"
-          justifyContent="center"
-          style={{ backgroundColor: ACCENT_SOFT_BG[accentColor] }}>
-          <Text fontSize={36}>🎓</Text>
-        </YStack>
+        <Image
+          source={require('../../assets/images/icon.png')}
+          style={{ width: 72, height: 72, borderRadius: 16 }}
+          resizeMode="cover"
+        />
         <H1 fontSize="$9" style={{ color: ACCENT_TINT[accentColor] }}>
           Studiq
         </H1>
