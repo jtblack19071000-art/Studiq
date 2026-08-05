@@ -1,11 +1,12 @@
 import { router } from 'expo-router';
 import { useState } from 'react';
 import { Alert, Platform } from 'react-native';
-import { Button, H3, Input, Label, Paragraph, XStack, YStack } from 'tamagui';
+import { Button, H3, Input, Label, Paragraph, Text, XStack, YStack } from 'tamagui';
 
 import { createId } from '@/src/lib/id';
 import { parseTimeToday } from '@/src/lib/time';
 import { useScheduleStore } from '@/src/state/scheduleStore';
+import { ACCENT_SOFT_BG, ACCENT_TINT, useThemeStore } from '@/src/state/themeStore';
 import { EVENT_COLOR_SWATCHES, eventCategoryLabels, type EventCategory } from '@/src/types';
 
 const CATEGORIES = Object.keys(eventCategoryLabels) as EventCategory[];
@@ -21,6 +22,7 @@ const REMINDER_OPTIONS: { label: string; minutesBefore: number | null }[] = [
 
 export default function QuickAddModal() {
   const addEvent = useScheduleStore((state) => state.addEvent);
+  const accentColor = useThemeStore((state) => state.accentColor);
   const [title, setTitle] = useState('');
   const [category, setCategory] = useState<EventCategory>('personal');
   const [startTime, setStartTime] = useState('');
@@ -67,7 +69,15 @@ export default function QuickAddModal() {
 
   return (
     <YStack flex={1} backgroundColor="$background" padding="$4" gap="$4">
-      <H3>Quick add</H3>
+      <YStack
+        alignItems="center"
+        gap="$1"
+        borderRadius="$8"
+        paddingVertical="$4"
+        style={{ backgroundColor: ACCENT_SOFT_BG[accentColor] }}>
+        <Text fontSize={28}>⚡</Text>
+        <H3 style={{ color: ACCENT_TINT[accentColor] }}>Quick add</H3>
+      </YStack>
 
       <YStack gap="$2">
         <Label>Title</Label>

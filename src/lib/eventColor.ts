@@ -14,3 +14,13 @@ export function resolveEventColor(event: ScheduleEvent, classesById: Map<string,
   }
   return eventCategoryColors[event.category];
 }
+
+/** Adds an alpha channel to a `#rrggbb` hex color, for translucent hero/background tints. */
+export function withAlpha(hex: string, alpha: number): string {
+  const match = /^#([0-9a-fA-F]{6})$/.exec(hex);
+  if (!match) return hex;
+  const r = parseInt(match[1].slice(0, 2), 16);
+  const g = parseInt(match[1].slice(2, 4), 16);
+  const b = parseInt(match[1].slice(4, 6), 16);
+  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+}

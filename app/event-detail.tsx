@@ -2,7 +2,7 @@ import { format } from 'date-fns';
 import { router, useLocalSearchParams } from 'expo-router';
 import { Button, H3, Paragraph, Text, XStack, YStack } from 'tamagui';
 
-import { resolveEventColor } from '@/src/lib/eventColor';
+import { resolveEventColor, withAlpha } from '@/src/lib/eventColor';
 import { useClassesStore } from '@/src/state/classesStore';
 import { useScheduleStore } from '@/src/state/scheduleStore';
 import { EVENT_COLOR_SWATCHES, eventCategoryLabels } from '@/src/types';
@@ -38,10 +38,15 @@ export default function EventDetailModal() {
 
   return (
     <YStack flex={1} backgroundColor="$background" padding="$4" gap="$4">
-      <XStack gap="$3" alignItems="flex-start">
+      <XStack
+        gap="$3"
+        alignItems="flex-start"
+        borderRadius="$8"
+        padding="$4"
+        style={{ backgroundColor: withAlpha(currentColor, 0.14) }}>
         <YStack width={6} borderRadius="$10" alignSelf="stretch" style={{ backgroundColor: currentColor }} />
         <YStack flex={1} gap="$1">
-          <H3>{event.title}</H3>
+          <H3 style={{ color: currentColor }}>{event.title}</H3>
           <Paragraph color="$color10">
             {format(new Date(startsAt), 'EEEE, MMM d · h:mm a')} – {format(new Date(endsAt), 'h:mm a')}
           </Paragraph>
