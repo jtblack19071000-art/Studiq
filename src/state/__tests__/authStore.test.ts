@@ -27,7 +27,7 @@ describe('useAuthStore (cloud sync not configured)', () => {
   });
 
   it('signUp() surfaces a clear "not configured" error instead of hanging or crashing', async () => {
-    await useAuthStore.getState().signUp('student@example.edu', 'password123');
+    await useAuthStore.getState().signUp('email', 'student@example.edu', 'password123');
 
     expect(useAuthStore.getState().error).toBe('Cloud sync is not configured.');
   });
@@ -46,5 +46,43 @@ describe('useAuthStore (cloud sync not configured)', () => {
     await useAuthStore.getState().updateProfile({ college: 'State University' });
 
     expect(useAuthStore.getState().error).toBe('Cloud sync is not configured.');
+  });
+
+  it('verifyOtp() surfaces a clear "not configured" error instead of hanging or crashing', async () => {
+    await useAuthStore.getState().verifyOtp('123456');
+
+    expect(useAuthStore.getState().error).toBe('Cloud sync is not configured.');
+  });
+
+  it('resendOtp() is a no-op instead of hanging or crashing', async () => {
+    await expect(useAuthStore.getState().resendOtp()).resolves.toBeUndefined();
+  });
+
+  it('requestPasswordReset() surfaces a clear "not configured" error instead of hanging or crashing', async () => {
+    await useAuthStore.getState().requestPasswordReset('student@example.edu');
+
+    expect(useAuthStore.getState().error).toBe('Cloud sync is not configured.');
+  });
+
+  it('setNewPassword() surfaces a clear "not configured" error instead of hanging or crashing', async () => {
+    await useAuthStore.getState().setNewPassword('newpassword123');
+
+    expect(useAuthStore.getState().error).toBe('Cloud sync is not configured.');
+  });
+
+  it('deleteAccount() surfaces a clear "not configured" error and resolves false', async () => {
+    const result = await useAuthStore.getState().deleteAccount();
+
+    expect(result).toBe(false);
+    expect(useAuthStore.getState().error).toBe('Cloud sync is not configured.');
+  });
+
+  it('clearPendingVerification() clears both pendingVerification and error', () => {
+    useAuthStore.setState({ pendingVerification: { type: 'email', value: 'a@b.com', purpose: 'sign_up' }, error: 'oops' });
+
+    useAuthStore.getState().clearPendingVerification();
+
+    expect(useAuthStore.getState().pendingVerification).toBeNull();
+    expect(useAuthStore.getState().error).toBeNull();
   });
 });

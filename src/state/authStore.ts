@@ -9,16 +9,35 @@ export interface ProfileMetadata {
   college?: string;
 }
 
+export type AuthIdentifierType = 'email' | 'phone';
+
+export interface PendingVerification {
+  type: AuthIdentifierType;
+  value: string;
+  purpose: 'sign_up' | 'recovery';
+}
+
 interface AuthState {
   user: User | null;
   session: Session | null;
   initializing: boolean;
   error: string | null;
+  /** Set once a sign-up or password-reset needs a code entered before it can complete. */
+  pendingVerification: PendingVerification | null;
   init: () => void;
-  signUp: (email: string, password: string, displayName?: string) => Promise<void>;
-  signIn: (email: string, password: string) => Promise<void>;
+  signUp: (identifierType: AuthIdentifierType, identifier: string, password: string, displayName?: string) => Promise<void>;
+  /** Verifies the code sent for the current `pendingVerification` (sign-up or recovery). */
+  verifyOtp: (token: string) => Promise<void>;
+  resendOtp: () => Promise<void>;
+  signIn: (identifier: string, password: string) => Promise<void>;
   signOut: () => Promise<void>;
   updateProfile: (patch: ProfileMetadata) => Promise<void>;
+  requestPasswordReset: (email: string) => Promise<void>;
+  /** Sets a new password once the recovery code has been verified (a recovery session is active). */
+  setNewPassword: (newPassword: string) => Promise<void>;
+  clearPendingVerification: () => void;
+  /** Permanently deletes the signed-in user's account and all their data. Returns whether it succeeded. */
+  deleteAccount: () => Promise<boolean>;
 }
 
 let initialized = false;
@@ -38,6 +57,7 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
   session: null,
   initializing: true,
   error: null,
+  pendingVerification: null,
   init: () => {
     if (initialized || !supabase) {
       set({ initializing: false });
@@ -59,26 +79,87 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
       handleUserTransition(previousUserId, nextUserId);
     });
   },
-  signUp: async (email, password, displayName) => {
+  signUp: async (identifierType, identifier, password, displayName) => {
     if (!supabase) {
       set({ error: 'Cloud sync is not configured.' });
       return;
     }
     set({ error: null });
-    const { error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: displayName ? { data: { display_name: displayName } } : undefined,
-    });
-    if (error) set({ error: error.message });
+    const trimmed = identifier.trim();
+    const options = displayName ? { data: { display_name: displayName } } : undefined;
+    const { error, data } =
+      identifierType === 'email'
+        ? await supabase.auth.signUp({ email: trimmed, password, options })
+        : await supabase.auth.signUp({ phone: trimmed, password, options });
+    if (error) {
+      set({ error: error.message });
+      return;
+    }
+    if (data.session) {
+      // Some Supabase projects have signup confirmation turned off entirely — the session is
+      // already active and there's no code to enter.
+      set({ pendingVerification: null });
+      return;
+    }
+    set({ pendingVerification: { type: identifierType, value: trimmed, purpose: 'sign_up' } });
   },
-  signIn: async (email, password) => {
+  verifyOtp: async (token) => {
+    if (!supabase) {
+      set({ error: 'Cloud sync is not configured.' });
+      return;
+    }
+    const pending = get().pendingVerification;
+    if (!pending) {
+      set({ error: 'Nothing to verify.' });
+      return;
+    }
+    set({ error: null });
+    const signUpType = pending.type === 'email' ? 'signup' : 'sms';
+    const { error } =
+      pending.type === 'email'
+        ? await supabase.auth.verifyOtp({
+            email: pending.value,
+            token,
+            type: pending.purpose === 'recovery' ? 'recovery' : signUpType,
+          })
+        : await supabase.auth.verifyOtp({
+            phone: pending.value,
+            token,
+            type: pending.purpose === 'recovery' ? 'sms' : signUpType,
+          });
+    if (error) {
+      set({ error: error.message });
+      return;
+    }
+    if (pending.purpose === 'sign_up') set({ pendingVerification: null });
+    // For a recovery code, pendingVerification stays set so the UI moves on to "set new password".
+  },
+  resendOtp: async () => {
+    if (!supabase) return;
+    const pending = get().pendingVerification;
+    if (!pending) return;
+    set({ error: null });
+    if (pending.purpose === 'sign_up') {
+      const { error } =
+        pending.type === 'email'
+          ? await supabase.auth.resend({ type: 'signup', email: pending.value })
+          : await supabase.auth.resend({ type: 'sms', phone: pending.value });
+      if (error) set({ error: error.message });
+    } else {
+      const { error } = await supabase.auth.resetPasswordForEmail(pending.value);
+      if (error) set({ error: error.message });
+    }
+  },
+  signIn: async (identifier, password) => {
     if (!supabase) {
       set({ error: 'Cloud sync is not configured.' });
       return;
     }
     set({ error: null });
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    const trimmed = identifier.trim();
+    const { error } = trimmed.includes('@')
+      ? await supabase.auth.signInWithPassword({ email: trimmed, password })
+      : await supabase.auth.signInWithPassword({ phone: trimmed, password });
     if (error) set({ error: error.message });
   },
   signOut: async () => {
@@ -100,5 +181,63 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
       return;
     }
     if (result.user) set({ user: result.user });
+  },
+  requestPasswordReset: async (email) => {
+    if (!supabase) {
+      set({ error: 'Cloud sync is not configured.' });
+      return;
+    }
+    set({ error: null });
+    const trimmed = email.trim();
+    const { error } = await supabase.auth.resetPasswordForEmail(trimmed);
+    if (error) {
+      set({ error: error.message });
+      return;
+    }
+    set({ pendingVerification: { type: 'email', value: trimmed, purpose: 'recovery' } });
+  },
+  setNewPassword: async (newPassword) => {
+    if (!supabase) {
+      set({ error: 'Cloud sync is not configured.' });
+      return;
+    }
+    set({ error: null });
+    const { error } = await supabase.auth.updateUser({ password: newPassword });
+    if (error) {
+      set({ error: error.message });
+      return;
+    }
+    set({ pendingVerification: null });
+  },
+  clearPendingVerification: () => set({ pendingVerification: null, error: null }),
+  deleteAccount: async () => {
+    if (!supabase) {
+      set({ error: 'Cloud sync is not configured.' });
+      return false;
+    }
+    const token = get().session?.access_token;
+    if (!token) {
+      set({ error: 'You must be signed in.' });
+      return false;
+    }
+    set({ error: null });
+    try {
+      const response = await fetch('/api/delete-account', {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!response.ok) {
+        const body = await response.json().catch(() => ({}));
+        set({ error: typeof body?.error === 'string' ? body.error : 'Could not delete your account.' });
+        return false;
+      }
+    } catch (error) {
+      set({ error: error instanceof Error ? error.message : 'Could not delete your account.' });
+      return false;
+    }
+    stopCloudSync();
+    resetAllCloudSyncedStores();
+    await supabase.auth.signOut();
+    return true;
   },
 }));

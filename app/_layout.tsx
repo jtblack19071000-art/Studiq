@@ -50,6 +50,7 @@ function RootLayoutNav() {
   const initAuth = useAuthStore((state) => state.init);
   const authInitializing = useAuthStore((state) => state.initializing);
   const session = useAuthStore((state) => state.session);
+  const pendingVerification = useAuthStore((state) => state.pendingVerification);
   const userId = useAuthStore((state) => state.user?.id ?? null);
   const refreshSubscription = useSubscriptionStore((state) => state.refresh);
   const scheduleEvents = useScheduleStore((state) => state.events);
@@ -76,7 +77,11 @@ function RootLayoutNav() {
   // sign-in wall, anyone could use the app on someone else's already-authenticated device. When
   // Supabase isn't configured there's no account system to gate behind, so the app stays fully
   // usable offline, matching how every other cloud-optional feature here degrades.
-  const requiresSignIn = Boolean(supabase) && (authInitializing || !session);
+  //
+  // pendingVerification also keeps the wall up even once a session exists: a sign-up isn't done
+  // until its code is verified, and verifying a password-recovery code establishes a session
+  // before the user has actually chosen a new password — see AuthForm.tsx.
+  const requiresSignIn = Boolean(supabase) && (authInitializing || !session || Boolean(pendingVerification));
 
   return (
     <TamaguiProvider config={tamaguiConfig} defaultTheme={colorScheme}>

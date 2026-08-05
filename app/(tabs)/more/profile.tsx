@@ -6,6 +6,7 @@ import { Card } from '@/src/components/Card';
 import { EmptyState } from '@/src/components/EmptyState';
 import { Screen } from '@/src/components/Screen';
 import { SectionHeader } from '@/src/components/SectionHeader';
+import { confirmAsync } from '@/src/lib/confirm';
 import { supabase } from '@/src/lib/supabase';
 import { useAuthStore } from '@/src/state/authStore';
 import { useSubscriptionStore } from '@/src/state/subscriptionStore';
@@ -15,6 +16,8 @@ export default function ProfileScreen() {
   const session = useAuthStore((state) => state.session);
   const user = useAuthStore((state) => state.user);
   const updateProfile = useAuthStore((state) => state.updateProfile);
+  const signOut = useAuthStore((state) => state.signOut);
+  const deleteAccount = useAuthStore((state) => state.deleteAccount);
   const authError = useAuthStore((state) => state.error);
   const tier = useSubscriptionStore((state) => state.tier);
   const accentColor = useThemeStore((state) => state.accentColor);
@@ -23,6 +26,7 @@ export default function ProfileScreen() {
   const [nameDraft, setNameDraft] = useState('');
   const [collegeDraft, setCollegeDraft] = useState('');
   const [saving, setSaving] = useState(false);
+  const [deleting, setDeleting] = useState(false);
 
   if (!supabase) {
     return (
@@ -68,6 +72,17 @@ export default function ProfileScreen() {
     await updateProfile({ displayName: nameDraft.trim(), college: collegeDraft.trim() });
     setSaving(false);
     if (!useAuthStore.getState().error) setEditing(false);
+  }
+
+  async function handleDeleteAccount() {
+    const confirmed = await confirmAsync(
+      'Delete account?',
+      'This permanently deletes your account and everything in it — classes, schedule, grades, finances, and your subscription. This cannot be undone.',
+    );
+    if (!confirmed) return;
+    setDeleting(true);
+    await deleteAccount();
+    setDeleting(false);
   }
 
   return (
@@ -141,7 +156,7 @@ export default function ProfileScreen() {
                 <Text color="$color10" fontSize="$2">
                   Email
                 </Text>
-                <Text fontWeight="600">{user.email}</Text>
+                <Text fontWeight="600">{user.email ?? user.phone ?? 'Not set'}</Text>
               </YStack>
               <YStack>
                 <Text color="$color10" fontSize="$2">
@@ -151,6 +166,18 @@ export default function ProfileScreen() {
               </YStack>
             </>
           )}
+        </Card>
+      </YStack>
+
+      <YStack gap="$2">
+        <SectionHeader title="Account" emoji="🔑" />
+        <Card gap="$2">
+          <Button size="$4" onPress={signOut}>
+            Sign out
+          </Button>
+          <Button size="$4" theme="red" disabled={deleting} onPress={handleDeleteAccount}>
+            {deleting ? 'Deleting…' : 'Delete account'}
+          </Button>
         </Card>
       </YStack>
     </Screen>
