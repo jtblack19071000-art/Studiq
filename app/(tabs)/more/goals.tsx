@@ -6,6 +6,7 @@ import { EmptyState } from '@/src/components/EmptyState';
 import { Screen } from '@/src/components/Screen';
 import { SectionHeader } from '@/src/components/SectionHeader';
 import { useGoalsStore } from '@/src/state/goalsStore';
+import { ACCENT_SOFT_BG, ACCENT_TINT, useThemeStore } from '@/src/state/themeStore';
 import { goalCategoryLabels, type Goal, type GoalCategory, type GoalStatus } from '@/src/types';
 
 const CATEGORIES = Object.keys(goalCategoryLabels) as GoalCategory[];
@@ -53,6 +54,7 @@ function GoalCard({ goal }: { goal: Goal }) {
 export default function GoalsScreen() {
   const goals = useGoalsStore((state) => state.goals);
   const addGoal = useGoalsStore((state) => state.addGoal);
+  const accentColor = useThemeStore((state) => state.accentColor);
 
   const [title, setTitle] = useState('');
   const [category, setCategory] = useState<GoalCategory>('academic');
@@ -84,6 +86,37 @@ export default function GoalsScreen() {
       <YStack gap="$1" paddingTop="$2">
         <H2>🎯 Goals</H2>
       </YStack>
+
+      <XStack
+        gap="$2"
+        borderRadius="$8"
+        padding="$5"
+        style={{ backgroundColor: ACCENT_SOFT_BG[accentColor] }}>
+        <YStack alignItems="center" flex={1}>
+          <Text fontWeight="800" fontSize="$8" style={{ color: ACCENT_TINT[accentColor] }}>
+            {grouped.in_progress.length}
+          </Text>
+          <Text color="$color10" fontSize="$2">
+            🚀 In progress
+          </Text>
+        </YStack>
+        <YStack alignItems="center" flex={1}>
+          <Text fontWeight="800" fontSize="$8" style={{ color: ACCENT_TINT[accentColor] }}>
+            {grouped.not_started.length}
+          </Text>
+          <Text color="$color10" fontSize="$2">
+            🗓️ Not started
+          </Text>
+        </YStack>
+        <YStack alignItems="center" flex={1}>
+          <Text fontWeight="800" fontSize="$8" style={{ color: ACCENT_TINT[accentColor] }}>
+            {grouped.completed.length}
+          </Text>
+          <Text color="$color10" fontSize="$2">
+            ✅ Completed
+          </Text>
+        </YStack>
+      </XStack>
 
       <YStack gap="$2">
         <SectionHeader title="Add goal" emoji="➕" />

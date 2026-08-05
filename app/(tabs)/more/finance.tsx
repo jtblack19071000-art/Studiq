@@ -9,6 +9,7 @@ import { SectionHeader } from '@/src/components/SectionHeader';
 import { calculateMonthlySummary, estimateMonthlyIncomeFromProfile } from '@/src/lib/finance';
 import { estimateHourlyPay, PayEstimateAiError } from '@/src/lib/payEstimateAi';
 import { useFinanceStore } from '@/src/state/financeStore';
+import { ACCENT_SOFT_BG, ACCENT_TINT, useThemeStore } from '@/src/state/themeStore';
 import {
   transactionCategoryLabels,
   type Job,
@@ -29,6 +30,7 @@ export default function FinanceScreen() {
   const transactions = useFinanceStore((state) => state.transactions);
   const addTransaction = useFinanceStore((state) => state.addTransaction);
   const removeTransaction = useFinanceStore((state) => state.removeTransaction);
+  const accentColor = useThemeStore((state) => state.accentColor);
 
   const [title, setTitle] = useState('');
   const [amount, setAmount] = useState('');
@@ -60,7 +62,11 @@ export default function FinanceScreen() {
         <H2>💸 Finance</H2>
       </YStack>
 
-      <Card>
+      <YStack
+        gap="$2"
+        borderRadius="$8"
+        padding="$5"
+        style={{ backgroundColor: ACCENT_SOFT_BG[accentColor] }}>
         <XStack justifyContent="space-between">
           <YStack alignItems="center" flex={1}>
             <Text color="$color10" fontSize="$2">
@@ -82,7 +88,7 @@ export default function FinanceScreen() {
             <Text color="$color10" fontSize="$2">
               ⚖️ Balance
             </Text>
-            <Text fontWeight="700" fontSize="$6">
+            <Text fontWeight="700" fontSize="$6" style={{ color: ACCENT_TINT[accentColor] }}>
               {formatCurrency(summary.balance)}
             </Text>
           </YStack>
@@ -90,7 +96,7 @@ export default function FinanceScreen() {
         <Paragraph color="$color10" fontSize="$3" textAlign="center">
           This month
         </Paragraph>
-      </Card>
+      </YStack>
 
       <FinancialProfileSection />
 

@@ -7,11 +7,13 @@ import { Screen } from '@/src/components/Screen';
 import { SectionHeader } from '@/src/components/SectionHeader';
 import { calculateGpa, groupClassesByTerm, LETTER_GRADES } from '@/src/lib/gpa';
 import { useClassesStore } from '@/src/state/classesStore';
+import { ACCENT_SOFT_BG, ACCENT_TINT, useThemeStore } from '@/src/state/themeStore';
 import type { LetterGrade } from '@/src/types';
 
 export default function GpaScreen() {
   const classes = useClassesStore((state) => state.classes);
   const updateClass = useClassesStore((state) => state.updateClass);
+  const accentColor = useThemeStore((state) => state.accentColor);
 
   const overall = useMemo(() => calculateGpa(classes), [classes]);
   const termGroups = useMemo(() => groupClassesByTerm(classes), [classes]);
@@ -22,14 +24,19 @@ export default function GpaScreen() {
         <H2>🎓 GPA Tracker</H2>
       </YStack>
 
-      <Card alignItems="center" paddingVertical="$5" style={{ backgroundColor: 'rgba(59, 111, 224, 0.1)' }}>
-        <Text fontSize="$10" fontWeight="800">
+      <YStack
+        alignItems="center"
+        borderRadius="$8"
+        paddingVertical="$6"
+        gap="$1"
+        style={{ backgroundColor: ACCENT_SOFT_BG[accentColor] }}>
+        <Text fontSize="$11" fontWeight="800" style={{ color: ACCENT_TINT[accentColor] }}>
           {overall.gpa !== null ? overall.gpa.toFixed(2) : '—'}
         </Text>
-        <Paragraph color="$color10">
+        <Paragraph color="$color11">
           Cumulative GPA · {overall.totalCreditHours} credit hour{overall.totalCreditHours === 1 ? '' : 's'}
         </Paragraph>
-      </Card>
+      </YStack>
 
       {classes.length === 0 ? (
         <EmptyState emoji="🎓" message="Add classes from the Classes tab to start tracking your GPA." />

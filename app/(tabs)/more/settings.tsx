@@ -17,7 +17,13 @@ import { supabase } from '@/src/lib/supabase';
 import { useAuthStore } from '@/src/state/authStore';
 import { useScheduleStore } from '@/src/state/scheduleStore';
 import { useSubscriptionStore } from '@/src/state/subscriptionStore';
-import { ACCENT_COLORS, ACCENT_TINT, useThemeStore, type ColorSchemeOverride } from '@/src/state/themeStore';
+import {
+  ACCENT_COLORS,
+  ACCENT_SOFT_BG,
+  ACCENT_TINT,
+  useThemeStore,
+  type ColorSchemeOverride,
+} from '@/src/state/themeStore';
 
 const COLOR_SCHEME_OPTIONS: { value: ColorSchemeOverride; label: string }[] = [
   { value: 'system', label: 'System' },
@@ -37,6 +43,7 @@ export default function SettingsScreen() {
   const signOut = useAuthStore((state) => state.signOut);
   const tier = useSubscriptionStore((state) => state.tier);
   const scheduleEvents = useScheduleStore((state) => state.events);
+  const accentColor = useThemeStore((state) => state.accentColor);
 
   const [notificationsGranted, setNotificationsGranted] = useState<boolean | null>(null);
 
@@ -56,6 +63,18 @@ export default function SettingsScreen() {
     <Screen>
       <YStack gap="$1" paddingTop="$2">
         <H2>⚙️ Settings</H2>
+      </YStack>
+
+      <YStack
+        alignItems="center"
+        gap="$1"
+        borderRadius="$8"
+        paddingVertical="$5"
+        style={{ backgroundColor: ACCENT_SOFT_BG[accentColor] }}>
+        <Text fontSize={36}>{tier === 'premium' ? '💎' : '🆓'}</Text>
+        <Text fontWeight="800" fontSize="$6" style={{ color: ACCENT_TINT[accentColor] }}>
+          {tier === 'premium' ? 'Premium plan' : 'Free plan'}
+        </Text>
       </YStack>
 
       <YStack gap="$2">

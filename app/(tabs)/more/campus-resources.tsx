@@ -6,6 +6,7 @@ import { EmptyState } from '@/src/components/EmptyState';
 import { Screen } from '@/src/components/Screen';
 import { SectionHeader } from '@/src/components/SectionHeader';
 import { useCampusResourcesStore } from '@/src/state/campusResourcesStore';
+import { ACCENT_SOFT_BG, ACCENT_TINT, useThemeStore } from '@/src/state/themeStore';
 import { resourceCategoryLabels, type ResourceCategory } from '@/src/types';
 
 const CATEGORIES = Object.keys(resourceCategoryLabels) as ResourceCategory[];
@@ -14,6 +15,7 @@ export default function CampusResourcesScreen() {
   const resources = useCampusResourcesStore((state) => state.resources);
   const addResource = useCampusResourcesStore((state) => state.addResource);
   const removeResource = useCampusResourcesStore((state) => state.removeResource);
+  const accentColor = useThemeStore((state) => state.accentColor);
 
   const [name, setName] = useState('');
   const [category, setCategory] = useState<ResourceCategory>('other');
@@ -45,6 +47,18 @@ export default function CampusResourcesScreen() {
         <Paragraph color="$color10">
           Your personal directory — add the offices and services your campus offers.
         </Paragraph>
+      </YStack>
+
+      <YStack
+        alignItems="center"
+        gap="$1"
+        borderRadius="$8"
+        paddingVertical="$5"
+        style={{ backgroundColor: ACCENT_SOFT_BG[accentColor] }}>
+        <Text fontSize={36}>📇</Text>
+        <Text fontWeight="800" fontSize="$6" style={{ color: ACCENT_TINT[accentColor] }}>
+          {resources.length} resource{resources.length === 1 ? '' : 's'} saved
+        </Text>
       </YStack>
 
       <YStack gap="$2">

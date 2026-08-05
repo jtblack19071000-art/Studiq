@@ -6,11 +6,13 @@ import { EmptyState } from '@/src/components/EmptyState';
 import { Screen } from '@/src/components/Screen';
 import { useClassesStore } from '@/src/state/classesStore';
 import { useStudyStore } from '@/src/state/studyStore';
+import { ACCENT_SOFT_BG, ACCENT_TINT, useThemeStore } from '@/src/state/themeStore';
 
 export default function StudyScreen() {
   const courses = useStudyStore((state) => state.courses);
   const units = useStudyStore((state) => state.units);
   const classes = useClassesStore((state) => state.classes);
+  const accentColor = useThemeStore((state) => state.accentColor);
 
   return (
     <Screen>
@@ -20,6 +22,20 @@ export default function StudyScreen() {
           Record lectures by unit, then generate a study guide from everything in that unit.
         </Paragraph>
       </YStack>
+
+      {courses.length > 0 ? (
+        <YStack
+          alignItems="center"
+          gap="$1"
+          borderRadius="$8"
+          paddingVertical="$5"
+          style={{ backgroundColor: ACCENT_SOFT_BG[accentColor] }}>
+          <Text fontSize={36}>✨</Text>
+          <Text fontWeight="800" fontSize="$6" style={{ color: ACCENT_TINT[accentColor] }}>
+            {courses.length} course{courses.length === 1 ? '' : 's'} · {units.length} unit{units.length === 1 ? '' : 's'}
+          </Text>
+        </YStack>
+      ) : null}
 
       {courses.length === 0 ? (
         <EmptyState emoji="📚" message="Open a class and tap 'Open Study workspace' to get started." />

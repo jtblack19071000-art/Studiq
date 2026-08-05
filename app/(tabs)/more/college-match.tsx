@@ -7,6 +7,7 @@ import { Screen } from '@/src/components/Screen';
 import { SectionHeader } from '@/src/components/SectionHeader';
 import { generateCollegeMatchGuidance, CollegeMatchAiError, type CollegeMatchGuidance } from '@/src/lib/collegeMatchAi';
 import { useCollegeMatchStore } from '@/src/state/collegeMatchStore';
+import { ACCENT_SOFT_BG, ACCENT_TINT, useThemeStore } from '@/src/state/themeStore';
 import {
   schoolApplicationStatusLabels,
   type SchoolApplicationStatus,
@@ -29,6 +30,7 @@ export default function CollegeMatchScreen() {
   const addSchool = useCollegeMatchStore((state) => state.addSchool);
   const updateSchoolStatus = useCollegeMatchStore((state) => state.updateSchoolStatus);
   const removeSchool = useCollegeMatchStore((state) => state.removeSchool);
+  const accentColor = useThemeStore((state) => state.accentColor);
 
   const [name, setName] = useState('');
   const [program, setProgram] = useState('');
@@ -75,6 +77,21 @@ export default function CollegeMatchScreen() {
         <Paragraph color="$color10">
           An AI-guided best-fit quiz — not a database match, since there isn&apos;t one, but honest
           reasoning over your own preferences. Free for everyone, prospective students included.
+        </Paragraph>
+      </YStack>
+
+      <YStack
+        alignItems="center"
+        gap="$1"
+        borderRadius="$8"
+        paddingVertical="$5"
+        style={{ backgroundColor: ACCENT_SOFT_BG[accentColor] }}>
+        <Text fontSize={36}>🧭</Text>
+        <Text fontWeight="800" fontSize="$6" style={{ color: ACCENT_TINT[accentColor] }}>
+          {schools.length} school{schools.length === 1 ? '' : 's'} saved
+        </Text>
+        <Paragraph color="$color10" fontSize="$3">
+          Always free — no account or Premium required.
         </Paragraph>
       </YStack>
 

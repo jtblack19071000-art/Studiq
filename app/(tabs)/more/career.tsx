@@ -6,6 +6,7 @@ import { EmptyState } from '@/src/components/EmptyState';
 import { Screen } from '@/src/components/Screen';
 import { SectionHeader } from '@/src/components/SectionHeader';
 import { useCareerStore } from '@/src/state/careerStore';
+import { ACCENT_SOFT_BG, ACCENT_TINT, useThemeStore } from '@/src/state/themeStore';
 import { applicationStatusLabels, type ApplicationStatus } from '@/src/types';
 
 const STATUSES = Object.keys(applicationStatusLabels) as ApplicationStatus[];
@@ -15,6 +16,9 @@ export default function CareerScreen() {
   const addApplication = useCareerStore((state) => state.addApplication);
   const updateApplicationStatus = useCareerStore((state) => state.updateApplicationStatus);
   const removeApplication = useCareerStore((state) => state.removeApplication);
+  const accentColor = useThemeStore((state) => state.accentColor);
+  const activeCount = applications.filter((a) => a.status !== 'rejected' && a.status !== 'offer').length;
+  const offerCount = applications.filter((a) => a.status === 'offer').length;
 
   const [company, setCompany] = useState('');
   const [role, setRole] = useState('');
@@ -37,6 +41,37 @@ export default function CareerScreen() {
         <H2>💼 Career Hub</H2>
         <Paragraph color="$color10">Track internship and job applications from saved to offer.</Paragraph>
       </YStack>
+
+      <XStack
+        gap="$2"
+        borderRadius="$8"
+        padding="$5"
+        style={{ backgroundColor: ACCENT_SOFT_BG[accentColor] }}>
+        <YStack alignItems="center" flex={1}>
+          <Text fontWeight="800" fontSize="$8" style={{ color: ACCENT_TINT[accentColor] }}>
+            {applications.length}
+          </Text>
+          <Text color="$color10" fontSize="$2">
+            📋 Total
+          </Text>
+        </YStack>
+        <YStack alignItems="center" flex={1}>
+          <Text fontWeight="800" fontSize="$8" style={{ color: ACCENT_TINT[accentColor] }}>
+            {activeCount}
+          </Text>
+          <Text color="$color10" fontSize="$2">
+            🚀 Active
+          </Text>
+        </YStack>
+        <YStack alignItems="center" flex={1}>
+          <Text fontWeight="800" fontSize="$8" style={{ color: ACCENT_TINT[accentColor] }}>
+            {offerCount}
+          </Text>
+          <Text color="$color10" fontSize="$2">
+            🎉 Offers
+          </Text>
+        </YStack>
+      </XStack>
 
       <YStack gap="$2">
         <SectionHeader title="Add application" emoji="➕" />
