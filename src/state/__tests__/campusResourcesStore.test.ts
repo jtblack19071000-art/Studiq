@@ -9,35 +9,33 @@ beforeEach(() => {
 });
 
 describe('useCampusResourcesStore', () => {
-  it('seeds with starter resources', () => {
-    expect(useCampusResourcesStore.getState().resources.length).toBeGreaterThan(0);
+  it('starts blank so every student fills in their own campus, not sample data', () => {
+    expect(useCampusResourcesStore.getState().resources).toEqual([]);
   });
 
   it('addResource assigns an id and appends to the list', () => {
-    const before = useCampusResourcesStore.getState().resources.length;
     const created = useCampusResourcesStore.getState().addResource({
       name: 'Writing Center',
       category: 'tutoring',
       location: 'Library 2nd floor',
     });
 
-    const resources = useCampusResourcesStore.getState().resources;
-    expect(resources).toHaveLength(before + 1);
     expect(created.id).toBeTruthy();
-    expect(resources[resources.length - 1]).toEqual(created);
+    expect(useCampusResourcesStore.getState().resources).toEqual([created]);
   });
 
   it('removeResource removes only the targeted resource', () => {
-    const created = useCampusResourcesStore.getState().addResource({
+    const first = useCampusResourcesStore.getState().addResource({
       name: 'Career Services',
       category: 'career_services',
     });
-    const before = useCampusResourcesStore.getState().resources.length;
+    const second = useCampusResourcesStore.getState().addResource({
+      name: 'Writing Center',
+      category: 'tutoring',
+    });
 
-    useCampusResourcesStore.getState().removeResource(created.id);
+    useCampusResourcesStore.getState().removeResource(first.id);
 
-    const resources = useCampusResourcesStore.getState().resources;
-    expect(resources).toHaveLength(before - 1);
-    expect(resources.find((resource) => resource.id === created.id)).toBeUndefined();
+    expect(useCampusResourcesStore.getState().resources).toEqual([second]);
   });
 });

@@ -1,9 +1,12 @@
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
 
+import { registerCloudSyncedStore } from '@/src/lib/cloudSync';
 import { createId } from '@/src/lib/id';
 import { mmkvStateStorage } from '@/src/lib/mmkvStorage';
 import type { CampusResource } from '@/src/types';
+
+const BLANK_CAMPUS_RESOURCES_DATA = { resources: [] as CampusResource[] };
 
 interface CampusResourcesState {
   resources: CampusResource[];
@@ -11,27 +14,10 @@ interface CampusResourcesState {
   removeResource: (id: string) => void;
 }
 
-// Generic starting points — not tied to any specific school. Replace with your campus's actual
-// office names, contacts, and locations.
-const seedResources: CampusResource[] = [
-  {
-    id: 'seed-resource-1',
-    name: 'Tutoring Center',
-    category: 'tutoring',
-    notes: 'Free peer and staff tutoring — add your hours and location here.',
-  },
-  {
-    id: 'seed-resource-2',
-    name: 'Counseling & Health Services',
-    category: 'counseling',
-    notes: 'Add your campus health center contact info here.',
-  },
-];
-
 export const useCampusResourcesStore = create<CampusResourcesState>()(
   persist(
     (set) => ({
-      resources: seedResources,
+      ...BLANK_CAMPUS_RESOURCES_DATA,
       addResource: (input) => {
         const created: CampusResource = { ...input, id: createId() };
         set((state) => ({ resources: [...state.resources, created] }));
@@ -41,6 +27,24 @@ export const useCampusResourcesStore = create<CampusResourcesState>()(
         set((state) => ({ resources: state.resources.filter((resource) => resource.id !== id) }));
       },
     }),
-    { name: 'studiq-campus-resources', storage: createJSONStorage(() => mmkvStateStorage) },
+    {
+      name: 'studiq-campus-resources',
+      storage: createJSONStorage(() => mmkvStateStorage),
+      version: 2,
+      migrate: (persistedState) => {
+        const state = persistedState as CampusResourcesState;
+        return {
+          ...state,
+          resources: (state?.resources ?? []).filter((resource) => !resource.id.startsWith('seed-')),
+        };
+      },
+    },
   ),
 );
+
+registerCloudSyncedStore({
+  name: 'campus-resources',
+  store: useCampusResourcesStore,
+  serialize: (state) => ({ resources: state.resources }),
+  blank: BLANK_CAMPUS_RESOURCES_DATA,
+});

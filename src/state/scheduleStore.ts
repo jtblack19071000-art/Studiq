@@ -1,9 +1,12 @@
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
 
+import { registerCloudSyncedStore } from '@/src/lib/cloudSync';
 import { createId } from '@/src/lib/id';
 import { mmkvStateStorage } from '@/src/lib/mmkvStorage';
 import type { ScheduleEvent } from '@/src/types';
+
+const BLANK_SCHEDULE_DATA = { events: [] as ScheduleEvent[] };
 
 interface ScheduleState {
   events: ScheduleEvent[];
@@ -15,7 +18,7 @@ interface ScheduleState {
 export const useScheduleStore = create<ScheduleState>()(
   persist(
     (set) => ({
-      events: [],
+      ...BLANK_SCHEDULE_DATA,
       addEvent: (input) => {
         const created: ScheduleEvent = { ...input, id: createId() };
         set((state) => ({ events: [...state.events, created] }));
@@ -44,3 +47,10 @@ export const useScheduleStore = create<ScheduleState>()(
     },
   ),
 );
+
+registerCloudSyncedStore({
+  name: 'schedule',
+  store: useScheduleStore,
+  serialize: (state) => ({ events: state.events }),
+  blank: BLANK_SCHEDULE_DATA,
+});

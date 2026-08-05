@@ -41,8 +41,8 @@ Copy `.env.example` to `.env` to configure:
 
 Without the AI keys configured, recording still works fully (audio is captured and saved), but
 transcription/generation fail with a clear in-app error rather than silently doing nothing. Without
-Supabase configured, Premium features show "sign in required, cloud sync isn't configured" instead
-of a sign-in form. Without the RevenueCat key, Premium shows as unavailable rather than crashing.
+the RevenueCat key, Premium shows as unavailable rather than crashing. Supabase specifically
+controls whether the app requires an account at all — see "Accounts & per-user cloud sync" below.
 
 ## Deploying a free preview (web)
 
@@ -119,6 +119,45 @@ What's already done vs. what you need to do yourself:
 Rebuild (repeat the `eas build` command) whenever a *native* dependency changes (a new
 `expo install`-ed package, a new config plugin, an `app.json` permission string). Everyday
 JS/TS/UI changes don't need a rebuild — just the dev server restart.
+
+## Accounts & per-user cloud sync
+
+Studiq's data (classes, schedule, finance, study/lectures, goals, career, college-match, campus
+resources, daily notes) is local-first by default (MMKV on-device), same as everything else
+described in this README. Setting up Supabase turns that into **real per-account storage**: sign-in
+becomes mandatory (a full-screen sign-in wall replaces the app until you sign in), and every one of
+those 9 stores syncs to a Supabase table scoped to the signed-in user, so two different accounts on
+the same device never see each other's data — one classmate's classes never leak into another's.
+
+How it works, concretely:
+
+- **Schema**: a single table, `public.user_store_state` (`user_id`, `store_name`, `data jsonb`,
+  `updated_at`), with row-level security restricting every row to `auth.uid() = user_id`. Run
+  `supabase/migrations/0001_user_store_state.sql` against your Supabase project (SQL editor or the
+  Supabase CLI) — this repo doesn't run migrations for you automatically.
+- **Sync logic** lives in `src/lib/cloudSync.ts`. Each store registers itself (name, a `serialize`
+  function extracting its plain-data fields, and a `blank` shape) at module load. On sign-in,
+  `startCloudSyncForUser` resets every registered store to `blank`, then applies whatever that
+  account has saved in `user_store_state` (nothing, for a brand-new account) — local mutations
+  after that push back to Supabase, debounced ~800ms. On sign-out, everything resets to blank again.
+- **No local data carries over into a freshly signed-in account, ever** — this is deliberate, not a
+  limitation to fix. Whatever you had locally before signing in (as an anonymous/offline user, or
+  left over from a previous account on a shared device) is intentionally not merged into the
+  account you're signing into, so there's no path for one account's data to leak into another's.
+- **Without Supabase configured**, none of the above applies — no sign-in wall, no per-account
+  isolation, just local on-device storage like before. This matches every other cloud-optional
+  feature in this README (AI keys, RevenueCat): the app degrades gracefully rather than requiring
+  infrastructure you haven't set up yet.
+- **Known gap**: sync is best-effort, not a robust offline queue — a failed push (e.g. you went
+  offline mid-edit) logs a warning and is not automatically retried until the next local mutation
+  re-triggers the debounce. Fine for a first pass; worth hardening (retry-with-backoff, an offline
+  mutation queue) before depending on it for anything you can't afford to lose.
+- **Tension worth knowing about**: College Match is intentionally free and doesn't require Premium
+  (see "Subscriptions" below — it's meant to be a low-friction hook for prospective/high-school
+  students). But the sign-in wall above is app-wide when Supabase is configured, so a prospective
+  student would still have to create an account just to reach College Match. If that friction turns
+  out to matter, the fix is a specific pre-auth-accessible route for it rather than reworking the
+  general gate — flagging this now rather than silently picking one behavior.
 
 ## Subscriptions
 
@@ -338,7 +377,9 @@ Built and working end to end:
   - **Campus Resources** — a personal directory (name, category, contact, location) the student
     fills in with their own campus's offices, since no per-school resource data source exists
   - **Settings** — cloud sync + account status, subscription status, appearance, about
-- Local persistence (MMKV) so data survives restarts; Supabase wired for optional cloud sync
+- Local persistence (MMKV) so data survives restarts; when Supabase is configured, a mandatory
+  sign-in wall plus per-account cloud sync across all 9 data stores replaces that with real
+  per-user storage — see "Accounts & per-user cloud sync" above
 - **Premium subscription** ($5.99/month or $49.99/year, no Silver tier) gating lecture recording,
   transcription, and all per-lecture/Unit-Study-Guide AI generation — see "Subscriptions" above for
   what's required to charge real money; without those accounts configured, Premium features show a

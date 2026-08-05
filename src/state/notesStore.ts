@@ -1,9 +1,12 @@
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
 
+import { registerCloudSyncedStore } from '@/src/lib/cloudSync';
 import { createId } from '@/src/lib/id';
 import { mmkvStateStorage } from '@/src/lib/mmkvStorage';
 import type { DailyNote } from '@/src/types';
+
+const BLANK_NOTES_DATA = { notes: [] as DailyNote[] };
 
 interface NotesState {
   notes: DailyNote[];
@@ -14,7 +17,7 @@ interface NotesState {
 export const useNotesStore = create<NotesState>()(
   persist(
     (set, get) => ({
-      notes: [],
+      ...BLANK_NOTES_DATA,
       noteForDate: (date) => get().notes.find((note) => note.date === date),
       setNoteForDate: (date, body) => {
         const existing = get().notes.find((note) => note.date === date);
@@ -31,3 +34,10 @@ export const useNotesStore = create<NotesState>()(
     { name: 'studiq-notes', storage: createJSONStorage(() => mmkvStateStorage) },
   ),
 );
+
+registerCloudSyncedStore({
+  name: 'notes',
+  store: useNotesStore,
+  serialize: (state) => ({ notes: state.notes }),
+  blank: BLANK_NOTES_DATA,
+});

@@ -1,9 +1,19 @@
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
 
+import { registerCloudSyncedStore } from '@/src/lib/cloudSync';
 import { createId } from '@/src/lib/id';
 import { mmkvStateStorage } from '@/src/lib/mmkvStorage';
 import type { Announcement, Assignment, ClassFile, Exam, GradeEntry, StudiqClass } from '@/src/types';
+
+const BLANK_CLASSES_DATA = {
+  classes: [] as StudiqClass[],
+  assignments: [] as Assignment[],
+  exams: [] as Exam[],
+  files: [] as ClassFile[],
+  announcements: [] as Announcement[],
+  grades: [] as GradeEntry[],
+};
 
 interface ClassesState {
   classes: StudiqClass[];
@@ -28,12 +38,7 @@ function dropSeeds<T extends { id: string }>(items: T[] | undefined): T[] {
 export const useClassesStore = create<ClassesState>()(
   persist(
     (set, get) => ({
-      classes: [],
-      assignments: [],
-      exams: [],
-      files: [],
-      announcements: [],
-      grades: [],
+      ...BLANK_CLASSES_DATA,
       addClass: (input) => {
         const created: StudiqClass = { ...input, id: createId() };
         set((state) => ({ classes: [...state.classes, created] }));
@@ -87,3 +92,17 @@ export const useClassesStore = create<ClassesState>()(
     },
   ),
 );
+
+registerCloudSyncedStore({
+  name: 'classes',
+  store: useClassesStore,
+  serialize: (state) => ({
+    classes: state.classes,
+    assignments: state.assignments,
+    exams: state.exams,
+    files: state.files,
+    announcements: state.announcements,
+    grades: state.grades,
+  }),
+  blank: BLANK_CLASSES_DATA,
+});

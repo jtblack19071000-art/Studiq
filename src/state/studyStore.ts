@@ -1,9 +1,16 @@
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
 
+import { registerCloudSyncedStore } from '@/src/lib/cloudSync';
 import { createId } from '@/src/lib/id';
 import { mmkvStateStorage } from '@/src/lib/mmkvStorage';
 import type { Lecture, StudyCourse, StudyUnit, UnitStudyGuide } from '@/src/types';
+
+const BLANK_STUDY_DATA = {
+  courses: [] as StudyCourse[],
+  units: [] as StudyUnit[],
+  lectures: [] as Lecture[],
+};
 
 interface StudyState {
   courses: StudyCourse[];
@@ -26,9 +33,7 @@ function dropSeeds<T extends { id: string }>(items: T[] | undefined): T[] {
 export const useStudyStore = create<StudyState>()(
   persist(
     (set, get) => ({
-      courses: [],
-      units: [],
-      lectures: [],
+      ...BLANK_STUDY_DATA,
       addCourse: (input) => {
         const created: StudyCourse = { ...input, id: createId(), createdAt: new Date().toISOString() };
         set((state) => ({ courses: [...state.courses, created] }));
@@ -87,3 +92,10 @@ export const useStudyStore = create<StudyState>()(
     },
   ),
 );
+
+registerCloudSyncedStore({
+  name: 'study',
+  store: useStudyStore,
+  serialize: (state) => ({ courses: state.courses, units: state.units, lectures: state.lectures }),
+  blank: BLANK_STUDY_DATA,
+});

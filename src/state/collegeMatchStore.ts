@@ -1,9 +1,15 @@
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
 
+import { registerCloudSyncedStore } from '@/src/lib/cloudSync';
 import { createId } from '@/src/lib/id';
 import { mmkvStateStorage } from '@/src/lib/mmkvStorage';
 import type { CollegePreferences, SavedSchool, SchoolApplicationStatus } from '@/src/types';
+
+const BLANK_COLLEGE_MATCH_DATA = {
+  preferences: {} as CollegePreferences,
+  schools: [] as SavedSchool[],
+};
 
 interface CollegeMatchState {
   preferences: CollegePreferences;
@@ -14,20 +20,10 @@ interface CollegeMatchState {
   removeSchool: (id: string) => void;
 }
 
-const seedSchools: SavedSchool[] = [
-  {
-    id: 'seed-school-1',
-    name: 'State University',
-    program: 'B.S. Chemistry',
-    status: 'researching',
-  },
-];
-
 export const useCollegeMatchStore = create<CollegeMatchState>()(
   persist(
     (set) => ({
-      preferences: {},
-      schools: seedSchools,
+      ...BLANK_COLLEGE_MATCH_DATA,
       setPreferences: (patch) => {
         set((state) => ({ preferences: { ...state.preferences, ...patch } }));
       },
@@ -45,6 +41,24 @@ export const useCollegeMatchStore = create<CollegeMatchState>()(
         set((state) => ({ schools: state.schools.filter((school) => school.id !== id) }));
       },
     }),
-    { name: 'studiq-college-match', storage: createJSONStorage(() => mmkvStateStorage) },
+    {
+      name: 'studiq-college-match',
+      storage: createJSONStorage(() => mmkvStateStorage),
+      version: 2,
+      migrate: (persistedState) => {
+        const state = persistedState as CollegeMatchState;
+        return {
+          ...state,
+          schools: (state?.schools ?? []).filter((school) => !school.id.startsWith('seed-')),
+        };
+      },
+    },
   ),
 );
+
+registerCloudSyncedStore({
+  name: 'college-match',
+  store: useCollegeMatchStore,
+  serialize: (state) => ({ preferences: state.preferences, schools: state.schools }),
+  blank: BLANK_COLLEGE_MATCH_DATA,
+});

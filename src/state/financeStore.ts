@@ -1,9 +1,15 @@
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
 
+import { registerCloudSyncedStore } from '@/src/lib/cloudSync';
 import { createId } from '@/src/lib/id';
 import { mmkvStateStorage } from '@/src/lib/mmkvStorage';
 import type { FinancialProfile, Job, Scholarship, Transaction } from '@/src/types';
+
+const BLANK_FINANCE_DATA = {
+  transactions: [] as Transaction[],
+  profile: { jobs: [], scholarships: [] } as FinancialProfile,
+};
 
 interface FinanceState {
   transactions: Transaction[];
@@ -22,8 +28,7 @@ interface FinanceState {
 export const useFinanceStore = create<FinanceState>()(
   persist(
     (set) => ({
-      transactions: [],
-      profile: { jobs: [], scholarships: [] },
+      ...BLANK_FINANCE_DATA,
       addTransaction: (input) => {
         const created: Transaction = { ...input, id: createId() };
         set((state) => ({ transactions: [created, ...state.transactions] }));
@@ -94,3 +99,10 @@ export const useFinanceStore = create<FinanceState>()(
     },
   ),
 );
+
+registerCloudSyncedStore({
+  name: 'finance',
+  store: useFinanceStore,
+  serialize: (state) => ({ transactions: state.transactions, profile: state.profile }),
+  blank: BLANK_FINANCE_DATA,
+});

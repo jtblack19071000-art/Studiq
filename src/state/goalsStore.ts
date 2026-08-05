@@ -1,9 +1,12 @@
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
 
+import { registerCloudSyncedStore } from '@/src/lib/cloudSync';
 import { createId } from '@/src/lib/id';
 import { mmkvStateStorage } from '@/src/lib/mmkvStorage';
 import type { Goal, GoalStatus } from '@/src/types';
+
+const BLANK_GOALS_DATA = { goals: [] as Goal[] };
 
 interface GoalsState {
   goals: Goal[];
@@ -12,27 +15,10 @@ interface GoalsState {
   removeGoal: (id: string) => void;
 }
 
-const seedGoals: Goal[] = [
-  {
-    id: 'seed-goal-1',
-    title: 'Raise Organic Chemistry grade to a B+',
-    category: 'academic',
-    status: 'in_progress',
-    targetTimeframe: 'By end of semester',
-  },
-  {
-    id: 'seed-goal-2',
-    title: 'Land a summer internship',
-    category: 'career',
-    status: 'not_started',
-    targetTimeframe: 'By March 2027',
-  },
-];
-
 export const useGoalsStore = create<GoalsState>()(
   persist(
     (set) => ({
-      goals: seedGoals,
+      ...BLANK_GOALS_DATA,
       addGoal: (input) => {
         const created: Goal = { ...input, id: createId(), status: 'not_started' };
         set((state) => ({ goals: [...state.goals, created] }));
@@ -47,6 +33,21 @@ export const useGoalsStore = create<GoalsState>()(
         set((state) => ({ goals: state.goals.filter((goal) => goal.id !== id) }));
       },
     }),
-    { name: 'studiq-goals', storage: createJSONStorage(() => mmkvStateStorage) },
+    {
+      name: 'studiq-goals',
+      storage: createJSONStorage(() => mmkvStateStorage),
+      version: 2,
+      migrate: (persistedState) => {
+        const state = persistedState as GoalsState;
+        return { ...state, goals: (state?.goals ?? []).filter((goal) => !goal.id.startsWith('seed-')) };
+      },
+    },
   ),
 );
+
+registerCloudSyncedStore({
+  name: 'goals',
+  store: useGoalsStore,
+  serialize: (state) => ({ goals: state.goals }),
+  blank: BLANK_GOALS_DATA,
+});

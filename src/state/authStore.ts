@@ -1,6 +1,7 @@
 import type { Session, User } from '@supabase/supabase-js';
 import { create } from 'zustand';
 
+import { resetAllCloudSyncedStores, startCloudSyncForUser, stopCloudSync } from '@/src/lib/cloudSync';
 import { supabase } from '@/src/lib/supabase';
 
 interface AuthState {
@@ -16,7 +17,17 @@ interface AuthState {
 
 let initialized = false;
 
-export const useAuthStore = create<AuthState>()((set) => ({
+/** Reacts to a resolved auth state (from getSession() or onAuthStateChange) by syncing or clearing every cloud-synced store. */
+function handleUserTransition(previousUserId: string | null, nextUserId: string | null): void {
+  if (nextUserId && nextUserId !== previousUserId) {
+    void startCloudSyncForUser(nextUserId);
+  } else if (!nextUserId && previousUserId) {
+    stopCloudSync();
+    resetAllCloudSyncedStores();
+  }
+}
+
+export const useAuthStore = create<AuthState>()((set, get) => ({
   user: null,
   session: null,
   initializing: true,
@@ -29,11 +40,17 @@ export const useAuthStore = create<AuthState>()((set) => ({
     initialized = true;
 
     supabase.auth.getSession().then(({ data }) => {
+      const previousUserId = get().user?.id ?? null;
+      const nextUserId = data.session?.user?.id ?? null;
       set({ session: data.session, user: data.session?.user ?? null, initializing: false });
+      handleUserTransition(previousUserId, nextUserId);
     });
 
     supabase.auth.onAuthStateChange((_event, session) => {
+      const previousUserId = get().user?.id ?? null;
+      const nextUserId = session?.user?.id ?? null;
       set({ session, user: session?.user ?? null });
+      handleUserTransition(previousUserId, nextUserId);
     });
   },
   signUp: async (email, password) => {

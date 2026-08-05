@@ -9,40 +9,37 @@ beforeEach(() => {
 });
 
 describe('useGoalsStore', () => {
-  it('seeds with starter goals', () => {
-    expect(useGoalsStore.getState().goals.length).toBeGreaterThan(0);
+  it('starts blank so every student begins with their own goals, not sample data', () => {
+    expect(useGoalsStore.getState().goals).toEqual([]);
   });
 
   it('addGoal always starts a new goal at "not_started", regardless of input', () => {
-    const before = useGoalsStore.getState().goals.length;
     const created = useGoalsStore.getState().addGoal({
       title: 'Apply to 5 internships',
       category: 'career',
     });
 
     expect(created.status).toBe('not_started');
-    expect(useGoalsStore.getState().goals).toHaveLength(before + 1);
+    expect(useGoalsStore.getState().goals).toEqual([created]);
   });
 
   it('updateGoalStatus updates only the targeted goal', () => {
-    const created = useGoalsStore.getState().addGoal({ title: 'New goal', category: 'personal' });
-    const seededId = useGoalsStore.getState().goals[0].id;
+    const first = useGoalsStore.getState().addGoal({ title: 'First goal', category: 'personal' });
+    const second = useGoalsStore.getState().addGoal({ title: 'Second goal', category: 'academic' });
 
-    useGoalsStore.getState().updateGoalStatus(created.id, 'completed');
+    useGoalsStore.getState().updateGoalStatus(first.id, 'completed');
 
     const goals = useGoalsStore.getState().goals;
-    expect(goals.find((goal) => goal.id === created.id)?.status).toBe('completed');
-    expect(goals.find((goal) => goal.id === seededId)?.status).not.toBe('completed');
+    expect(goals.find((goal) => goal.id === first.id)?.status).toBe('completed');
+    expect(goals.find((goal) => goal.id === second.id)?.status).toBe('not_started');
   });
 
   it('removeGoal removes only the targeted goal', () => {
-    const created = useGoalsStore.getState().addGoal({ title: 'New goal', category: 'personal' });
-    const before = useGoalsStore.getState().goals.length;
+    const first = useGoalsStore.getState().addGoal({ title: 'First goal', category: 'personal' });
+    const second = useGoalsStore.getState().addGoal({ title: 'Second goal', category: 'academic' });
 
-    useGoalsStore.getState().removeGoal(created.id);
+    useGoalsStore.getState().removeGoal(first.id);
 
-    const goals = useGoalsStore.getState().goals;
-    expect(goals).toHaveLength(before - 1);
-    expect(goals.find((goal) => goal.id === created.id)).toBeUndefined();
+    expect(useGoalsStore.getState().goals).toEqual([second]);
   });
 });

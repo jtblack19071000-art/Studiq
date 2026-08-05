@@ -9,12 +9,11 @@ beforeEach(() => {
 });
 
 describe('useCareerStore', () => {
-  it('seeds with a starter application', () => {
-    expect(useCareerStore.getState().applications.length).toBeGreaterThan(0);
+  it('starts blank so every student begins with their own applications, not sample data', () => {
+    expect(useCareerStore.getState().applications).toEqual([]);
   });
 
   it('addApplication always starts a new application at "saved", regardless of input', () => {
-    const before = useCareerStore.getState().applications.length;
     const created = useCareerStore.getState().addApplication({
       company: 'Acme Corp',
       role: 'Software Intern',
@@ -22,31 +21,33 @@ describe('useCareerStore', () => {
 
     expect(created.status).toBe('saved');
     expect(created.id).toBeTruthy();
-    const applications = useCareerStore.getState().applications;
-    expect(applications).toHaveLength(before + 1);
-    // New applications are prepended so the most recent shows up first.
-    expect(applications[0]).toEqual(created);
+    expect(useCareerStore.getState().applications).toEqual([created]);
+  });
+
+  it('addApplication prepends so the most recent shows up first', () => {
+    const first = useCareerStore.getState().addApplication({ company: 'First Co', role: 'Intern' });
+    const second = useCareerStore.getState().addApplication({ company: 'Second Co', role: 'Intern' });
+
+    expect(useCareerStore.getState().applications).toEqual([second, first]);
   });
 
   it('updateApplicationStatus updates only the targeted application', () => {
-    const created = useCareerStore.getState().addApplication({ company: 'Acme Corp', role: 'Intern' });
-    const otherId = useCareerStore.getState().applications[1].id;
+    const first = useCareerStore.getState().addApplication({ company: 'Acme Corp', role: 'Intern' });
+    const second = useCareerStore.getState().addApplication({ company: 'Other Corp', role: 'Intern' });
 
-    useCareerStore.getState().updateApplicationStatus(created.id, 'interviewing');
+    useCareerStore.getState().updateApplicationStatus(first.id, 'interviewing');
 
     const applications = useCareerStore.getState().applications;
-    expect(applications.find((app) => app.id === created.id)?.status).toBe('interviewing');
-    expect(applications.find((app) => app.id === otherId)?.status).not.toBe('interviewing');
+    expect(applications.find((app) => app.id === first.id)?.status).toBe('interviewing');
+    expect(applications.find((app) => app.id === second.id)?.status).toBe('saved');
   });
 
   it('removeApplication removes only the targeted application', () => {
-    const created = useCareerStore.getState().addApplication({ company: 'Acme Corp', role: 'Intern' });
-    const before = useCareerStore.getState().applications.length;
+    const first = useCareerStore.getState().addApplication({ company: 'Acme Corp', role: 'Intern' });
+    const second = useCareerStore.getState().addApplication({ company: 'Other Corp', role: 'Intern' });
 
-    useCareerStore.getState().removeApplication(created.id);
+    useCareerStore.getState().removeApplication(first.id);
 
-    const applications = useCareerStore.getState().applications;
-    expect(applications).toHaveLength(before - 1);
-    expect(applications.find((app) => app.id === created.id)).toBeUndefined();
+    expect(useCareerStore.getState().applications).toEqual([second]);
   });
 });
