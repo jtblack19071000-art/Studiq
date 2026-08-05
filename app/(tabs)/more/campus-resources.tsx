@@ -3,10 +3,11 @@ import { Button, H2, Input, Paragraph, Text, XStack, YStack } from 'tamagui';
 
 import { Card } from '@/src/components/Card';
 import { EmptyState } from '@/src/components/EmptyState';
+import { Hero } from '@/src/components/Hero';
 import { Screen } from '@/src/components/Screen';
 import { SectionHeader } from '@/src/components/SectionHeader';
 import { useCampusResourcesStore } from '@/src/state/campusResourcesStore';
-import { ACCENT_SOFT_BG, ACCENT_TINT, useThemeStore } from '@/src/state/themeStore';
+import { ACCENT_TINT, useThemeStore } from '@/src/state/themeStore';
 import { resourceCategoryLabels, type ResourceCategory } from '@/src/types';
 
 const CATEGORIES = Object.keys(resourceCategoryLabels) as ResourceCategory[];
@@ -49,17 +50,12 @@ export default function CampusResourcesScreen() {
         </Paragraph>
       </YStack>
 
-      <YStack
-        alignItems="center"
-        gap="$1"
-        borderRadius="$8"
-        paddingVertical="$5"
-        style={{ backgroundColor: ACCENT_SOFT_BG[accentColor] }}>
+      <Hero logo alignItems="center" gap="$1" paddingVertical="$5">
         <Text fontSize={36}>📇</Text>
         <Text fontWeight="800" fontSize="$6" style={{ color: ACCENT_TINT[accentColor] }}>
           {resources.length} resource{resources.length === 1 ? '' : 's'} saved
         </Text>
-      </YStack>
+      </Hero>
 
       <YStack gap="$2">
         <SectionHeader title="Add resource" emoji="➕" />

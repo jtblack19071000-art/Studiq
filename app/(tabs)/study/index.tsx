@@ -3,10 +3,11 @@ import { H1, Paragraph, Text, YStack } from 'tamagui';
 
 import { Card } from '@/src/components/Card';
 import { EmptyState } from '@/src/components/EmptyState';
+import { Hero } from '@/src/components/Hero';
 import { Screen } from '@/src/components/Screen';
 import { useClassesStore } from '@/src/state/classesStore';
 import { useStudyStore } from '@/src/state/studyStore';
-import { ACCENT_SOFT_BG, ACCENT_TINT, useThemeStore } from '@/src/state/themeStore';
+import { ACCENT_TINT, useThemeStore } from '@/src/state/themeStore';
 
 export default function StudyScreen() {
   const courses = useStudyStore((state) => state.courses);
@@ -24,17 +25,12 @@ export default function StudyScreen() {
       </YStack>
 
       {courses.length > 0 ? (
-        <YStack
-          alignItems="center"
-          gap="$1"
-          borderRadius="$8"
-          paddingVertical="$5"
-          style={{ backgroundColor: ACCENT_SOFT_BG[accentColor] }}>
+        <Hero logo alignItems="center" gap="$1" paddingVertical="$5">
           <Text fontSize={36}>✨</Text>
           <Text fontWeight="800" fontSize="$6" style={{ color: ACCENT_TINT[accentColor] }}>
             {courses.length} course{courses.length === 1 ? '' : 's'} · {units.length} unit{units.length === 1 ? '' : 's'}
           </Text>
-        </YStack>
+        </Hero>
       ) : null}
 
       {courses.length === 0 ? (

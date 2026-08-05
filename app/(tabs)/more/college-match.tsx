@@ -3,11 +3,12 @@ import { Button, H2, Input, Paragraph, Text, XStack, YStack } from 'tamagui';
 
 import { Card } from '@/src/components/Card';
 import { EmptyState } from '@/src/components/EmptyState';
+import { Hero } from '@/src/components/Hero';
 import { Screen } from '@/src/components/Screen';
 import { SectionHeader } from '@/src/components/SectionHeader';
 import { generateCollegeMatchGuidance, CollegeMatchAiError, type CollegeMatchGuidance } from '@/src/lib/collegeMatchAi';
 import { useCollegeMatchStore } from '@/src/state/collegeMatchStore';
-import { ACCENT_SOFT_BG, ACCENT_TINT, useThemeStore } from '@/src/state/themeStore';
+import { ACCENT_TINT, useThemeStore } from '@/src/state/themeStore';
 import {
   schoolApplicationStatusLabels,
   type SchoolApplicationStatus,
@@ -80,12 +81,7 @@ export default function CollegeMatchScreen() {
         </Paragraph>
       </YStack>
 
-      <YStack
-        alignItems="center"
-        gap="$1"
-        borderRadius="$8"
-        paddingVertical="$5"
-        style={{ backgroundColor: ACCENT_SOFT_BG[accentColor] }}>
+      <Hero logo alignItems="center" gap="$1" paddingVertical="$5">
         <Text fontSize={36}>🧭</Text>
         <Text fontWeight="800" fontSize="$6" style={{ color: ACCENT_TINT[accentColor] }}>
           {schools.length} school{schools.length === 1 ? '' : 's'} saved
@@ -93,7 +89,7 @@ export default function CollegeMatchScreen() {
         <Paragraph color="$color10" fontSize="$3">
           Always free — no account or Premium required.
         </Paragraph>
-      </YStack>
+      </Hero>
 
       <YStack gap="$4">
         <YStack gap="$2">

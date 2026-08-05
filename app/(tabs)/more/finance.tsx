@@ -4,12 +4,13 @@ import { Button, H2, Input, Label, Paragraph, Text, XStack, YStack } from 'tamag
 
 import { Card } from '@/src/components/Card';
 import { EmptyState } from '@/src/components/EmptyState';
+import { Hero } from '@/src/components/Hero';
 import { Screen } from '@/src/components/Screen';
 import { SectionHeader } from '@/src/components/SectionHeader';
 import { calculateMonthlySummary, estimateMonthlyIncomeFromProfile } from '@/src/lib/finance';
 import { estimateHourlyPay, PayEstimateAiError } from '@/src/lib/payEstimateAi';
 import { useFinanceStore } from '@/src/state/financeStore';
-import { ACCENT_SOFT_BG, ACCENT_TINT, useThemeStore } from '@/src/state/themeStore';
+import { ACCENT_TINT, useThemeStore } from '@/src/state/themeStore';
 import {
   transactionCategoryLabels,
   type Job,
@@ -62,11 +63,7 @@ export default function FinanceScreen() {
         <H2>💸 Finance</H2>
       </YStack>
 
-      <YStack
-        gap="$2"
-        borderRadius="$8"
-        padding="$5"
-        style={{ backgroundColor: ACCENT_SOFT_BG[accentColor] }}>
+      <Hero logo gap="$2">
         <XStack justifyContent="space-between">
           <YStack alignItems="center" flex={1}>
             <Text color="$color10" fontSize="$2">
@@ -96,7 +93,7 @@ export default function FinanceScreen() {
         <Paragraph color="$color10" fontSize="$3" textAlign="center">
           This month
         </Paragraph>
-      </YStack>
+      </Hero>
 
       <FinancialProfileSection />
 

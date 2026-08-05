@@ -3,10 +3,11 @@ import { Button, H2, Input, Paragraph, Text, XStack, YStack } from 'tamagui';
 
 import { Card } from '@/src/components/Card';
 import { EmptyState } from '@/src/components/EmptyState';
+import { Hero } from '@/src/components/Hero';
 import { Screen } from '@/src/components/Screen';
 import { SectionHeader } from '@/src/components/SectionHeader';
 import { useCareerStore } from '@/src/state/careerStore';
-import { ACCENT_SOFT_BG, ACCENT_TINT, useThemeStore } from '@/src/state/themeStore';
+import { ACCENT_TINT, useThemeStore } from '@/src/state/themeStore';
 import { applicationStatusLabels, type ApplicationStatus } from '@/src/types';
 
 const STATUSES = Object.keys(applicationStatusLabels) as ApplicationStatus[];
@@ -42,11 +43,7 @@ export default function CareerScreen() {
         <Paragraph color="$color10">Track internship and job applications from saved to offer.</Paragraph>
       </YStack>
 
-      <XStack
-        gap="$2"
-        borderRadius="$8"
-        padding="$5"
-        style={{ backgroundColor: ACCENT_SOFT_BG[accentColor] }}>
+      <Hero logo flexDirection="row" gap="$2">
         <YStack alignItems="center" flex={1}>
           <Text fontWeight="800" fontSize="$8" style={{ color: ACCENT_TINT[accentColor] }}>
             {applications.length}
@@ -71,7 +68,7 @@ export default function CareerScreen() {
             🎉 Offers
           </Text>
         </YStack>
-      </XStack>
+      </Hero>
 
       <YStack gap="$2">
         <SectionHeader title="Add application" emoji="➕" />

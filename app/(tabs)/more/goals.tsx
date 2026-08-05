@@ -3,10 +3,11 @@ import { Button, H2, Input, Paragraph, Text, XStack, YStack } from 'tamagui';
 
 import { Card } from '@/src/components/Card';
 import { EmptyState } from '@/src/components/EmptyState';
+import { Hero } from '@/src/components/Hero';
 import { Screen } from '@/src/components/Screen';
 import { SectionHeader } from '@/src/components/SectionHeader';
 import { useGoalsStore } from '@/src/state/goalsStore';
-import { ACCENT_SOFT_BG, ACCENT_TINT, useThemeStore } from '@/src/state/themeStore';
+import { ACCENT_TINT, useThemeStore } from '@/src/state/themeStore';
 import { goalCategoryLabels, type Goal, type GoalCategory, type GoalStatus } from '@/src/types';
 
 const CATEGORIES = Object.keys(goalCategoryLabels) as GoalCategory[];
@@ -87,11 +88,7 @@ export default function GoalsScreen() {
         <H2>🎯 Goals</H2>
       </YStack>
 
-      <XStack
-        gap="$2"
-        borderRadius="$8"
-        padding="$5"
-        style={{ backgroundColor: ACCENT_SOFT_BG[accentColor] }}>
+      <Hero logo flexDirection="row" gap="$2">
         <YStack alignItems="center" flex={1}>
           <Text fontWeight="800" fontSize="$8" style={{ color: ACCENT_TINT[accentColor] }}>
             {grouped.in_progress.length}
@@ -116,7 +113,7 @@ export default function GoalsScreen() {
             ✅ Completed
           </Text>
         </YStack>
-      </XStack>
+      </Hero>
 
       <YStack gap="$2">
         <SectionHeader title="Add goal" emoji="➕" />

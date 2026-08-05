@@ -3,11 +3,12 @@ import { Button, H2, H3, Input, Paragraph, Text, XStack, YStack } from 'tamagui'
 
 import { Card } from '@/src/components/Card';
 import { EmptyState } from '@/src/components/EmptyState';
+import { Hero } from '@/src/components/Hero';
 import { Screen } from '@/src/components/Screen';
 import { SectionHeader } from '@/src/components/SectionHeader';
 import { calculateGpa, groupClassesByTerm, LETTER_GRADES } from '@/src/lib/gpa';
 import { useClassesStore } from '@/src/state/classesStore';
-import { ACCENT_SOFT_BG, ACCENT_TINT, useThemeStore } from '@/src/state/themeStore';
+import { ACCENT_TINT, useThemeStore } from '@/src/state/themeStore';
 import type { LetterGrade } from '@/src/types';
 
 export default function GpaScreen() {
@@ -24,19 +25,14 @@ export default function GpaScreen() {
         <H2>🎓 GPA Tracker</H2>
       </YStack>
 
-      <YStack
-        alignItems="center"
-        borderRadius="$8"
-        paddingVertical="$6"
-        gap="$1"
-        style={{ backgroundColor: ACCENT_SOFT_BG[accentColor] }}>
+      <Hero logo alignItems="center" paddingVertical="$6" gap="$1">
         <Text fontSize="$11" fontWeight="800" style={{ color: ACCENT_TINT[accentColor] }}>
           {overall.gpa !== null ? overall.gpa.toFixed(2) : '—'}
         </Text>
         <Paragraph color="$color11">
           Cumulative GPA · {overall.totalCreditHours} credit hour{overall.totalCreditHours === 1 ? '' : 's'}
         </Paragraph>
-      </YStack>
+      </Hero>
 
       {classes.length === 0 ? (
         <EmptyState emoji="🎓" message="Add classes from the Classes tab to start tracking your GPA." />

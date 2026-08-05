@@ -4,6 +4,7 @@ import { Button, H2, Paragraph, Text, XStack, YStack } from 'tamagui';
 
 import { AuthForm } from '@/src/components/AuthForm';
 import { Card } from '@/src/components/Card';
+import { Hero } from '@/src/components/Hero';
 import { Paywall } from '@/src/components/Paywall';
 import { Screen } from '@/src/components/Screen';
 import { SectionHeader } from '@/src/components/SectionHeader';
@@ -17,13 +18,7 @@ import { supabase } from '@/src/lib/supabase';
 import { useAuthStore } from '@/src/state/authStore';
 import { useScheduleStore } from '@/src/state/scheduleStore';
 import { useSubscriptionStore } from '@/src/state/subscriptionStore';
-import {
-  ACCENT_COLORS,
-  ACCENT_SOFT_BG,
-  ACCENT_TINT,
-  useThemeStore,
-  type ColorSchemeOverride,
-} from '@/src/state/themeStore';
+import { ACCENT_COLORS, ACCENT_TINT, useThemeStore, type ColorSchemeOverride } from '@/src/state/themeStore';
 
 const COLOR_SCHEME_OPTIONS: { value: ColorSchemeOverride; label: string }[] = [
   { value: 'system', label: 'System' },
@@ -65,17 +60,12 @@ export default function SettingsScreen() {
         <H2>⚙️ Settings</H2>
       </YStack>
 
-      <YStack
-        alignItems="center"
-        gap="$1"
-        borderRadius="$8"
-        paddingVertical="$5"
-        style={{ backgroundColor: ACCENT_SOFT_BG[accentColor] }}>
+      <Hero logo alignItems="center" gap="$1" paddingVertical="$5">
         <Text fontSize={36}>{tier === 'premium' ? '💎' : '🆓'}</Text>
         <Text fontWeight="800" fontSize="$6" style={{ color: ACCENT_TINT[accentColor] }}>
           {tier === 'premium' ? 'Premium plan' : 'Free plan'}
         </Text>
-      </YStack>
+      </Hero>
 
       <YStack gap="$2">
         <SectionHeader title="Account & sync" emoji="☁️" />

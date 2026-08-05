@@ -4,13 +4,14 @@ import { Button, H1, H2, Input, Label, Paragraph, Text, XStack, YStack } from 't
 import { Badge } from '@/src/components/Badge';
 import { Card } from '@/src/components/Card';
 import { EmptyState } from '@/src/components/EmptyState';
+import { Hero } from '@/src/components/Hero';
 import { Screen } from '@/src/components/Screen';
 import { SectionHeader } from '@/src/components/SectionHeader';
 import { confirmAsync } from '@/src/lib/confirm';
 import { supabase } from '@/src/lib/supabase';
 import { useAuthStore } from '@/src/state/authStore';
 import { useSubscriptionStore } from '@/src/state/subscriptionStore';
-import { ACCENT_SOFT_BG, ACCENT_TINT, useThemeStore } from '@/src/state/themeStore';
+import { ACCENT_TINT, useThemeStore } from '@/src/state/themeStore';
 
 export default function ProfileScreen() {
   const session = useAuthStore((state) => state.session);
@@ -87,13 +88,7 @@ export default function ProfileScreen() {
 
   return (
     <Screen>
-      <YStack
-        alignItems="center"
-        gap="$2"
-        borderRadius="$8"
-        padding="$5"
-        marginTop="$2"
-        style={{ backgroundColor: ACCENT_SOFT_BG[accentColor] }}>
+      <Hero logo alignItems="center" gap="$2">
         <YStack
           width={72}
           height={72}
@@ -109,7 +104,7 @@ export default function ProfileScreen() {
           {storedName ?? 'Studiq student'}
         </H1>
         <Badge label={tier === 'premium' ? '💎 Premium' : 'Free plan'} tone={tier === 'premium' ? 'success' : 'neutral'} />
-      </YStack>
+      </Hero>
 
       <YStack gap="$2">
         <SectionHeader

@@ -6,6 +6,7 @@ import { Button, H1, Paragraph, Text, TextArea, YStack } from 'tamagui';
 import { AgendaItem } from '@/src/components/AgendaItem';
 import { Card } from '@/src/components/Card';
 import { EmptyState } from '@/src/components/EmptyState';
+import { Hero } from '@/src/components/Hero';
 import { Screen } from '@/src/components/Screen';
 import { SectionHeader } from '@/src/components/SectionHeader';
 import type { EventOccurrence } from '@/src/lib/occurrences';
@@ -13,7 +14,7 @@ import { getOccurrencesInRange } from '@/src/lib/occurrences';
 import { useClassesStore } from '@/src/state/classesStore';
 import { useNotesStore } from '@/src/state/notesStore';
 import { useScheduleStore } from '@/src/state/scheduleStore';
-import { ACCENT_SOFT_BG, ACCENT_TINT, useThemeStore } from '@/src/state/themeStore';
+import { ACCENT_TINT, useThemeStore } from '@/src/state/themeStore';
 
 function greeting(): string {
   const hour = new Date().getHours();
@@ -89,12 +90,7 @@ export default function HomeScreen() {
 
   return (
     <Screen>
-      <YStack
-        borderRadius="$8"
-        padding="$5"
-        gap="$1"
-        marginTop="$2"
-        style={{ backgroundColor: ACCENT_SOFT_BG[accentColor] }}>
+      <Hero logo gap="$1">
         <Text fontWeight="700" fontSize="$5" style={{ color: ACCENT_TINT[accentColor] }}>
           {greeting()}
         </Text>
@@ -103,7 +99,7 @@ export default function HomeScreen() {
           {eventCount === 0 ? 'Nothing on the calendar today.' : `${eventCount} thing${eventCount === 1 ? '' : 's'} on today`}
           {dueSoonCount > 0 ? ` · ${dueSoonCount} due soon` : ''}
         </Paragraph>
-      </YStack>
+      </Hero>
 
       <Link href="/modal" asChild>
         <Button size="$4" theme="active" borderRadius="$10">

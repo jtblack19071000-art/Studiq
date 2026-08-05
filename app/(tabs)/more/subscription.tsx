@@ -3,12 +3,13 @@ import { Button, H1, H2, Paragraph, Text, YStack } from 'tamagui';
 
 import { Badge } from '@/src/components/Badge';
 import { Card } from '@/src/components/Card';
+import { Hero } from '@/src/components/Hero';
 import { Paywall } from '@/src/components/Paywall';
 import { Screen } from '@/src/components/Screen';
 import { SectionHeader } from '@/src/components/SectionHeader';
 import { manageSubscription } from '@/src/lib/purchases';
 import { useSubscriptionStore } from '@/src/state/subscriptionStore';
-import { ACCENT_SOFT_BG, ACCENT_TINT, useThemeStore } from '@/src/state/themeStore';
+import { ACCENT_TINT, useThemeStore } from '@/src/state/themeStore';
 
 export default function SubscriptionScreen() {
   const tier = useSubscriptionStore((state) => state.tier);
@@ -26,19 +27,13 @@ export default function SubscriptionScreen() {
 
   return (
     <Screen>
-      <YStack
-        alignItems="center"
-        gap="$2"
-        borderRadius="$8"
-        padding="$5"
-        marginTop="$2"
-        style={{ backgroundColor: ACCENT_SOFT_BG[accentColor] }}>
+      <Hero logo alignItems="center" gap="$2">
         <Text fontSize={40}>{tier === 'premium' ? '💎' : '🆓'}</Text>
         <H1 fontSize="$8" style={{ color: ACCENT_TINT[accentColor] }}>
           {tier === 'premium' ? 'Premium' : 'Free plan'}
         </H1>
         <Badge label={tier === 'premium' ? 'Active' : 'No AI Study Mode yet'} tone={tier === 'premium' ? 'success' : 'neutral'} />
-      </YStack>
+      </Hero>
 
       {tier === 'premium' ? (
         <YStack gap="$2">

@@ -1,7 +1,8 @@
 import { router } from 'expo-router';
-import { H1, Text, XStack, YStack } from 'tamagui';
+import { H1, Paragraph, Text, XStack, YStack } from 'tamagui';
 
 import { Card } from '@/src/components/Card';
+import { Hero } from '@/src/components/Hero';
 import { Screen } from '@/src/components/Screen';
 
 const MENU_ITEMS: { href: string; label: string; emoji: string; color: string }[] = [
@@ -19,9 +20,12 @@ const MENU_ITEMS: { href: string; label: string; emoji: string; color: string }[
 export default function MoreScreen() {
   return (
     <Screen>
-      <YStack gap="$1" paddingTop="$2">
+      <Hero logo gap="$1">
         <H1 fontSize="$9">⋯ More</H1>
-      </YStack>
+        <Paragraph color="$color11" fontSize="$4">
+          Your profile, plan, and everything outside the daily grind.
+        </Paragraph>
+      </Hero>
 
       <YStack gap="$3">
         {MENU_ITEMS.map((item) => (
