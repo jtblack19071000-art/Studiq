@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
 
+import { isFounderEmail } from '@/src/lib/founderAccess';
 import { mmkvStateStorage } from '@/src/lib/mmkvStorage';
 import {
   fetchCurrentTier,
@@ -16,7 +17,7 @@ interface SubscriptionState {
   tier: SubscriptionTier;
   offer: PremiumOffer | null;
   refreshing: boolean;
-  refresh: () => Promise<void>;
+  refresh: (email?: string | null) => Promise<void>;
   purchase: (packageIdentifier?: string) => Promise<void>;
   restore: () => Promise<void>;
 }
@@ -27,7 +28,13 @@ export const useSubscriptionStore = create<SubscriptionState>()(
       tier: 'free',
       offer: null,
       refreshing: false,
-      refresh: async () => {
+      refresh: async (email) => {
+        // Founder accounts always have Premium — checked first so it works even without
+        // RevenueCat configured at all, which is exactly the state of a fresh preview deploy.
+        if (isFounderEmail(email)) {
+          set({ tier: 'premium' });
+          return;
+        }
         if (!isPurchasesConfigured) return;
         set({ refreshing: true });
         try {

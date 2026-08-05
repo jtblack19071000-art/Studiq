@@ -52,6 +52,7 @@ function RootLayoutNav() {
   const session = useAuthStore((state) => state.session);
   const pendingVerification = useAuthStore((state) => state.pendingVerification);
   const userId = useAuthStore((state) => state.user?.id ?? null);
+  const userEmail = useAuthStore((state) => state.user?.email ?? null);
   const refreshSubscription = useSubscriptionStore((state) => state.refresh);
   const scheduleEvents = useScheduleStore((state) => state.events);
 
@@ -61,9 +62,9 @@ function RootLayoutNav() {
 
   useEffect(() => {
     configurePurchases(userId)
-      .then(refreshSubscription)
+      .then(() => refreshSubscription(userEmail))
       .catch((error) => console.warn('Subscription refresh failed.', error));
-  }, [userId, refreshSubscription]);
+  }, [userId, userEmail, refreshSubscription]);
 
   useEffect(() => {
     // Re-syncs on every app launch and whenever the schedule changes, rolling the notification

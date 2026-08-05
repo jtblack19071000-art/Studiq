@@ -55,4 +55,22 @@ describe('useSubscriptionStore (RevenueCat not configured)', () => {
     await expect(useSubscriptionStore.getState().restore()).resolves.toBeUndefined();
     expect(useSubscriptionStore.getState().tier).toBe('free');
   });
+
+  it('refresh() grants Premium to a founder email even though purchases are not configured', async () => {
+    await useSubscriptionStore.getState().refresh('jtblack07@icloud.com');
+
+    expect(useSubscriptionStore.getState().tier).toBe('premium');
+  });
+
+  it('refresh() is case-insensitive on founder emails', async () => {
+    await useSubscriptionStore.getState().refresh('CadenMichael0808@Gmail.com');
+
+    expect(useSubscriptionStore.getState().tier).toBe('premium');
+  });
+
+  it('refresh() does not grant Premium to a non-founder email', async () => {
+    await useSubscriptionStore.getState().refresh('someone-else@example.com');
+
+    expect(useSubscriptionStore.getState().tier).toBe('free');
+  });
 });
