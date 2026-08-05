@@ -274,9 +274,14 @@ function MonthView({
 function ClassesList({ classes }: { classes: ReturnType<typeof useClassesStore.getState>['classes'] }) {
   return (
     <YStack gap="$3">
-      <Button size="$4" theme="active" onPress={() => router.push('/schedule/classes/new')}>
-        + Add class
-      </Button>
+      <XStack gap="$2">
+        <Button flex={1} size="$4" theme="active" borderRadius="$10" onPress={() => router.push('/schedule/classes/new')}>
+          + Add class
+        </Button>
+        <Button flex={1} size="$4" borderRadius="$10" onPress={() => router.push('/schedule/classes/import')}>
+          📄 Import syllabus
+        </Button>
+      </XStack>
 
       {classes.length === 0 ? (
         <EmptyState message="No classes yet. Add your first one above — it'll show up on your Schedule too if you set a meeting time." />
