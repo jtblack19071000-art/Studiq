@@ -38,7 +38,7 @@ export default function QuickAddModal() {
     const startsAt = parseTimeToday(startTime);
     const endsAt = parseTimeToday(endTime);
     if (!startsAt || !endsAt) {
-      setError('Enter start and end time as HH:mm, e.g. 14:30.');
+      setError('Enter start and end time like 2:30 PM.');
       return;
     }
     if (endsAt <= startsAt) {
@@ -91,12 +91,12 @@ export default function QuickAddModal() {
 
       <XStack gap="$3">
         <YStack flex={1} gap="$2">
-          <Label>Start (HH:mm)</Label>
-          <Input value={startTime} onChangeText={setStartTime} placeholder="14:00" keyboardType="numbers-and-punctuation" />
+          <Label>Start time</Label>
+          <Input value={startTime} onChangeText={setStartTime} placeholder="2:00 PM" autoCapitalize="characters" />
         </YStack>
         <YStack flex={1} gap="$2">
-          <Label>End (HH:mm)</Label>
-          <Input value={endTime} onChangeText={setEndTime} placeholder="15:00" keyboardType="numbers-and-punctuation" />
+          <Label>End time</Label>
+          <Input value={endTime} onChangeText={setEndTime} placeholder="3:00 PM" autoCapitalize="characters" />
         </YStack>
       </XStack>
 

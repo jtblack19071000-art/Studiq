@@ -68,7 +68,7 @@ export function ClassForm({ initialClass, initialMeeting, submitLabel, onSubmit 
       const parsedStart = parseTimeToday(startTime);
       const parsedEnd = parseTimeToday(endTime);
       if (!parsedStart || !parsedEnd) {
-        setError('Enter meeting start and end time as HH:mm, e.g. 09:00.');
+        setError('Enter meeting start and end time like 1:30 PM.');
         return;
       }
       if (parsedEnd <= parsedStart) {
@@ -184,25 +184,37 @@ export function ClassForm({ initialClass, initialMeeting, submitLabel, onSubmit 
           classes with no fixed meeting time.
         </Paragraph>
         <XStack flexWrap="wrap" gap="$2">
-          {WEEKDAY_LABELS.map((label, index) => (
-            <Button
-              key={label}
-              size="$3"
-              width={54}
-              theme={byWeekday.includes(index) ? 'active' : undefined}
-              onPress={() => toggleWeekday(index)}>
-              {label}
-            </Button>
-          ))}
+          {WEEKDAY_LABELS.map((label, index) => {
+            const selected = byWeekday.includes(index);
+            return (
+              <YStack
+                key={label}
+                minWidth={52}
+                paddingHorizontal="$3"
+                paddingVertical="$2.5"
+                borderRadius="$4"
+                alignItems="center"
+                justifyContent="center"
+                borderWidth={2}
+                borderColor="$borderColor"
+                onPress={() => toggleWeekday(index)}
+                pressStyle={{ opacity: 0.7 }}
+                style={selected ? { backgroundColor: `${color}33`, borderColor: color } : undefined}>
+                <Text fontWeight={selected ? '700' : '400'} color={selected ? '$color12' : '$color10'}>
+                  {label}
+                </Text>
+              </YStack>
+            );
+          })}
         </XStack>
         <XStack gap="$3">
           <YStack flex={1} gap="$2">
-            <Label>Start (HH:mm)</Label>
-            <Input value={startTime} onChangeText={setStartTime} placeholder="09:00" keyboardType="numbers-and-punctuation" />
+            <Label>Start time</Label>
+            <Input value={startTime} onChangeText={setStartTime} placeholder="1:30 PM" autoCapitalize="characters" />
           </YStack>
           <YStack flex={1} gap="$2">
-            <Label>End (HH:mm)</Label>
-            <Input value={endTime} onChangeText={setEndTime} placeholder="09:50" keyboardType="numbers-and-punctuation" />
+            <Label>End time</Label>
+            <Input value={endTime} onChangeText={setEndTime} placeholder="2:20 PM" autoCapitalize="characters" />
           </YStack>
         </XStack>
       </YStack>
