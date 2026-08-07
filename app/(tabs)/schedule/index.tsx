@@ -303,10 +303,13 @@ function ClassesList({
   const [semesterName, setSemesterName] = useState('');
 
   const termGroups = useMemo(() => groupClassesByTerm(classes), [classes]);
-  const otherTerms = useMemo(
-    () => Array.from(termGroups.keys()).filter((term) => term !== activeTerm),
-    [termGroups, activeTerm],
-  );
+  // Until "New semester" has been pressed at least once, activeTerm is null and every class is
+  // current — there's nothing to archive yet. Without this guard, `term !== null` is true for
+  // every term string, so every class would list under both "current" and "archived" at once.
+  const otherTerms = useMemo(() => {
+    if (activeTerm === null) return [];
+    return Array.from(termGroups.keys()).filter((term) => term !== activeTerm);
+  }, [termGroups, activeTerm]);
   const currentClasses = activeTerm === null ? classes : (termGroups.get(activeTerm) ?? []);
 
   function confirmNewSemester() {

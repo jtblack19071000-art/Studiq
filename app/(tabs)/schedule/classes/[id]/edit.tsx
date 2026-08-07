@@ -73,7 +73,7 @@ export default function EditClassScreen() {
             const recurrence = { frequency: 'WEEKLY' as const, byWeekday: meeting.byWeekday };
             if (meetingEvent) {
               updateEvent(meetingEvent.id, {
-                title: `${classInput.name} — Lecture`,
+                title: classInput.name,
                 startsAt,
                 endsAt,
                 location: classInput.classroom,
@@ -81,7 +81,7 @@ export default function EditClassScreen() {
               });
             } else {
               addEvent({
-                title: `${classInput.name} — Lecture`,
+                title: classInput.name,
                 category: 'class',
                 classId: studiqClass.id,
                 startsAt,

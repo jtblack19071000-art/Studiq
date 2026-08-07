@@ -164,7 +164,7 @@ function ImportFlow() {
       const parsedEnd = parseTimeToday(endTime);
       if (parsedStart && parsedEnd && parsedEnd > parsedStart) {
         addEvent({
-          title: `${createdClass.name} — Lecture`,
+          title: createdClass.name,
           category: 'class',
           classId: createdClass.id,
           startsAt: parsedStart.toISOString(),

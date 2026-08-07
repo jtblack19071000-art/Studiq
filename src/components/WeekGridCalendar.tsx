@@ -184,7 +184,11 @@ function DayColumn({
               paddingVertical={2}
               overflow="hidden"
               style={{ backgroundColor: color }}>
-              <Text color="white" fontSize={10} fontWeight="600" numberOfLines={height > 32 ? 2 : 1}>
+              <Text
+                color="white"
+                fontSize={9}
+                fontWeight="600"
+                numberOfLines={height > 58 ? 3 : height > 32 ? 2 : 1}>
                 {occurrence.event.title}
               </Text>
               {height > 34 ? (

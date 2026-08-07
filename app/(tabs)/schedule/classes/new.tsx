@@ -25,7 +25,7 @@ export default function NewClassScreen() {
           if (meeting) {
             const times = anchorMeetingTimes(meeting.startTime, meeting.endTime)!;
             addEvent({
-              title: `${created.name} — Lecture`,
+              title: created.name,
               category: 'class',
               classId: created.id,
               startsAt: times.startsAt.toISOString(),
