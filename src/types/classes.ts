@@ -17,6 +17,12 @@ export interface Assignment {
   status: AssignmentStatus;
   grade?: string;
   notes?: string;
+  /** Where the due date came from — 'syllabus' for AI-extracted syllabus imports, since a
+   * professor can always change a due date after the syllabus was written. Undefined means
+   * entered by hand. There's no live Canvas/Google Classroom/Brightspace sync (see Import
+   * syllabus) — each is a different company's own API requiring institution-specific credentials
+   * this app can't obtain on a student's behalf, so the syllabus is the source of truth here. */
+  source?: 'syllabus';
 }
 
 export type ExamType = 'quiz' | 'midterm' | 'final' | 'other';

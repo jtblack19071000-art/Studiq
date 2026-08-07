@@ -9,7 +9,7 @@ import { PremiumGate } from '@/src/components/PremiumGate';
 import { Screen } from '@/src/components/Screen';
 import { createId } from '@/src/lib/id';
 import { importSyllabus, SyllabusAiError, type SyllabusImportResult, type SyllabusItem } from '@/src/lib/syllabusAi';
-import { parseFlexibleDate, parseTimeToday } from '@/src/lib/time';
+import { anchorMeetingTimes, parseFlexibleDate } from '@/src/lib/time';
 import { useClassesStore } from '@/src/state/classesStore';
 import { useScheduleStore } from '@/src/state/scheduleStore';
 import { EVENT_COLOR_SWATCHES, type ExamType } from '@/src/types';
@@ -160,15 +160,14 @@ function ImportFlow() {
     });
 
     if (byWeekday.length > 0) {
-      const parsedStart = parseTimeToday(startTime);
-      const parsedEnd = parseTimeToday(endTime);
-      if (parsedStart && parsedEnd && parsedEnd > parsedStart) {
+      const times = anchorMeetingTimes(startTime, endTime);
+      if (times && times.endsAt > times.startsAt) {
         addEvent({
           title: createdClass.name,
           category: 'class',
           classId: createdClass.id,
-          startsAt: parsedStart.toISOString(),
-          endsAt: parsedEnd.toISOString(),
+          startsAt: times.startsAt.toISOString(),
+          endsAt: times.endsAt.toISOString(),
           location: createdClass.classroom,
           recurrence: { frequency: 'WEEKLY', byWeekday },
           reminders: [{ id: createId(), minutesBefore: 10 }],
@@ -193,6 +192,7 @@ function ImportFlow() {
           title: `${prefix}${item.title}`,
           dueAt: date.toISOString(),
           status: 'not_started',
+          source: 'syllabus',
         });
       }
     }

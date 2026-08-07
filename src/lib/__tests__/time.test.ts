@@ -2,7 +2,7 @@
 
 import { startOfWeek } from 'date-fns';
 
-import { anchorMeetingTimes, formatTimeOfDay, parseFlexibleDate, parseTimeToday } from '@/src/lib/time';
+import { anchorMeetingTimes, combineDateAndTime, formatTimeOfDay, parseFlexibleDate, parseTimeToday } from '@/src/lib/time';
 
 function hm(date: Date | null): string | null {
   if (!date) return null;
@@ -87,6 +87,21 @@ describe('parseFlexibleDate', () => {
     expect(parseFlexibleDate('')).toBeNull();
     expect(parseFlexibleDate('   ')).toBeNull();
     expect(parseFlexibleDate('not a date at all')).toBeNull();
+  });
+});
+
+describe('combineDateAndTime', () => {
+  it('applies the parsed time-of-day onto the given date, leaving the date itself untouched', () => {
+    const saturday = new Date(2026, 1, 14); // Feb 14, 2026
+    const combined = combineDateAndTime(saturday, '2:30 PM')!;
+    expect(combined.getFullYear()).toBe(2026);
+    expect(combined.getMonth()).toBe(1);
+    expect(combined.getDate()).toBe(14);
+    expect(hm(combined)).toBe('14:30');
+  });
+
+  it('returns null when the time fails to parse', () => {
+    expect(combineDateAndTime(new Date(), 'not a time')).toBeNull();
   });
 });
 

@@ -165,8 +165,9 @@ export default function ScheduleScreen() {
 function formatHeader(date: Date, viewMode: ViewMode) {
   if (viewMode === 'day') return format(date, 'EEEE, MMM d');
   if (viewMode === 'week') {
+    // Week view itself only renders Mon–Fri now (see WeekGridCalendar) — match the header to it.
     const start = startOfWeek(date, { weekStartsOn: 1 });
-    const end = endOfWeek(date, { weekStartsOn: 1 });
+    const end = addDays(start, 4);
     return `${format(start, 'MMM d')} – ${format(end, 'MMM d')}`;
   }
   return format(date, 'MMMM yyyy');

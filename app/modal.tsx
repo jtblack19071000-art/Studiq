@@ -1,11 +1,12 @@
-import { router } from 'expo-router';
-import { useState } from 'react';
+import { addDays, startOfDay, startOfWeek } from 'date-fns';
+import { router, useLocalSearchParams } from 'expo-router';
+import { useMemo, useState } from 'react';
 import { Alert, Platform } from 'react-native';
-import { Button, H3, Input, Label, Paragraph, XStack, YStack } from 'tamagui';
+import { Button, H3, Input, Label, Paragraph, Text, XStack, YStack } from 'tamagui';
 
 import { Icon } from '@/src/components/Icon';
 import { createId } from '@/src/lib/id';
-import { parseTimeToday } from '@/src/lib/time';
+import { anchorMeetingTimes, combineDateAndTime } from '@/src/lib/time';
 import { useScheduleStore } from '@/src/state/scheduleStore';
 import { ACCENT_SOFT_BG, ACCENT_TINT, useThemeStore } from '@/src/state/themeStore';
 import { EVENT_COLOR_SWATCHES, eventCategoryLabels, type EventCategory } from '@/src/types';
@@ -21,11 +22,28 @@ const REMINDER_OPTIONS: { label: string; minutesBefore: number | null }[] = [
   { label: '1 day before', minutesBefore: 60 * 24 },
 ];
 
+/** 0=Monday..6=Sunday, matching RecurrenceRule.byWeekday. */
+const WEEKDAY_LABELS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+
+type DayOption = 'today' | 'tomorrow' | 'sat' | 'sun';
+const DAY_OPTIONS: { key: DayOption; label: string }[] = [
+  { key: 'today', label: 'Today' },
+  { key: 'tomorrow', label: 'Tomorrow' },
+  { key: 'sat', label: 'Sat' },
+  { key: 'sun', label: 'Sun' },
+];
+
 export default function QuickAddModal() {
+  const { day: initialDay } = useLocalSearchParams<{ day?: DayOption }>();
   const addEvent = useScheduleStore((state) => state.addEvent);
   const accentColor = useThemeStore((state) => state.accentColor);
   const [title, setTitle] = useState('');
   const [category, setCategory] = useState<EventCategory>('personal');
+  const [dayOption, setDayOption] = useState<DayOption>(
+    initialDay && DAY_OPTIONS.some((option) => option.key === initialDay) ? initialDay : 'today',
+  );
+  const [repeatsWeekly, setRepeatsWeekly] = useState(false);
+  const [repeatDays, setRepeatDays] = useState<number[]>([]);
   const [startTime, setStartTime] = useState('');
   const [endTime, setEndTime] = useState('');
   const [location, setLocation] = useState('');
@@ -33,38 +51,78 @@ export default function QuickAddModal() {
   const [reminderMinutes, setReminderMinutes] = useState<number | null>(10);
   const [error, setError] = useState<string | null>(null);
 
+  const dayDates = useMemo(() => {
+    const today = startOfDay(new Date());
+    const monday = startOfWeek(today, { weekStartsOn: 1 });
+    const dates: Record<DayOption, Date> = {
+      today,
+      tomorrow: addDays(today, 1),
+      sat: addDays(monday, 5),
+      sun: addDays(monday, 6),
+    };
+    return dates;
+  }, []);
+
+  function toggleRepeatDay(day: number) {
+    setRepeatDays((current) => (current.includes(day) ? current.filter((d) => d !== day) : [...current, day].sort()));
+  }
+
   function handleSave() {
     if (!title.trim()) {
       setError('Give it a title.');
       return;
     }
-    const startsAt = parseTimeToday(startTime);
-    const endsAt = parseTimeToday(endTime);
-    if (!startsAt || !endsAt) {
-      setError('Enter start and end time like 2:30 PM.');
-      return;
-    }
-    if (endsAt <= startsAt) {
-      setError('End time must be after start time.');
-      return;
-    }
 
-    addEvent({
-      title: title.trim(),
-      category,
-      startsAt: startsAt.toISOString(),
-      endsAt: endsAt.toISOString(),
-      location: location.trim() || undefined,
-      color,
-      reminders: reminderMinutes === null ? [] : [{ id: createId(), minutesBefore: reminderMinutes }],
-    });
+    if (repeatsWeekly) {
+      if (repeatDays.length === 0) {
+        setError('Pick at least one day it repeats on.');
+        return;
+      }
+      const times = anchorMeetingTimes(startTime, endTime);
+      if (!times) {
+        setError('Enter start and end time like 2:30 PM.');
+        return;
+      }
+      if (times.endsAt <= times.startsAt) {
+        setError('End time must be after start time.');
+        return;
+      }
+      addEvent({
+        title: title.trim(),
+        category,
+        startsAt: times.startsAt.toISOString(),
+        endsAt: times.endsAt.toISOString(),
+        location: location.trim() || undefined,
+        color,
+        recurrence: { frequency: 'WEEKLY', byWeekday: repeatDays },
+        reminders: reminderMinutes === null ? [] : [{ id: createId(), minutesBefore: reminderMinutes }],
+      });
+    } else {
+      const startsAt = combineDateAndTime(dayDates[dayOption], startTime);
+      const endsAt = combineDateAndTime(dayDates[dayOption], endTime);
+      if (!startsAt || !endsAt) {
+        setError('Enter start and end time like 2:30 PM.');
+        return;
+      }
+      if (endsAt <= startsAt) {
+        setError('End time must be after start time.');
+        return;
+      }
+      addEvent({
+        title: title.trim(),
+        category,
+        startsAt: startsAt.toISOString(),
+        endsAt: endsAt.toISOString(),
+        location: location.trim() || undefined,
+        color,
+        reminders: reminderMinutes === null ? [] : [{ id: createId(), minutesBefore: reminderMinutes }],
+      });
+    }
 
     if (Platform.OS === 'web') {
       router.back();
     } else {
-      Alert.alert('Added', `${title.trim()} was added to today's schedule.`, [
-        { text: 'OK', onPress: () => router.back() },
-      ]);
+      Alert.alert('Added', `${title.trim()} was added to your schedule.`, [{ text: 'OK', onPress: () => router.back() }]);
     }
   }
 
@@ -99,6 +157,63 @@ export default function QuickAddModal() {
           ))}
         </XStack>
       </YStack>
+
+      <YStack gap="$2">
+        <Label>Repeats weekly?</Label>
+        <XStack gap="$2">
+          <Button flex={1} size="$3" theme={!repeatsWeekly ? 'active' : undefined} onPress={() => setRepeatsWeekly(false)}>
+            One time
+          </Button>
+          <Button flex={1} size="$3" theme={repeatsWeekly ? 'active' : undefined} onPress={() => setRepeatsWeekly(true)}>
+            Every week
+          </Button>
+        </XStack>
+      </YStack>
+
+      {repeatsWeekly ? (
+        <YStack gap="$2">
+          <Label>Repeats on</Label>
+          <XStack flexWrap="wrap" gap="$2">
+            {WEEKDAY_LABELS.map((label, index) => {
+              const selected = repeatDays.includes(index);
+              return (
+                <YStack
+                  key={label}
+                  minWidth={52}
+                  paddingHorizontal="$3"
+                  paddingVertical="$2.5"
+                  borderRadius="$4"
+                  alignItems="center"
+                  justifyContent="center"
+                  borderWidth={2}
+                  borderColor="$borderColor"
+                  onPress={() => toggleRepeatDay(index)}
+                  pressStyle={{ opacity: 0.7 }}
+                  style={selected ? { backgroundColor: `${ACCENT_TINT[accentColor]}33`, borderColor: ACCENT_TINT[accentColor] } : undefined}>
+                  <Text fontWeight={selected ? '700' : '400'} color={selected ? '$color12' : '$color10'}>
+                    {label}
+                  </Text>
+                </YStack>
+              );
+            })}
+          </XStack>
+        </YStack>
+      ) : (
+        <YStack gap="$2">
+          <Label>Which day</Label>
+          <XStack flexWrap="wrap" gap="$2">
+            {DAY_OPTIONS.map((option) => (
+              <Button
+                key={option.key}
+                size="$3"
+                theme={dayOption === option.key ? 'active' : undefined}
+                onPress={() => setDayOption(option.key)}>
+                {option.label}
+              </Button>
+            ))}
+          </XStack>
+        </YStack>
+      )}
 
       <XStack gap="$3">
         <YStack flex={1} gap="$2">
@@ -153,7 +268,7 @@ export default function QuickAddModal() {
       {error ? <Paragraph color="$red10">{error}</Paragraph> : null}
 
       <Button size="$4" theme="active" onPress={handleSave}>
-        Add to today
+        Add to schedule
       </Button>
     </YStack>
   );

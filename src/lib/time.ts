@@ -58,6 +58,16 @@ export function parseFlexibleDate(text: string, hour = 12): Date | null {
   return parsed;
 }
 
+/** Combines a calendar date with a typed time-of-day ("1:30 PM") into one Date. Returns null if
+ * the time fails to parse. */
+export function combineDateAndTime(date: Date, time: string): Date | null {
+  const parsedTime = parseTimeToday(time);
+  if (!parsedTime) return null;
+  const combined = new Date(date);
+  combined.setHours(parsedTime.getHours(), parsedTime.getMinutes(), 0, 0);
+  return combined;
+}
+
 /**
  * Turns a meeting's start/end time-of-day strings into concrete Dates for a recurring
  * WEEKLY schedule event's `startsAt`/`endsAt`. Anchored to this week's Monday rather than
@@ -68,15 +78,10 @@ export function parseFlexibleDate(text: string, hour = 12): Date | null {
  * if either time fails to parse.
  */
 export function anchorMeetingTimes(startTime: string, endTime: string): { startsAt: Date; endsAt: Date } | null {
-  const start = parseTimeToday(startTime);
-  const end = parseTimeToday(endTime);
-  if (!start || !end) return null;
-
   const monday = startOfWeek(new Date(), { weekStartsOn: 1 });
-  const startsAt = new Date(monday);
-  startsAt.setHours(start.getHours(), start.getMinutes(), 0, 0);
-  const endsAt = new Date(monday);
-  endsAt.setHours(end.getHours(), end.getMinutes(), 0, 0);
+  const startsAt = combineDateAndTime(monday, startTime);
+  const endsAt = combineDateAndTime(monday, endTime);
+  if (!startsAt || !endsAt) return null;
   return { startsAt, endsAt };
 }
 

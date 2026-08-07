@@ -1,4 +1,4 @@
-import { format } from 'date-fns';
+import { addDays, format, isSameDay, startOfWeek } from 'date-fns';
 import { Link, router } from 'expo-router';
 import { useMemo } from 'react';
 import { Button, H1, Paragraph, Text, TextArea, XStack, YStack } from 'tamagui';
@@ -74,6 +74,18 @@ export default function HomeScreen() {
       .sort((a, b) => a.startsAt.getTime() - b.startsAt.getTime());
   }, [visibleEvents]);
 
+  // The Schedule tab's week view only shows Mon–Fri now (see WeekGridCalendar), so this is the
+  // one place weekend commitments — work, research, anything set to repeat on a Saturday or
+  // Sunday via Quick Add — stay visible without digging into Day view.
+  const weekendOccurrences = useMemo(() => {
+    const monday = startOfWeek(new Date(), { weekStartsOn: 1 });
+    const saturday = addDays(monday, 5);
+    const rangeEnd = addDays(monday, 7);
+    return visibleEvents
+      .flatMap((event) => getOccurrencesInRange(event, saturday, rangeEnd))
+      .sort((a, b) => a.startsAt.getTime() - b.startsAt.getTime());
+  }, [visibleEvents]);
+
   const upcomingAssignments = useMemo(() => {
     const now = new Date();
     const in7Days = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
@@ -137,6 +149,39 @@ export default function HomeScreen() {
       </YStack>
 
       <YStack gap="$2">
+        <XStack alignItems="center" justifyContent="space-between">
+          <SectionHeader title="This weekend" icon="sparkle" />
+          <Button
+            size="$2"
+            chromeless
+            onPress={() => router.push({ pathname: '/modal', params: { day: 'sat' } })}
+            icon={<Icon name="plus" size={14} color={ACCENT_TINT[accentColor]} />}>
+            Add
+          </Button>
+        </XStack>
+        <Card>
+          {weekendOccurrences.length === 0 ? (
+            <EmptyState icon="leaf" message="Nothing on the calendar this weekend." />
+          ) : (
+            weekendOccurrences.map((occurrence, index) => {
+              const showDayLabel =
+                index === 0 || !isSameDay(occurrence.startsAt, weekendOccurrences[index - 1].startsAt);
+              return (
+                <YStack key={`${occurrence.event.id}-${index}`}>
+                  {showDayLabel ? (
+                    <Text fontWeight="700" fontSize="$2" color="$color9" paddingTop={index === 0 ? 0 : '$2'}>
+                      {format(occurrence.startsAt, 'EEEE').toUpperCase()}
+                    </Text>
+                  ) : null}
+                  <AgendaItem occurrence={occurrence} classesById={classesById} onPress={() => openEventDetail(occurrence)} />
+                </YStack>
+              );
+            })
+          )}
+        </Card>
+      </YStack>
+
+      <YStack gap="$2">
         <SectionHeader title="Upcoming assignments" icon="pin" />
         <Card>
           {upcomingAssignments.length === 0 ? (
@@ -149,6 +194,7 @@ export default function HomeScreen() {
                   <Text fontWeight="600">{assignment.title}</Text>
                   <Paragraph color="$color10" fontSize="$3">
                     {studiqClass?.code ?? 'Class'} · Due {format(new Date(assignment.dueAt), 'EEE MMM d, h:mm a')}
+                    {assignment.source === 'syllabus' ? ' · From syllabus' : ''}
                   </Paragraph>
                 </YStack>
               );

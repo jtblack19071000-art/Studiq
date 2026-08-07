@@ -112,6 +112,7 @@ export default function ClassDetailScreen() {
                 <Paragraph color="$color10" fontSize="$3">
                   Due {format(new Date(assignment.dueAt), 'EEE MMM d, h:mm a')} ·{' '}
                   {assignment.status.replace('_', ' ')}
+                  {assignment.source === 'syllabus' ? ' · From syllabus' : ''}
                 </Paragraph>
               </YStack>
             ))

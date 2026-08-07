@@ -65,8 +65,12 @@ export function WeekGridCalendar({
     [gestureStartShared, hourHeightShared, commitHourHeight],
   );
 
+  // weekStart is always a Monday (see startOfWeek(selectedDate, {weekStartsOn:1}) in the caller),
+  // so +4 days is Friday — a Mon–Fri work week, not the full 7 days. Weekend events (work,
+  // research, ...) still exist and still fire reminders; they just show on Day view and the
+  // Home tab's "This weekend" section instead of cluttering this grid every single week.
   const days = useMemo(
-    () => eachDayOfInterval({ start: weekStart, end: addDays(weekStart, 6) }),
+    () => eachDayOfInterval({ start: weekStart, end: addDays(weekStart, 4) }),
     [weekStart],
   );
 
