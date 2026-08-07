@@ -4,6 +4,7 @@ import { Button, H2, Input, Paragraph, Text, XStack, YStack } from 'tamagui';
 
 import { Card } from '@/src/components/Card';
 import { EmptyState } from '@/src/components/EmptyState';
+import { Icon } from '@/src/components/Icon';
 import { Screen } from '@/src/components/Screen';
 import { useStudyStore } from '@/src/state/studyStore';
 
@@ -54,7 +55,7 @@ export default function CourseUnitsScreen() {
       </XStack>
 
       {units.length === 0 ? (
-        <EmptyState emoji="🗂️" message="No units yet. Create one above to start recording lectures." />
+        <EmptyState icon="folder" message="No units yet. Create one above to start recording lectures." />
       ) : (
         <YStack gap="$3">
           {units.map((unit) => {
@@ -68,10 +69,15 @@ export default function CourseUnitsScreen() {
                 <Text fontWeight="700" fontSize="$6">
                   {unit.title}
                 </Text>
-                <Paragraph color="$color10">
-                  🎙️ {lectureCount} lecture{lectureCount === 1 ? '' : 's'} · {studyGuideReady ? '✅' : '📄'} study guide{' '}
-                  {unit.studyGuide.status.replace('_', ' ')}
-                </Paragraph>
+                <XStack alignItems="center" gap="$1.5">
+                  <Icon name="mic" size={14} color="#8A8F98" />
+                  <Paragraph color="$color10">
+                    {lectureCount} lecture{lectureCount === 1 ? '' : 's'}
+                  </Paragraph>
+                  <Text color="$color10">·</Text>
+                  <Icon name={studyGuideReady ? 'check-circle' : 'file'} size={14} color="#8A8F98" />
+                  <Paragraph color="$color10">study guide {unit.studyGuide.status.replace('_', ' ')}</Paragraph>
+                </XStack>
               </Card>
             );
           })}

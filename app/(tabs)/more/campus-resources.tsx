@@ -4,6 +4,7 @@ import { Button, H2, Input, Paragraph, Text, XStack, YStack } from 'tamagui';
 import { Card } from '@/src/components/Card';
 import { EmptyState } from '@/src/components/EmptyState';
 import { Hero } from '@/src/components/Hero';
+import { Icon } from '@/src/components/Icon';
 import { Screen } from '@/src/components/Screen';
 import { SectionHeader } from '@/src/components/SectionHeader';
 import { useCampusResourcesStore } from '@/src/state/campusResourcesStore';
@@ -44,21 +45,24 @@ export default function CampusResourcesScreen() {
   return (
     <Screen>
       <YStack gap="$1" paddingTop="$2">
-        <H2>🧭 Campus Resources</H2>
+        <XStack alignItems="flex-start" gap="$2">
+          <Icon name="compass" size={22} color="#2BA6A4" />
+          <H2>Campus Resources</H2>
+        </XStack>
         <Paragraph color="$color10">
           Your personal directory — add the offices and services your campus offers.
         </Paragraph>
       </YStack>
 
       <Hero logo alignItems="center" gap="$1" paddingVertical="$5">
-        <Text fontSize={36}>📇</Text>
+        <Icon name="clipboard" size={32} color={ACCENT_TINT[accentColor]} />
         <Text fontWeight="800" fontSize="$6" style={{ color: ACCENT_TINT[accentColor] }}>
           {resources.length} resource{resources.length === 1 ? '' : 's'} saved
         </Text>
       </Hero>
 
       <YStack gap="$2">
-        <SectionHeader title="Add resource" emoji="➕" />
+        <SectionHeader title="Add resource" icon="plus" />
         <Card gap="$3">
           <Input placeholder="Name, e.g. Writing Center" value={name} onChangeText={setName} />
           <XStack flexWrap="wrap" gap="$2">
@@ -82,10 +86,10 @@ export default function CampusResourcesScreen() {
       </YStack>
 
       <YStack gap="$2">
-        <SectionHeader title="Directory" emoji="📇" />
+        <SectionHeader title="Directory" icon="clipboard" />
         {resources.length === 0 ? (
           <Card>
-            <EmptyState emoji="🧭" message="No resources added yet." />
+            <EmptyState icon="compass" message="No resources added yet." />
           </Card>
         ) : (
           <YStack gap="$3">

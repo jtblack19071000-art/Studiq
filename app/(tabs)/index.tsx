@@ -1,12 +1,13 @@
 import { format } from 'date-fns';
 import { Link, router } from 'expo-router';
 import { useMemo } from 'react';
-import { Button, H1, Paragraph, Text, TextArea, YStack } from 'tamagui';
+import { Button, H1, Paragraph, Text, TextArea, XStack, YStack } from 'tamagui';
 
 import { AgendaItem } from '@/src/components/AgendaItem';
 import { Card } from '@/src/components/Card';
 import { EmptyState } from '@/src/components/EmptyState';
 import { Hero } from '@/src/components/Hero';
+import { Icon, type IconName } from '@/src/components/Icon';
 import { Screen } from '@/src/components/Screen';
 import { SectionHeader } from '@/src/components/SectionHeader';
 import type { EventOccurrence } from '@/src/lib/occurrences';
@@ -16,12 +17,12 @@ import { useNotesStore } from '@/src/state/notesStore';
 import { useScheduleStore } from '@/src/state/scheduleStore';
 import { ACCENT_TINT, useThemeStore } from '@/src/state/themeStore';
 
-function greeting(): string {
+function greeting(): { text: string; icon: IconName } {
   const hour = new Date().getHours();
-  if (hour < 5) return 'Up late 🌙';
-  if (hour < 12) return 'Good morning ☀️';
-  if (hour < 17) return 'Good afternoon 👋';
-  return 'Good evening 🌆';
+  if (hour < 5) return { text: 'Up late', icon: 'moon' };
+  if (hour < 12) return { text: 'Good morning', icon: 'sunrise' };
+  if (hour < 17) return { text: 'Good afternoon', icon: 'sun' };
+  return { text: 'Good evening', icon: 'sunset' };
 }
 
 function openEventDetail(occurrence: EventOccurrence) {
@@ -91,9 +92,12 @@ export default function HomeScreen() {
   return (
     <Screen>
       <Hero logo gap="$1">
-        <Text fontWeight="700" fontSize="$5" style={{ color: ACCENT_TINT[accentColor] }}>
-          {greeting()}
-        </Text>
+        <XStack alignItems="center" gap="$2">
+          <Icon name={greeting().icon} size={18} color={ACCENT_TINT[accentColor]} />
+          <Text fontWeight="700" fontSize="$5" style={{ color: ACCENT_TINT[accentColor] }}>
+            {greeting().text}
+          </Text>
+        </XStack>
         <H1 fontSize="$9">{format(new Date(), 'EEEE, MMM d')}</H1>
         <Paragraph color="$color11" fontSize="$4">
           {eventCount === 0 ? 'Nothing on the calendar today.' : `${eventCount} thing${eventCount === 1 ? '' : 's'} on today`}
@@ -102,16 +106,16 @@ export default function HomeScreen() {
       </Hero>
 
       <Link href="/modal" asChild>
-        <Button size="$4" theme="active" borderRadius="$10">
-          ✚ Quick add
+        <Button size="$4" theme="active" borderRadius="$10" icon={<Icon name="plus" size={16} color="white" />}>
+          Quick add
         </Button>
       </Link>
 
       <YStack gap="$2">
-        <SectionHeader title="Timeline" emoji="🗓️" />
+        <SectionHeader title="Timeline" icon="calendar" />
         <Card>
           {todaysOccurrences.length === 0 ? (
-            <EmptyState emoji="🌿" message="Nothing scheduled today." />
+            <EmptyState icon="leaf" message="Nothing scheduled today." />
           ) : (
             todaysOccurrences.map((occurrence, index) => (
               <AgendaItem
@@ -126,10 +130,10 @@ export default function HomeScreen() {
       </YStack>
 
       <YStack gap="$2">
-        <SectionHeader title="Upcoming assignments" emoji="📌" />
+        <SectionHeader title="Upcoming assignments" icon="pin" />
         <Card>
           {upcomingAssignments.length === 0 ? (
-            <EmptyState emoji="🎉" message="No assignments due in the next 7 days." />
+            <EmptyState icon="confetti" message="No assignments due in the next 7 days." />
           ) : (
             upcomingAssignments.map((assignment) => {
               const studiqClass = classes.find((c) => c.id === assignment.classId);
@@ -147,10 +151,10 @@ export default function HomeScreen() {
       </YStack>
 
       <YStack gap="$2">
-        <SectionHeader title="Upcoming exams" emoji="🧪" />
+        <SectionHeader title="Upcoming exams" icon="flask" />
         <Card>
           {upcomingExams.length === 0 ? (
-            <EmptyState emoji="😌" message="No exams in the next 14 days." />
+            <EmptyState icon="smile" message="No exams in the next 14 days." />
           ) : (
             upcomingExams.map((exam) => {
               const studiqClass = classes.find((c) => c.id === exam.classId);
@@ -168,7 +172,7 @@ export default function HomeScreen() {
       </YStack>
 
       <YStack gap="$2">
-        <SectionHeader title="Daily note" emoji="🗒️" />
+        <SectionHeader title="Daily note" icon="note" />
         <Card>
           <TextArea
             placeholder="Anything worth remembering about today..."

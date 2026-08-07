@@ -1,10 +1,11 @@
 import { useLocalSearchParams } from 'expo-router';
 import { useState } from 'react';
-import { Button, H1, Paragraph, Text, YStack } from 'tamagui';
+import { Button, H1, Paragraph, Text, XStack, YStack } from 'tamagui';
 
 import { Badge } from '@/src/components/Badge';
 import { Card } from '@/src/components/Card';
 import { EmptyState } from '@/src/components/EmptyState';
+import { Icon, type IconName } from '@/src/components/Icon';
 import { Screen } from '@/src/components/Screen';
 import { SectionHeader } from '@/src/components/SectionHeader';
 import { exportStudyGuideToPdf } from '@/src/lib/studyGuidePdf';
@@ -45,9 +46,12 @@ function QuizList({ questions }: { questions: QuizQuestion[] | undefined }) {
             {index + 1}. {question.question}
           </Text>
           {revealed.has(index) ? (
-            <Paragraph color="$color10" fontSize="$3" paddingTop="$1">
-              💡 {question.answer}
-            </Paragraph>
+            <XStack alignItems="center" gap="$1.5" paddingTop="$1">
+              <Icon name="bulb" size={14} color="#8A8F98" />
+              <Paragraph color="$color10" fontSize="$3">
+                {question.answer}
+              </Paragraph>
+            </XStack>
           ) : (
             <Paragraph color="$color8" fontSize="$3" paddingTop="$1">
               Tap to reveal answer
@@ -84,9 +88,12 @@ function FlashcardList({ cards }: { cards: { front: string; back: string }[] | u
             pressStyle={{ opacity: 0.8 }}
             accentColor={isFlipped ? '#4C9F4C' : '#7D5BD9'}>
             <Text fontWeight="700">{isFlipped ? card.back : card.front}</Text>
-            <Text color="$color8" fontSize="$2" paddingTop="$1">
-              {isFlipped ? '🔄 tap to see term' : '🃏 tap to flip'}
-            </Text>
+            <XStack alignItems="center" gap="$1.5" paddingTop="$1">
+              <Icon name={isFlipped ? 'refresh' : 'layers'} size={12} color="#8A8F98" />
+              <Text color="$color8" fontSize="$2">
+                {isFlipped ? 'tap to see term' : 'tap to flip'}
+              </Text>
+            </XStack>
           </Card>
         );
       })}
@@ -112,10 +119,11 @@ export default function StudyGuideScreen() {
   const guide = unit.studyGuide;
 
   if (guide.status !== 'ready') {
+    const statusIcon: IconName = guide.status === 'generating' ? 'sparkle' : guide.status === 'failed' ? 'alert-circle' : 'book-open';
     return (
       <Screen>
         <EmptyState
-          emoji={guide.status === 'generating' ? '✨' : guide.status === 'failed' ? '😕' : '📖'}
+          icon={statusIcon}
           message={
             guide.status === 'generating'
               ? 'Generating the study guide…'
@@ -148,47 +156,56 @@ export default function StudyGuideScreen() {
         gap="$2"
         marginTop="$2"
         style={{ backgroundColor: ACCENT_SOFT_BG[accentColor] }}>
-        <Badge label="✨ AI STUDY GUIDE" tone="info" />
+        <XStack alignItems="center" gap="$1.5" alignSelf="flex-start">
+          <Icon name="sparkle" size={12} color="white" />
+          <Badge label="AI STUDY GUIDE" tone="info" />
+        </XStack>
         <H1 fontSize="$8" style={{ color: ACCENT_TINT[accentColor] }}>
           {unit.title}
         </H1>
         <Paragraph color="$color11">Everything from every lecture in this unit, in one place.</Paragraph>
       </YStack>
 
-      <Button size="$4" theme="active" borderRadius="$10" onPress={handleExport} disabled={exporting}>
-        {exporting ? 'Exporting…' : '📤 Export to PDF'}
+      <Button
+        size="$4"
+        theme="active"
+        borderRadius="$10"
+        onPress={handleExport}
+        disabled={exporting}
+        icon={<Icon name="upload" size={16} color="white" />}>
+        {exporting ? 'Exporting…' : 'Export to PDF'}
       </Button>
       {exportError ? <Paragraph color="$red10">{exportError}</Paragraph> : null}
 
       <YStack gap="$2">
-        <SectionHeader title="Study guide" emoji="📘" />
+        <SectionHeader title="Study guide" icon="book" />
         <Card>
           <Paragraph>{guide.studyGuide}</Paragraph>
         </Card>
       </YStack>
 
       <YStack gap="$2">
-        <SectionHeader title="Review sheet" emoji="📝" />
+        <SectionHeader title="Review sheet" icon="edit" />
         <Card>
           <Paragraph>{guide.reviewSheet}</Paragraph>
         </Card>
       </YStack>
 
       <YStack gap="$2">
-        <SectionHeader title="Chapter summary" emoji="🧾" />
+        <SectionHeader title="Chapter summary" icon="receipt" />
         <Card>
           <Paragraph>{guide.chapterSummary}</Paragraph>
         </Card>
       </YStack>
 
       <YStack gap="$2">
-        <SectionHeader title="Key concepts" emoji="💡" />
+        <SectionHeader title="Key concepts" icon="bulb" />
         <BulletList items={guide.keyConcepts} />
       </YStack>
 
       {guide.vocabulary && guide.vocabulary.length > 0 ? (
         <YStack gap="$2">
-          <SectionHeader title="Vocabulary" emoji="📚" />
+          <SectionHeader title="Vocabulary" icon="book-open" />
           <Card>
             {guide.vocabulary.map((entry, index) => (
               <YStack key={index} paddingVertical="$1.5">
@@ -203,44 +220,44 @@ export default function StudyGuideScreen() {
       ) : null}
 
       <YStack gap="$2">
-        <SectionHeader title="Equations & formulas" emoji="➗" />
+        <SectionHeader title="Equations & formulas" icon="edit" />
         <BulletList items={guide.equationsAndFormulas} />
       </YStack>
 
       {guide.flashcards && guide.flashcards.length > 0 ? (
         <YStack gap="$2">
-          <SectionHeader title="Flashcards" emoji="🃏" />
+          <SectionHeader title="Flashcards" icon="layers" />
           <FlashcardList cards={guide.flashcards} />
         </YStack>
       ) : null}
 
       <YStack gap="$2">
-        <SectionHeader title="Practice quiz" emoji="❓" />
+        <SectionHeader title="Practice quiz" icon="help-circle" />
         <QuizList questions={guide.practiceQuiz} />
       </YStack>
 
       <YStack gap="$2">
-        <SectionHeader title="Practice exam" emoji="🎯" />
+        <SectionHeader title="Practice exam" icon="target" />
         <QuizList questions={guide.practiceExam} />
       </YStack>
 
       <YStack gap="$2">
-        <SectionHeader title="Likely exam topics" emoji="🔮" />
+        <SectionHeader title="Likely exam topics" icon="eye" />
         <BulletList items={guide.likelyExamTopics} />
       </YStack>
 
       <YStack gap="$2">
-        <SectionHeader title="Professor emphasized" emoji="⭐" />
+        <SectionHeader title="Professor emphasized" icon="star" />
         <BulletList items={guide.professorEmphasis} />
       </YStack>
 
       <YStack gap="$2">
-        <SectionHeader title="Memory tricks & mnemonics" emoji="🧠" />
+        <SectionHeader title="Memory tricks & mnemonics" icon="brain" />
         <BulletList items={guide.mnemonics} />
       </YStack>
 
       <YStack gap="$2">
-        <SectionHeader title="Review checklist" emoji="✅" />
+        <SectionHeader title="Review checklist" icon="check-circle" />
         <BulletList items={guide.reviewChecklist} />
       </YStack>
     </Screen>

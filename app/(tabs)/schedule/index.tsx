@@ -19,6 +19,7 @@ import { Button, H2, Paragraph, Text, XStack, YStack } from 'tamagui';
 import { AgendaItem } from '@/src/components/AgendaItem';
 import { Card } from '@/src/components/Card';
 import { EmptyState } from '@/src/components/EmptyState';
+import { Icon } from '@/src/components/Icon';
 import { Screen } from '@/src/components/Screen';
 import { WeekGridCalendar } from '@/src/components/WeekGridCalendar';
 import type { EventOccurrence } from '@/src/lib/occurrences';
@@ -65,7 +66,10 @@ export default function ScheduleScreen() {
   return (
     <Screen scroll={scroll}>
       <YStack gap="$1" paddingTop="$2">
-        <H2>📅 Schedule</H2>
+        <XStack alignItems="center" gap="$2">
+          <Icon name="calendar" size={22} color="#3B6FE0" />
+          <H2>Schedule</H2>
+        </XStack>
       </YStack>
 
       <XStack gap="$2">
@@ -275,11 +279,22 @@ function ClassesList({ classes }: { classes: ReturnType<typeof useClassesStore.g
   return (
     <YStack gap="$3">
       <XStack gap="$2">
-        <Button flex={1} size="$4" theme="active" borderRadius="$10" onPress={() => router.push('/schedule/classes/new')}>
-          + Add class
+        <Button
+          flex={1}
+          size="$4"
+          theme="active"
+          borderRadius="$10"
+          onPress={() => router.push('/schedule/classes/new')}
+          icon={<Icon name="plus" size={16} color="white" />}>
+          Add class
         </Button>
-        <Button flex={1} size="$4" borderRadius="$10" onPress={() => router.push('/schedule/classes/import')}>
-          📄 Import syllabus
+        <Button
+          flex={1}
+          size="$4"
+          borderRadius="$10"
+          onPress={() => router.push('/schedule/classes/import')}
+          icon={<Icon name="upload" size={16} color="#8A8F98" />}>
+          Import syllabus
         </Button>
       </XStack>
 

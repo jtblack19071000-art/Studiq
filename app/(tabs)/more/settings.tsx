@@ -5,6 +5,7 @@ import { Button, H2, Paragraph, Text, XStack, YStack } from 'tamagui';
 import { AuthForm } from '@/src/components/AuthForm';
 import { Card } from '@/src/components/Card';
 import { Hero } from '@/src/components/Hero';
+import { Icon } from '@/src/components/Icon';
 import { Paywall } from '@/src/components/Paywall';
 import { Screen } from '@/src/components/Screen';
 import { SectionHeader } from '@/src/components/SectionHeader';
@@ -57,18 +58,21 @@ export default function SettingsScreen() {
   return (
     <Screen>
       <YStack gap="$1" paddingTop="$2">
-        <H2>⚙️ Settings</H2>
+        <XStack alignItems="center" gap="$2">
+          <Icon name="settings" size={22} color="#3B6FE0" />
+          <H2>Settings</H2>
+        </XStack>
       </YStack>
 
       <Hero logo alignItems="center" gap="$1" paddingVertical="$5">
-        <Text fontSize={36}>{tier === 'premium' ? '💎' : '🆓'}</Text>
+        <Icon name={tier === 'premium' ? 'diamond' : 'cloud'} size={32} color={ACCENT_TINT[accentColor]} />
         <Text fontWeight="800" fontSize="$6" style={{ color: ACCENT_TINT[accentColor] }}>
           {tier === 'premium' ? 'Premium plan' : 'Free plan'}
         </Text>
       </Hero>
 
       <YStack gap="$2">
-        <SectionHeader title="Account & sync" emoji="☁️" />
+        <SectionHeader title="Account & sync" icon="cloud" />
         <Card gap="$3">
           <YStack>
             <Text fontWeight="600">Cloud sync</Text>
@@ -94,7 +98,7 @@ export default function SettingsScreen() {
       </YStack>
 
       <YStack gap="$2">
-        <SectionHeader title="Subscription" emoji="💎" />
+        <SectionHeader title="Subscription" icon="diamond" />
         <Card>
           <Text fontWeight="600">
             Current plan: {tier === 'premium' ? 'Premium' : 'Free'}
@@ -114,7 +118,7 @@ export default function SettingsScreen() {
       </YStack>
 
       <YStack gap="$2">
-        <SectionHeader title="Reminders & notifications" emoji="🔔" />
+        <SectionHeader title="Reminders & notifications" icon="bell" />
         <Card gap="$2">
           {!notificationsSchedulingSupported ? (
             <Paragraph color="$color10" fontSize="$3">
@@ -141,7 +145,7 @@ export default function SettingsScreen() {
       <AppearanceSection />
 
       <YStack gap="$2">
-        <SectionHeader title="About" emoji="ℹ️" />
+        <SectionHeader title="About" icon="info" />
         <Card>
           <Paragraph color="$color10" fontSize="$3">
             Studiq v{Constants.expoConfig?.version ?? '1.0.0'}

@@ -1,20 +1,20 @@
 import { Tabs } from 'expo-router';
-import { Text, YStack } from 'tamagui';
+import { YStack } from 'tamagui';
 
 import { useClientOnlyValue } from '@/components/useClientOnlyValue';
+import { Icon, type IconName } from '@/src/components/Icon';
 import { ACCENT_SOFT_BG, ACCENT_TINT, useThemeStore, type AccentColor } from '@/src/state/themeStore';
 
 /**
- * Plain-text glyphs, not an icon-font library — every icon-font path (expo-symbols,
- * @expo/vector-icons) pulls in expo-font, whose web module reads a `globalThis.expo` singleton
- * that two of Expo static export's own concurrent bundling passes (client + SSR) race to
- * initialize, deterministically crashing the export on slower build machines (reproduced on
- * Vercel every time, never locally). Text glyphs need no font loading at all, so this bug class
- * doesn't apply here. Trade-off: emoji are inherently colored, so they don't re-tint when a tab
- * is active the way a monochrome icon font would — the soft pill behind it plus the label below
- * still show the active state clearly.
+ * Renders via the custom Icon component (react-native-svg — plain SVG DOM elements on web, no
+ * font loading), not an icon-font library. Icon-font paths (expo-symbols, @expo/vector-icons)
+ * pull in expo-font, whose web module reads a `globalThis.expo` singleton that two of Expo static
+ * export's own concurrent bundling passes (client + SSR) race to initialize, deterministically
+ * crashing the export on slower build machines (reproduced on Vercel every time, never locally).
+ * react-native-svg's web implementation doesn't touch expo-font or that singleton at all, so this
+ * bug class doesn't apply here — see the web-safety check this was verified against before adding.
  */
-function TabIcon({ glyph, focused, accentColor }: { glyph: string; focused: boolean; accentColor: AccentColor }) {
+function TabIcon({ name, focused, accentColor }: { name: IconName; focused: boolean; accentColor: AccentColor }) {
   return (
     <YStack
       width={40}
@@ -23,7 +23,7 @@ function TabIcon({ glyph, focused, accentColor }: { glyph: string; focused: bool
       alignItems="center"
       justifyContent="center"
       style={focused ? { backgroundColor: ACCENT_SOFT_BG[accentColor] } : undefined}>
-      <Text fontSize={focused ? 20 : 18}>{glyph}</Text>
+      <Icon name={name} size={focused ? 22 : 20} color={focused ? ACCENT_TINT[accentColor] : '#8A8F98'} />
     </YStack>
   );
 }
@@ -43,7 +43,7 @@ export default function TabLayout() {
         name="index"
         options={{
           title: 'Home',
-          tabBarIcon: ({ focused }) => <TabIcon glyph="🏠" focused={focused} accentColor={accentColor} />,
+          tabBarIcon: ({ focused }) => <TabIcon name="home" focused={focused} accentColor={accentColor} />,
         }}
       />
       <Tabs.Screen
@@ -51,7 +51,7 @@ export default function TabLayout() {
         options={{
           title: 'Schedule',
           headerShown: false,
-          tabBarIcon: ({ focused }) => <TabIcon glyph="📅" focused={focused} accentColor={accentColor} />,
+          tabBarIcon: ({ focused }) => <TabIcon name="calendar" focused={focused} accentColor={accentColor} />,
         }}
       />
       <Tabs.Screen
@@ -59,7 +59,7 @@ export default function TabLayout() {
         options={{
           title: 'Study',
           headerShown: false,
-          tabBarIcon: ({ focused }) => <TabIcon glyph="🎙️" focused={focused} accentColor={accentColor} />,
+          tabBarIcon: ({ focused }) => <TabIcon name="mic" focused={focused} accentColor={accentColor} />,
         }}
       />
       <Tabs.Screen
@@ -67,7 +67,7 @@ export default function TabLayout() {
         options={{
           title: 'More',
           headerShown: false,
-          tabBarIcon: ({ focused }) => <TabIcon glyph="⋯" focused={focused} accentColor={accentColor} />,
+          tabBarIcon: ({ focused }) => <TabIcon name="more" focused={focused} accentColor={accentColor} />,
         }}
       />
     </Tabs>

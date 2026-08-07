@@ -4,6 +4,7 @@ import { Button, H1, H2, Paragraph, Text, YStack } from 'tamagui';
 import { Badge } from '@/src/components/Badge';
 import { Card } from '@/src/components/Card';
 import { Hero } from '@/src/components/Hero';
+import { Icon } from '@/src/components/Icon';
 import { Paywall } from '@/src/components/Paywall';
 import { Screen } from '@/src/components/Screen';
 import { SectionHeader } from '@/src/components/SectionHeader';
@@ -28,7 +29,7 @@ export default function SubscriptionScreen() {
   return (
     <Screen>
       <Hero logo alignItems="center" gap="$2">
-        <Text fontSize={40}>{tier === 'premium' ? '💎' : '🆓'}</Text>
+        <Icon name={tier === 'premium' ? 'diamond' : 'cloud'} size={36} color={ACCENT_TINT[accentColor]} />
         <H1 fontSize="$8" style={{ color: ACCENT_TINT[accentColor] }}>
           {tier === 'premium' ? 'Premium' : 'Free plan'}
         </H1>
@@ -37,15 +38,20 @@ export default function SubscriptionScreen() {
 
       {tier === 'premium' ? (
         <YStack gap="$2">
-          <SectionHeader title="Your plan" emoji="💎" />
+          <SectionHeader title="Your plan" icon="diamond" />
           <Card gap="$3">
             <Text fontWeight="600">You have unlimited AI Study Mode</Text>
             <Paragraph color="$color10" fontSize="$3">
               Lecture recording, transcription, per-lecture AI notes/flashcards/quizzes, and Unit
               Study Guides are all unlocked.
             </Paragraph>
-            <Button size="$4" borderRadius="$10" onPress={handleManage} disabled={managing}>
-              {managing ? 'Opening…' : '⚙️ Manage or cancel subscription'}
+            <Button
+              size="$4"
+              borderRadius="$10"
+              onPress={handleManage}
+              disabled={managing}
+              icon={<Icon name="settings" size={16} color="black" />}>
+              {managing ? 'Opening…' : 'Manage or cancel subscription'}
             </Button>
             {message ? (
               <Paragraph color="$color10" fontSize="$3">
@@ -56,7 +62,7 @@ export default function SubscriptionScreen() {
         </YStack>
       ) : (
         <YStack gap="$2">
-          <SectionHeader title="Upgrade" emoji="✨" />
+          <SectionHeader title="Upgrade" icon="sparkle" />
           <Card>
             <Paywall />
           </Card>
@@ -64,15 +70,15 @@ export default function SubscriptionScreen() {
       )}
 
       <YStack gap="$2">
-        <SectionHeader title="What's free vs. Premium" emoji="🆚" />
+        <SectionHeader title="What's free vs. Premium" icon="scale" />
         <Card gap="$2">
-          <H2 fontSize="$4">🆓 Free, always</H2>
+          <H2 fontSize="$4">Free, always</H2>
           <Paragraph color="$color10" fontSize="$3">
             Classes, schedule, GPA tracker, finance, goals, career hub, campus resources, and
             College Match — unlimited, no account required for local use.
           </Paragraph>
           <H2 fontSize="$4" paddingTop="$2">
-            💎 Premium
+            Premium
           </H2>
           <Paragraph color="$color10" fontSize="$3">
             Everything AI-powered in the Study tab: lecture recording, transcription, per-lecture

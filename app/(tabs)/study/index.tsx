@@ -1,9 +1,10 @@
 import { router } from 'expo-router';
-import { H1, Paragraph, Text, YStack } from 'tamagui';
+import { H1, Paragraph, Text, XStack, YStack } from 'tamagui';
 
 import { Card } from '@/src/components/Card';
 import { EmptyState } from '@/src/components/EmptyState';
 import { Hero } from '@/src/components/Hero';
+import { Icon } from '@/src/components/Icon';
 import { Screen } from '@/src/components/Screen';
 import { useClassesStore } from '@/src/state/classesStore';
 import { useStudyStore } from '@/src/state/studyStore';
@@ -18,7 +19,10 @@ export default function StudyScreen() {
   return (
     <Screen>
       <YStack gap="$1" paddingTop="$2">
-        <H1 fontSize="$9">🎙️ Study</H1>
+        <XStack alignItems="center" gap="$2">
+          <Icon name="mic" size={26} color={ACCENT_TINT[accentColor]} />
+          <H1 fontSize="$9">Study</H1>
+        </XStack>
         <Paragraph color="$color10">
           Record lectures by unit, then generate a study guide from everything in that unit.
         </Paragraph>
@@ -26,7 +30,7 @@ export default function StudyScreen() {
 
       {courses.length > 0 ? (
         <Hero logo alignItems="center" gap="$1" paddingVertical="$5">
-          <Text fontSize={36}>✨</Text>
+          <Icon name="sparkle" size={30} color={ACCENT_TINT[accentColor]} />
           <Text fontWeight="800" fontSize="$6" style={{ color: ACCENT_TINT[accentColor] }}>
             {courses.length} course{courses.length === 1 ? '' : 's'} · {units.length} unit{units.length === 1 ? '' : 's'}
           </Text>
@@ -34,7 +38,7 @@ export default function StudyScreen() {
       ) : null}
 
       {courses.length === 0 ? (
-        <EmptyState emoji="📚" message="Open a class and tap 'Open Study workspace' to get started." />
+        <EmptyState icon="book" message="Open a class and tap 'Open Study workspace' to get started." />
       ) : (
         <YStack gap="$3">
           {courses.map((course) => {
@@ -49,9 +53,12 @@ export default function StudyScreen() {
                 <Text fontWeight="700" fontSize="$6">
                   {course.title}
                 </Text>
-                <Paragraph color="$color10">
-                  📗 {unitCount} unit{unitCount === 1 ? '' : 's'}
-                </Paragraph>
+                <XStack alignItems="center" gap="$1.5">
+                  <Icon name="book" size={14} color="#8A8F98" />
+                  <Paragraph color="$color10">
+                    {unitCount} unit{unitCount === 1 ? '' : 's'}
+                  </Paragraph>
+                </XStack>
               </Card>
             );
           })}

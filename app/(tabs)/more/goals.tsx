@@ -4,6 +4,7 @@ import { Button, H2, Input, Paragraph, Text, XStack, YStack } from 'tamagui';
 import { Card } from '@/src/components/Card';
 import { EmptyState } from '@/src/components/EmptyState';
 import { Hero } from '@/src/components/Hero';
+import { Icon } from '@/src/components/Icon';
 import { Screen } from '@/src/components/Screen';
 import { SectionHeader } from '@/src/components/SectionHeader';
 import { useGoalsStore } from '@/src/state/goalsStore';
@@ -85,7 +86,10 @@ export default function GoalsScreen() {
   return (
     <Screen>
       <YStack gap="$1" paddingTop="$2">
-        <H2>🎯 Goals</H2>
+        <XStack alignItems="center" gap="$2">
+          <Icon name="target" size={22} color="#D9862B" />
+          <H2>Goals</H2>
+        </XStack>
       </YStack>
 
       <Hero logo flexDirection="row" gap="$2">
@@ -93,30 +97,39 @@ export default function GoalsScreen() {
           <Text fontWeight="800" fontSize="$8" style={{ color: ACCENT_TINT[accentColor] }}>
             {grouped.in_progress.length}
           </Text>
-          <Text color="$color10" fontSize="$2">
-            🚀 In progress
-          </Text>
+          <XStack alignItems="center" gap="$1">
+            <Icon name="rocket" size={11} color="#8A8F98" />
+            <Text color="$color10" fontSize="$2">
+              In progress
+            </Text>
+          </XStack>
         </YStack>
         <YStack alignItems="center" flex={1}>
           <Text fontWeight="800" fontSize="$8" style={{ color: ACCENT_TINT[accentColor] }}>
             {grouped.not_started.length}
           </Text>
-          <Text color="$color10" fontSize="$2">
-            🗓️ Not started
-          </Text>
+          <XStack alignItems="center" gap="$1">
+            <Icon name="calendar" size={11} color="#8A8F98" />
+            <Text color="$color10" fontSize="$2">
+              Not started
+            </Text>
+          </XStack>
         </YStack>
         <YStack alignItems="center" flex={1}>
           <Text fontWeight="800" fontSize="$8" style={{ color: ACCENT_TINT[accentColor] }}>
             {grouped.completed.length}
           </Text>
-          <Text color="$color10" fontSize="$2">
-            ✅ Completed
-          </Text>
+          <XStack alignItems="center" gap="$1">
+            <Icon name="check-circle" size={11} color="#8A8F98" />
+            <Text color="$color10" fontSize="$2">
+              Completed
+            </Text>
+          </XStack>
         </YStack>
       </Hero>
 
       <YStack gap="$2">
-        <SectionHeader title="Add goal" emoji="➕" />
+        <SectionHeader title="Add goal" icon="plus" />
         <Card gap="$3">
           <Input placeholder="What do you want to accomplish?" value={title} onChangeText={setTitle} />
           <Input
@@ -143,11 +156,11 @@ export default function GoalsScreen() {
       </YStack>
 
       {goals.length === 0 ? (
-        <EmptyState emoji="🎯" message="No goals yet." />
+        <EmptyState icon="target" message="No goals yet." />
       ) : (
         <>
           <YStack gap="$2">
-            <SectionHeader title="In progress" emoji="🚀" />
+            <SectionHeader title="In progress" icon="rocket" />
             {grouped.in_progress.length === 0 ? (
               <Card>
                 <EmptyState message="Nothing in progress." />
@@ -162,7 +175,7 @@ export default function GoalsScreen() {
           </YStack>
 
           <YStack gap="$2">
-            <SectionHeader title="Not started" emoji="🗓️" />
+            <SectionHeader title="Not started" icon="calendar" />
             {grouped.not_started.length === 0 ? (
               <Card>
                 <EmptyState message="Nothing here." />
@@ -177,7 +190,7 @@ export default function GoalsScreen() {
           </YStack>
 
           <YStack gap="$2">
-            <SectionHeader title="Completed" emoji="✅" />
+            <SectionHeader title="Completed" icon="check-circle" />
             {grouped.completed.length === 0 ? (
               <Card>
                 <EmptyState message="Nothing completed yet." />

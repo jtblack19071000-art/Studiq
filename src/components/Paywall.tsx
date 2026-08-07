@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Button, H3, Paragraph, Text, XStack, YStack } from 'tamagui';
 
+import { Icon } from '@/src/components/Icon';
 import { isPurchasesConfigured } from '@/src/lib/purchases';
 import { useSubscriptionStore } from '@/src/state/subscriptionStore';
 
@@ -56,7 +57,10 @@ export function Paywall() {
 
   return (
     <YStack gap="$3">
-      <H3>🎯 Ace your next exam with AI Study Mode</H3>
+      <YStack gap="$1">
+        <Icon name="target" size={22} color="#3B6FE0" />
+        <H3>Ace your next exam with AI Study Mode</H3>
+      </YStack>
       <Paragraph color="$color10" fontSize="$3">
         Record any lecture and let AI turn it into notes, flashcards, and a practice exam — so you
         walk in knowing exactly what&apos;s going to be on the test.
@@ -101,8 +105,13 @@ export function Paywall() {
         </Paragraph>
       ) : (
         <>
-          <Button theme="active" borderRadius="$10" onPress={handlePurchase} disabled={busy !== null || refreshing}>
-            {busy === 'purchase' ? 'Processing…' : '✨ Unlock AI Study Mode'}
+          <Button
+            theme="active"
+            borderRadius="$10"
+            onPress={handlePurchase}
+            disabled={busy !== null || refreshing}
+            icon={busy === 'purchase' ? undefined : <Icon name="sparkle" size={16} color="white" />}>
+            {busy === 'purchase' ? 'Processing…' : 'Unlock AI Study Mode'}
           </Button>
           <Button chromeless onPress={handleRestore} disabled={busy !== null || refreshing}>
             {busy === 'restore' ? 'Restoring…' : 'Restore purchases'}

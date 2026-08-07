@@ -4,6 +4,7 @@ import { Button, H2, Input, Paragraph, Text, XStack, YStack } from 'tamagui';
 import { Card } from '@/src/components/Card';
 import { EmptyState } from '@/src/components/EmptyState';
 import { Hero } from '@/src/components/Hero';
+import { Icon } from '@/src/components/Icon';
 import { Screen } from '@/src/components/Screen';
 import { SectionHeader } from '@/src/components/SectionHeader';
 import { generateCollegeMatchGuidance, CollegeMatchAiError, type CollegeMatchGuidance } from '@/src/lib/collegeMatchAi';
@@ -74,7 +75,10 @@ export default function CollegeMatchScreen() {
   return (
     <Screen>
       <YStack gap="$1" paddingTop="$2">
-        <H2>🏫 College Match</H2>
+        <XStack alignItems="center" gap="$2">
+          <Icon name="building" size={22} color="#3B6FE0" />
+          <H2>College Match</H2>
+        </XStack>
         <Paragraph color="$color10">
           An AI-guided best-fit quiz — not a database match, since there isn&apos;t one, but honest
           reasoning over your own preferences. Free for everyone, prospective students included.
@@ -82,7 +86,7 @@ export default function CollegeMatchScreen() {
       </YStack>
 
       <Hero logo alignItems="center" gap="$1" paddingVertical="$5">
-        <Text fontSize={36}>🧭</Text>
+        <Icon name="compass" size={32} color={ACCENT_TINT[accentColor]} />
         <Text fontWeight="800" fontSize="$6" style={{ color: ACCENT_TINT[accentColor] }}>
           {schools.length} school{schools.length === 1 ? '' : 's'} saved
         </Text>
@@ -93,7 +97,7 @@ export default function CollegeMatchScreen() {
 
       <YStack gap="$4">
         <YStack gap="$2">
-          <SectionHeader title="Your preferences" emoji="🧑‍🎓" />
+          <SectionHeader title="Your preferences" icon="graduation-cap" />
           <Card gap="$3">
             <Input
               placeholder="Intended major"
@@ -125,7 +129,7 @@ export default function CollegeMatchScreen() {
         </YStack>
 
         <YStack gap="$2">
-          <SectionHeader title="Add a school" emoji="➕" />
+          <SectionHeader title="Add a school" icon="plus" />
           <Card gap="$3">
             <Input placeholder="School name" value={name} onChangeText={setName} />
             <Input placeholder="Program (optional)" value={program} onChangeText={setProgram} />
@@ -138,10 +142,10 @@ export default function CollegeMatchScreen() {
         </YStack>
 
         <YStack gap="$2">
-          <SectionHeader title="Saved schools" emoji="🏫" />
+          <SectionHeader title="Saved schools" icon="building" />
           {schools.length === 0 ? (
             <Card>
-              <EmptyState emoji="🏫" message="No schools saved yet." />
+              <EmptyState icon="building" message="No schools saved yet." />
             </Card>
           ) : (
             <YStack gap="$3">
@@ -180,7 +184,7 @@ export default function CollegeMatchScreen() {
         </YStack>
 
         <YStack gap="$2">
-          <SectionHeader title="AI best-fit guidance" emoji="✨" />
+          <SectionHeader title="AI best-fit guidance" icon="sparkle" />
           <Button theme="active" onPress={handleGetGuidance} disabled={guidanceLoading}>
             {guidanceLoading ? 'Thinking…' : 'Get AI guidance'}
           </Button>

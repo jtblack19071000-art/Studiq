@@ -5,6 +5,7 @@ import { Button, H2, Input, Label, Paragraph, Text, XStack, YStack } from 'tamag
 import { Card } from '@/src/components/Card';
 import { EmptyState } from '@/src/components/EmptyState';
 import { Hero } from '@/src/components/Hero';
+import { Icon } from '@/src/components/Icon';
 import { Screen } from '@/src/components/Screen';
 import { SectionHeader } from '@/src/components/SectionHeader';
 import { calculateMonthlySummary, estimateMonthlyIncomeFromProfile } from '@/src/lib/finance';
@@ -60,31 +61,43 @@ export default function FinanceScreen() {
   return (
     <Screen>
       <YStack gap="$1" paddingTop="$2">
-        <H2>💸 Finance</H2>
+        <XStack alignItems="center" gap="$2">
+          <Icon name="dollar" size={22} color="#4C9F4C" />
+          <H2>Finance</H2>
+        </XStack>
       </YStack>
 
       <Hero logo gap="$2">
         <XStack justifyContent="space-between">
           <YStack alignItems="center" flex={1}>
-            <Text color="$color10" fontSize="$2">
-              💰 Income
-            </Text>
+            <XStack alignItems="center" gap="$1">
+              <Icon name="dollar" size={11} color="#8A8F98" />
+              <Text color="$color10" fontSize="$2">
+                Income
+              </Text>
+            </XStack>
             <Text fontWeight="700" fontSize="$6" color="$green10">
               {formatCurrency(summary.income)}
             </Text>
           </YStack>
           <YStack alignItems="center" flex={1}>
-            <Text color="$color10" fontSize="$2">
-              🧾 Expenses
-            </Text>
+            <XStack alignItems="center" gap="$1">
+              <Icon name="receipt" size={11} color="#8A8F98" />
+              <Text color="$color10" fontSize="$2">
+                Expenses
+              </Text>
+            </XStack>
             <Text fontWeight="700" fontSize="$6" color="$red10">
               {formatCurrency(summary.expenses)}
             </Text>
           </YStack>
           <YStack alignItems="center" flex={1}>
-            <Text color="$color10" fontSize="$2">
-              ⚖️ Balance
-            </Text>
+            <XStack alignItems="center" gap="$1">
+              <Icon name="scale" size={11} color="#8A8F98" />
+              <Text color="$color10" fontSize="$2">
+                Balance
+              </Text>
+            </XStack>
             <Text fontWeight="700" fontSize="$6" style={{ color: ACCENT_TINT[accentColor] }}>
               {formatCurrency(summary.balance)}
             </Text>
@@ -98,7 +111,7 @@ export default function FinanceScreen() {
       <FinancialProfileSection />
 
       <YStack gap="$2">
-        <SectionHeader title="Add transaction" emoji="➕" />
+        <SectionHeader title="Add transaction" icon="plus" />
         <Card gap="$3">
           <XStack gap="$2">
             <Input flex={1} placeholder="Title" value={title} onChangeText={setTitle} />
@@ -131,10 +144,10 @@ export default function FinanceScreen() {
       </YStack>
 
       <YStack gap="$2">
-        <SectionHeader title="Recent transactions" emoji="🧾" />
+        <SectionHeader title="Recent transactions" icon="receipt" />
         {transactions.length === 0 ? (
           <Card>
-            <EmptyState emoji="💳" message="No transactions yet." />
+            <EmptyState icon="credit-card" message="No transactions yet." />
           </Card>
         ) : (
           <YStack gap="$2">
@@ -176,7 +189,7 @@ function FinancialProfileSection() {
 
   return (
     <YStack gap="$2">
-      <SectionHeader title="Financial profile" emoji="🧑‍🎓" />
+      <SectionHeader title="Financial profile" icon="graduation-cap" />
       <Card gap="$3">
         <Paragraph color="$color10" fontSize="$3">
           Set this up once — your school, jobs, and scholarships — so Studiq can estimate your monthly income.

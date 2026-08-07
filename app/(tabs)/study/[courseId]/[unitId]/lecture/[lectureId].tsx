@@ -6,6 +6,7 @@ import { Button, H2, Input, Paragraph, Text, XStack, YStack } from 'tamagui';
 
 import { Card } from '@/src/components/Card';
 import { EmptyState } from '@/src/components/EmptyState';
+import { Icon } from '@/src/components/Icon';
 import { PremiumGate } from '@/src/components/PremiumGate';
 import { Screen } from '@/src/components/Screen';
 import { SectionHeader } from '@/src/components/SectionHeader';
@@ -104,11 +105,11 @@ export default function LectureDetailScreen() {
         </Paragraph>
         {!isRenaming ? (
           <XStack gap="$3">
-            <Button size="$3" onPress={handleStartRename}>
-              ✏️ Rename
+            <Button size="$3" onPress={handleStartRename} icon={<Icon name="edit" size={14} color="#8A8F98" />}>
+              Rename
             </Button>
-            <Button size="$3" theme="red" onPress={handleDelete}>
-              🗑️ Delete
+            <Button size="$3" theme="red" onPress={handleDelete} icon={<Icon name="trash" size={14} color="white" />}>
+              Delete
             </Button>
           </XStack>
         ) : null}

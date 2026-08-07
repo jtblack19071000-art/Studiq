@@ -7,6 +7,7 @@ import { Button, H2, Paragraph, Text, XStack, YStack } from 'tamagui';
 import { Badge, type BadgeTone } from '@/src/components/Badge';
 import { Card } from '@/src/components/Card';
 import { EmptyState } from '@/src/components/EmptyState';
+import { Icon } from '@/src/components/Icon';
 import { PremiumGate } from '@/src/components/PremiumGate';
 import { Screen } from '@/src/components/Screen';
 import { SectionHeader } from '@/src/components/SectionHeader';
@@ -91,14 +92,25 @@ export default function UnitDetailScreen() {
       </YStack>
 
       {unit.studyGuide.status === 'ready' ? (
-        <Button size="$4" theme="active" borderRadius="$10" onPress={() => router.push(`/study/${courseId}/${unitId}/study-guide`)}>
-          📖 View Study Guide
+        <Button
+          size="$4"
+          theme="active"
+          borderRadius="$10"
+          onPress={() => router.push(`/study/${courseId}/${unitId}/study-guide`)}
+          icon={<Icon name="book-open" size={16} color="white" />}>
+          View Study Guide
         </Button>
       ) : !isPremium ? (
         <PremiumGate>{null}</PremiumGate>
       ) : (
-        <Button size="$4" theme="active" borderRadius="$10" onPress={handleGenerateStudyGuide} disabled={isGeneratingStudyGuide}>
-          {isGeneratingStudyGuide ? '✨ Generating…' : '✨ Generate Unit Study Guide'}
+        <Button
+          size="$4"
+          theme="active"
+          borderRadius="$10"
+          onPress={handleGenerateStudyGuide}
+          disabled={isGeneratingStudyGuide}
+          icon={<Icon name="sparkle" size={16} color="white" />}>
+          {isGeneratingStudyGuide ? 'Generating…' : 'Generate Unit Study Guide'}
         </Button>
       )}
       {studyGuideError ? <Paragraph color="$red10">{studyGuideError}</Paragraph> : null}
@@ -106,16 +118,21 @@ export default function UnitDetailScreen() {
       <YStack gap="$2">
         <SectionHeader
           title="Lectures"
-          emoji="🎙️"
+          icon="mic"
           action={
-            <Button size="$3" theme="active" borderRadius="$10" onPress={() => router.push(`/study/${courseId}/${unitId}/record`)}>
-              + Record
+            <Button
+              size="$3"
+              theme="active"
+              borderRadius="$10"
+              onPress={() => router.push(`/study/${courseId}/${unitId}/record`)}
+              icon={<Icon name="plus" size={14} color="white" />}>
+              Record
             </Button>
           }
         />
         {lectures.length === 0 ? (
           <Card>
-            <EmptyState emoji="🎧" message="No lectures recorded in this unit yet." />
+            <EmptyState icon="headphones" message="No lectures recorded in this unit yet." />
           </Card>
         ) : (
           <YStack gap="$3">
@@ -142,8 +159,12 @@ export default function UnitDetailScreen() {
                     <Badge label={status.label} tone={status.tone} />
                   </XStack>
                   <XStack justifyContent="flex-end">
-                    <Button size="$2" chromeless onPress={() => handleDeleteLecture(lecture)}>
-                      🗑️ Delete
+                    <Button
+                      size="$2"
+                      chromeless
+                      onPress={() => handleDeleteLecture(lecture)}
+                      icon={<Icon name="trash" size={13} color="#8A8F98" />}>
+                      Delete
                     </Button>
                   </XStack>
                 </Card>

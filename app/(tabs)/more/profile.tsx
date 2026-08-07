@@ -5,6 +5,7 @@ import { Badge } from '@/src/components/Badge';
 import { Card } from '@/src/components/Card';
 import { EmptyState } from '@/src/components/EmptyState';
 import { Hero } from '@/src/components/Hero';
+import { Icon } from '@/src/components/Icon';
 import { Screen } from '@/src/components/Screen';
 import { SectionHeader } from '@/src/components/SectionHeader';
 import { confirmAsync } from '@/src/lib/confirm';
@@ -33,7 +34,10 @@ export default function ProfileScreen() {
     return (
       <Screen>
         <YStack gap="$1" paddingTop="$2">
-          <H2>🧑‍🎓 Profile</H2>
+          <XStack alignItems="center" gap="$2">
+            <Icon name="graduation-cap" size={22} color="#3B6FE0" />
+            <H2>Profile</H2>
+          </XStack>
         </YStack>
         <Card>
           <Paragraph color="$color10">
@@ -49,10 +53,13 @@ export default function ProfileScreen() {
     return (
       <Screen>
         <YStack gap="$1" paddingTop="$2">
-          <H2>🧑‍🎓 Profile</H2>
+          <XStack alignItems="center" gap="$2">
+            <Icon name="graduation-cap" size={22} color="#3B6FE0" />
+            <H2>Profile</H2>
+          </XStack>
         </YStack>
         <Card>
-          <EmptyState emoji="🔒" message="Sign in to see your profile." />
+          <EmptyState icon="lock" message="Sign in to see your profile." />
         </Card>
       </Screen>
     );
@@ -103,17 +110,17 @@ export default function ProfileScreen() {
         <H1 fontSize="$8" style={{ color: ACCENT_TINT[accentColor] }}>
           {storedName ?? 'Studiq student'}
         </H1>
-        <Badge label={tier === 'premium' ? '💎 Premium' : 'Free plan'} tone={tier === 'premium' ? 'success' : 'neutral'} />
+        <Badge label={tier === 'premium' ? 'Premium' : 'Free plan'} tone={tier === 'premium' ? 'success' : 'neutral'} />
       </Hero>
 
       <YStack gap="$2">
         <SectionHeader
           title="Your info"
-          emoji="ℹ️"
+          icon="info"
           action={
             !editing ? (
-              <Button size="$2" onPress={startEditing}>
-                ✏️ Edit
+              <Button size="$2" onPress={startEditing} icon={<Icon name="edit" size={13} color="#8A8F98" />}>
+                Edit
               </Button>
             ) : null
           }
@@ -165,7 +172,7 @@ export default function ProfileScreen() {
       </YStack>
 
       <YStack gap="$2">
-        <SectionHeader title="Account" emoji="🔑" />
+        <SectionHeader title="Account" icon="key" />
         <Card gap="$2">
           <Button size="$4" onPress={signOut}>
             Sign out

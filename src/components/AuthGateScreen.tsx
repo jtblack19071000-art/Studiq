@@ -2,12 +2,13 @@ import { Image } from 'react-native';
 import { ScrollView, Text, YStack } from 'tamagui';
 
 import { AuthForm } from '@/src/components/AuthForm';
+import { Icon, type IconName } from '@/src/components/Icon';
 import { ACCENT_TINT, useThemeStore } from '@/src/state/themeStore';
 
-const FEATURES: { emoji: string; label: string }[] = [
-  { emoji: '📚', label: 'Classes &\nschedule' },
-  { emoji: '🤖', label: 'AI study\ntools' },
-  { emoji: '💰', label: 'Budget &\ngoals' },
+const FEATURES: { icon: IconName; label: string }[] = [
+  { icon: 'book', label: 'Classes &\nschedule' },
+  { icon: 'robot', label: 'AI study\ntools' },
+  { icon: 'dollar', label: 'Budget &\ngoals' },
 ];
 
 /**
@@ -70,7 +71,7 @@ export function AuthGateScreen() {
         <YStack flexDirection="row" gap="$5" paddingTop="$2" zIndex={1}>
           {FEATURES.map((feature) => (
             <YStack key={feature.label} alignItems="center" gap="$1" width={76}>
-              <Text fontSize="$7">{feature.emoji}</Text>
+              <Icon name={feature.icon} size={26} color="white" />
               <Text color="white" fontSize="$1" fontWeight="600" textAlign="center" opacity={0.95}>
                 {feature.label}
               </Text>

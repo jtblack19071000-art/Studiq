@@ -4,6 +4,7 @@ import { Button, H2, Input, Paragraph, Text, XStack, YStack } from 'tamagui';
 import { Card } from '@/src/components/Card';
 import { EmptyState } from '@/src/components/EmptyState';
 import { Hero } from '@/src/components/Hero';
+import { Icon } from '@/src/components/Icon';
 import { Screen } from '@/src/components/Screen';
 import { SectionHeader } from '@/src/components/SectionHeader';
 import { useCareerStore } from '@/src/state/careerStore';
@@ -39,7 +40,10 @@ export default function CareerScreen() {
   return (
     <Screen>
       <YStack gap="$1" paddingTop="$2">
-        <H2>💼 Career Hub</H2>
+        <XStack alignItems="center" gap="$2">
+          <Icon name="briefcase" size={22} color="#7D5BD9" />
+          <H2>Career Hub</H2>
+        </XStack>
         <Paragraph color="$color10">Track internship and job applications from saved to offer.</Paragraph>
       </YStack>
 
@@ -48,30 +52,39 @@ export default function CareerScreen() {
           <Text fontWeight="800" fontSize="$8" style={{ color: ACCENT_TINT[accentColor] }}>
             {applications.length}
           </Text>
-          <Text color="$color10" fontSize="$2">
-            📋 Total
-          </Text>
+          <XStack alignItems="center" gap="$1">
+            <Icon name="clipboard" size={11} color="#8A8F98" />
+            <Text color="$color10" fontSize="$2">
+              Total
+            </Text>
+          </XStack>
         </YStack>
         <YStack alignItems="center" flex={1}>
           <Text fontWeight="800" fontSize="$8" style={{ color: ACCENT_TINT[accentColor] }}>
             {activeCount}
           </Text>
-          <Text color="$color10" fontSize="$2">
-            🚀 Active
-          </Text>
+          <XStack alignItems="center" gap="$1">
+            <Icon name="rocket" size={11} color="#8A8F98" />
+            <Text color="$color10" fontSize="$2">
+              Active
+            </Text>
+          </XStack>
         </YStack>
         <YStack alignItems="center" flex={1}>
           <Text fontWeight="800" fontSize="$8" style={{ color: ACCENT_TINT[accentColor] }}>
             {offerCount}
           </Text>
-          <Text color="$color10" fontSize="$2">
-            🎉 Offers
-          </Text>
+          <XStack alignItems="center" gap="$1">
+            <Icon name="confetti" size={11} color="#8A8F98" />
+            <Text color="$color10" fontSize="$2">
+              Offers
+            </Text>
+          </XStack>
         </YStack>
       </Hero>
 
       <YStack gap="$2">
-        <SectionHeader title="Add application" emoji="➕" />
+        <SectionHeader title="Add application" icon="plus" />
         <Card gap="$3">
           <Input placeholder="Company" value={company} onChangeText={setCompany} />
           <Input placeholder="Role" value={role} onChangeText={setRole} />
@@ -83,10 +96,10 @@ export default function CareerScreen() {
       </YStack>
 
       <YStack gap="$2">
-        <SectionHeader title="Applications" emoji="📋" />
+        <SectionHeader title="Applications" icon="clipboard" />
         {applications.length === 0 ? (
           <Card>
-            <EmptyState emoji="💼" message="No applications tracked yet." />
+            <EmptyState icon="briefcase" message="No applications tracked yet." />
           </Card>
         ) : (
           <YStack gap="$3">

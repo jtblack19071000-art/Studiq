@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { Button, H2, H3, Input, Label, Paragraph, Text, XStack, YStack } from 'tamagui';
 
 import { Card } from '@/src/components/Card';
+import { Icon, type IconName } from '@/src/components/Icon';
 import { PremiumGate } from '@/src/components/PremiumGate';
 import { Screen } from '@/src/components/Screen';
 import { createId } from '@/src/lib/id';
@@ -25,11 +26,11 @@ interface ReviewItem {
   included: boolean;
 }
 
-const KIND_LABELS: Record<ItemKind, string> = {
-  assignment: '📌 Assignment',
-  exam: '🧪 Exam',
-  reading: '📖 Reading',
-  project: '🛠️ Project',
+const KIND_INFO: Record<ItemKind, { icon: IconName; label: string }> = {
+  assignment: { icon: 'pin', label: 'Assignment' },
+  exam: { icon: 'flask', label: 'Exam' },
+  reading: { icon: 'book-open', label: 'Reading' },
+  project: { icon: 'tool', label: 'Project' },
 };
 
 function itemsFromResult(result: SyllabusImportResult): ReviewItem[] {
@@ -62,7 +63,10 @@ export default function ImportSyllabusScreen() {
   return (
     <Screen>
       <YStack gap="$1" paddingTop="$2">
-        <H2>📄 Import syllabus</H2>
+        <XStack alignItems="flex-start" gap="$2">
+          <Icon name="upload" size={22} color="#3B6FE0" />
+          <H2>Import syllabus</H2>
+        </XStack>
         <Paragraph color="$color10">
           Upload a PDF or photo of your syllabus — AI reads it and builds the class, assignments,
           and exams for you.
@@ -183,7 +187,7 @@ function ImportFlow() {
       if (item.kind === 'exam') {
         addExam({ classId: createdClass.id, title: item.title, type: examTypeFromTitle(item.title), date: date.toISOString() });
       } else {
-        const prefix = item.kind === 'reading' ? '📖 ' : item.kind === 'project' ? '🛠️ ' : '';
+        const prefix = item.kind === 'reading' ? 'Reading: ' : item.kind === 'project' ? 'Project: ' : '';
         addAssignment({
           classId: createdClass.id,
           title: `${prefix}${item.title}`,
@@ -204,7 +208,7 @@ function ImportFlow() {
     return (
       <YStack gap="$3">
         <Card gap="$3" alignItems="center" paddingVertical="$6">
-          <Text fontSize="$9">📄</Text>
+          <Icon name="upload" size={40} color="#3B6FE0" />
           <Button size="$4" theme="active" borderRadius="$10" onPress={handlePickFile} disabled={loading}>
             {loading ? 'Reading syllabus…' : 'Select syllabus (PDF or photo)'}
           </Button>
@@ -283,11 +287,18 @@ function ImportFlow() {
         {items.map((item) => (
           <Card key={item.id} gap="$2" opacity={item.included ? 1 : 0.5}>
             <XStack justifyContent="space-between" alignItems="center">
-              <Text fontSize="$2" color="$color10">
-                {KIND_LABELS[item.kind]}
-              </Text>
-              <Button size="$2" chromeless onPress={() => toggleItem(item.id)}>
-                {item.included ? '✓ Included' : 'Excluded'}
+              <XStack alignItems="center" gap="$1.5">
+                <Icon name={KIND_INFO[item.kind].icon} size={13} color="#8A8F98" />
+                <Text fontSize="$2" color="$color10">
+                  {KIND_INFO[item.kind].label}
+                </Text>
+              </XStack>
+              <Button
+                size="$2"
+                chromeless
+                onPress={() => toggleItem(item.id)}
+                icon={item.included ? <Icon name="check" size={13} color="#4C9F4C" /> : undefined}>
+                {item.included ? 'Included' : 'Excluded'}
               </Button>
             </XStack>
             <Input value={item.title} onChangeText={(text) => updateItem(item.id, { title: text })} />
@@ -305,8 +316,13 @@ function ImportFlow() {
 
       {error ? <Text color="$red10">{error}</Text> : null}
 
-      <Button size="$4" theme="active" borderRadius="$10" onPress={handleImport}>
-        ✚ Import class
+      <Button
+        size="$4"
+        theme="active"
+        borderRadius="$10"
+        onPress={handleImport}
+        icon={<Icon name="plus" size={16} color="white" />}>
+        Import class
       </Button>
     </YStack>
   );

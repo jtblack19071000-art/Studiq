@@ -1,8 +1,9 @@
 import { router } from 'expo-router';
 import { useState } from 'react';
 import { Alert, Platform } from 'react-native';
-import { Button, H3, Input, Label, Paragraph, Text, XStack, YStack } from 'tamagui';
+import { Button, H3, Input, Label, Paragraph, XStack, YStack } from 'tamagui';
 
+import { Icon } from '@/src/components/Icon';
 import { createId } from '@/src/lib/id';
 import { parseTimeToday } from '@/src/lib/time';
 import { useScheduleStore } from '@/src/state/scheduleStore';
@@ -75,7 +76,7 @@ export default function QuickAddModal() {
         borderRadius="$8"
         paddingVertical="$4"
         style={{ backgroundColor: ACCENT_SOFT_BG[accentColor] }}>
-        <Text fontSize={28}>⚡</Text>
+        <Icon name="bolt" size={26} color={ACCENT_TINT[accentColor]} />
         <H3 style={{ color: ACCENT_TINT[accentColor] }}>Quick add</H3>
       </YStack>
 

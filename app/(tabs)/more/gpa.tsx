@@ -4,6 +4,7 @@ import { Button, H2, H3, Input, Paragraph, Text, XStack, YStack } from 'tamagui'
 import { Card } from '@/src/components/Card';
 import { EmptyState } from '@/src/components/EmptyState';
 import { Hero } from '@/src/components/Hero';
+import { Icon } from '@/src/components/Icon';
 import { Screen } from '@/src/components/Screen';
 import { SectionHeader } from '@/src/components/SectionHeader';
 import { calculateGpa, groupClassesByTerm, LETTER_GRADES } from '@/src/lib/gpa';
@@ -22,7 +23,10 @@ export default function GpaScreen() {
   return (
     <Screen>
       <YStack gap="$1" paddingTop="$2">
-        <H2>🎓 GPA Tracker</H2>
+        <XStack alignItems="center" gap="$2">
+          <Icon name="graduation-cap" size={22} color="#3B6FE0" />
+          <H2>GPA Tracker</H2>
+        </XStack>
       </YStack>
 
       <Hero logo alignItems="center" paddingVertical="$6" gap="$1">
@@ -35,7 +39,7 @@ export default function GpaScreen() {
       </Hero>
 
       {classes.length === 0 ? (
-        <EmptyState emoji="🎓" message="Add classes from the Classes tab to start tracking your GPA." />
+        <EmptyState icon="graduation-cap" message="Add classes from the Classes tab to start tracking your GPA." />
       ) : (
         Array.from(termGroups.entries()).map(([term, termClasses]) => {
           const termGpa = calculateGpa(termClasses);

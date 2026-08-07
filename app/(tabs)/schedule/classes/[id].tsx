@@ -5,6 +5,7 @@ import { Button, H2, Paragraph, Text, XStack, YStack } from 'tamagui';
 
 import { Card } from '@/src/components/Card';
 import { EmptyState } from '@/src/components/EmptyState';
+import { Icon } from '@/src/components/Icon';
 import { Screen } from '@/src/components/Screen';
 import { SectionHeader } from '@/src/components/SectionHeader';
 import { useClassesStore } from '@/src/state/classesStore';
@@ -62,16 +63,26 @@ export default function ClassDetailScreen() {
       </YStack>
 
       <XStack gap="$3">
-        <Button flex={1} size="$4" theme="active" borderRadius="$10" onPress={goToStudyWorkspace}>
-          🎙️ Open Study workspace
+        <Button
+          flex={1}
+          size="$4"
+          theme="active"
+          borderRadius="$10"
+          onPress={goToStudyWorkspace}
+          icon={<Icon name="mic" size={16} color="white" />}>
+          Open Study workspace
         </Button>
-        <Button size="$4" borderRadius="$10" onPress={() => router.push(`/schedule/classes/${studiqClass.id}/edit`)}>
-          ✏️ Edit
+        <Button
+          size="$4"
+          borderRadius="$10"
+          onPress={() => router.push(`/schedule/classes/${studiqClass.id}/edit`)}
+          icon={<Icon name="edit" size={16} color="#8A8F98" />}>
+          Edit
         </Button>
       </XStack>
 
       <YStack gap="$2">
-        <SectionHeader title="Professor" emoji="🧑‍🏫" />
+        <SectionHeader title="Professor" icon="graduation-cap" />
         <Card>
           <Text fontWeight="600">{studiqClass.professor.name}</Text>
           {studiqClass.professor.email ? (
@@ -90,7 +101,7 @@ export default function ClassDetailScreen() {
       </YStack>
 
       <YStack gap="$2">
-        <SectionHeader title="Assignments" emoji="📌" />
+        <SectionHeader title="Assignments" icon="pin" />
         <Card>
           {assignments.length === 0 ? (
             <EmptyState message="No assignments yet." />
@@ -109,7 +120,7 @@ export default function ClassDetailScreen() {
       </YStack>
 
       <YStack gap="$2">
-        <SectionHeader title="Exams" emoji="🧪" />
+        <SectionHeader title="Exams" icon="flask" />
         <Card>
           {exams.length === 0 ? (
             <EmptyState message="No exams scheduled." />
@@ -128,7 +139,7 @@ export default function ClassDetailScreen() {
       </YStack>
 
       <YStack gap="$2">
-        <SectionHeader title="Announcements" emoji="📢" />
+        <SectionHeader title="Announcements" icon="megaphone" />
         <Card>
           {announcements.length === 0 ? (
             <EmptyState message="No announcements." />
@@ -146,7 +157,7 @@ export default function ClassDetailScreen() {
       </YStack>
 
       <YStack gap="$2">
-        <SectionHeader title="Files & Grades" emoji="📁" />
+        <SectionHeader title="Files & Grades" icon="folder" />
         <Card>
           <EmptyState message="Files and grade tracking are coming soon." />
         </Card>
