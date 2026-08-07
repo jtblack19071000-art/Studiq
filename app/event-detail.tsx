@@ -1,5 +1,6 @@
 import { format } from 'date-fns';
 import { router, useLocalSearchParams } from 'expo-router';
+import { Alert, Platform } from 'react-native';
 import { Button, H3, Paragraph, Text, XStack, YStack } from 'tamagui';
 
 import { resolveEventColor, withAlpha } from '@/src/lib/eventColor';
@@ -16,6 +17,7 @@ export default function EventDetailModal() {
   const event = useScheduleStore((state) => state.events.find((e) => e.id === eventId));
   const updateEvent = useScheduleStore((state) => state.updateEvent);
   const classes = useClassesStore((state) => state.classes);
+  const removeClass = useClassesStore((state) => state.removeClass);
   const studiqClass = event?.classId ? classes.find((c) => c.id === event.classId) : undefined;
 
   if (!event) {
@@ -34,6 +36,31 @@ export default function EventDetailModal() {
 
   function setColor(swatch: string) {
     updateEvent(event!.id, { color: event!.color === swatch ? undefined : swatch });
+  }
+
+  // Straight-from-the-calendar delete — mainly here so a duplicate class (e.g. two copies of the
+  // same class from re-adding it before a sync bug was fixed) can be cleared without hunting
+  // through the Classes tab: tap the wrong block, delete it, done.
+  function deleteClass() {
+    if (!studiqClass) return;
+    const name = studiqClass.name;
+
+    function performDelete() {
+      removeClass(studiqClass!.id);
+      router.back();
+    }
+
+    if (Platform.OS === 'web') {
+      if (window.confirm(`Delete ${name}? This also removes its assignments, exams, and schedule.`)) {
+        performDelete();
+      }
+      return;
+    }
+
+    Alert.alert('Delete class?', `This also removes ${name}'s assignments, exams, and schedule.`, [
+      { text: 'Cancel', style: 'cancel' },
+      { text: 'Delete', style: 'destructive', onPress: performDelete },
+    ]);
   }
 
   return (
@@ -83,12 +110,18 @@ export default function EventDetailModal() {
               Office hours: {studiqClass.professor.officeHours}
             </Paragraph>
           ) : null}
-          <Button
-            size="$3"
-            theme="active"
-            onPress={() => router.push(`/schedule/classes/${studiqClass.id}`)}>
-            View class
-          </Button>
+          <XStack gap="$2">
+            <Button
+              flex={1}
+              size="$3"
+              theme="active"
+              onPress={() => router.push(`/schedule/classes/${studiqClass.id}`)}>
+              View class
+            </Button>
+            <Button size="$3" theme="red" chromeless onPress={deleteClass}>
+              Delete class
+            </Button>
+          </XStack>
         </YStack>
       ) : null}
 
