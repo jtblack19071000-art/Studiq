@@ -1,27 +1,23 @@
 import { addDays, eachDayOfInterval, format, isSameDay, startOfDay } from 'date-fns';
-import { useEffect, useMemo, useRef } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { ScrollView } from 'react-native';
+import { Gesture, GestureDetector } from 'react-native-gesture-handler';
+import { runOnJS, useSharedValue } from 'react-native-reanimated';
 import { Text, YStack } from 'tamagui';
 
+import { displayEventTitle, resolveEventColor } from '@/src/lib/eventColor';
 import type { EventOccurrence } from '@/src/lib/occurrences';
 import { getOccurrencesInRange } from '@/src/lib/occurrences';
-import { displayEventTitle, resolveEventColor } from '@/src/lib/eventColor';
 import { layoutDayOccurrences } from '@/src/lib/weekGridLayout';
+import { buildTimeRows, clampHourHeight, DEFAULT_HOUR_HEIGHT, minutesToOffset, type TimeRow } from '@/src/lib/weekGridZoom';
 import type { ScheduleEvent, StudiqClass } from '@/src/types';
 
-const HOUR_HEIGHT = 56;
-const TIME_COL_WIDTH = 44;
+const TIME_COL_WIDTH = 50;
 const MIN_BLOCK_HEIGHT = 22;
 const DEFAULT_SCROLL_HOUR = 7;
 
-function formatHourLabel(hour: number): string {
-  if (hour === 0) return '12 AM';
-  if (hour === 12) return '12 PM';
-  return hour < 12 ? `${hour} AM` : `${hour - 12} PM`;
-}
-
-function hourFloat(date: Date): number {
-  return date.getHours() + date.getMinutes() / 60;
+function minutesFromMidnight(date: Date): number {
+  return date.getHours() * 60 + date.getMinutes();
 }
 
 export function WeekGridCalendar({
@@ -38,6 +34,37 @@ export function WeekGridCalendar({
   const scrollRef = useRef<ScrollView>(null);
   const today = useMemo(() => startOfDay(new Date()), []);
 
+  // Pinch-to-zoom: the gesture runs entirely on the UI thread via reanimated shared values (not
+  // React refs/state, which the gesture callbacks can't safely read mid-render), and only hops
+  // back to JS — via runOnJS — to commit the final clamped height for this render. The farther
+  // zoomed in (the taller an hour renders), the finer the left-hand time labels get; see
+  // minuteIntervalForHourHeight in weekGridZoom.ts.
+  const [hourHeight, setHourHeight] = useState(DEFAULT_HOUR_HEIGHT);
+  const hourHeightShared = useSharedValue(DEFAULT_HOUR_HEIGHT);
+  const gestureStartShared = useSharedValue(DEFAULT_HOUR_HEIGHT);
+
+  const commitHourHeight = useCallback((next: number) => {
+    setHourHeight(next);
+  }, []);
+
+  const pinchGesture = useMemo(
+    () =>
+      Gesture.Pinch()
+        .onStart(() => {
+          // Assigning `.value` is reanimated's documented API for a shared value, not a React
+          // state mutation — the lint rule doesn't know the difference between the two.
+          // eslint-disable-next-line react-hooks/immutability
+          gestureStartShared.value = hourHeightShared.value;
+        })
+        .onUpdate((event) => {
+          const next = clampHourHeight(gestureStartShared.value * event.scale);
+          // eslint-disable-next-line react-hooks/immutability
+          hourHeightShared.value = next;
+          runOnJS(commitHourHeight)(next);
+        }),
+    [gestureStartShared, hourHeightShared, commitHourHeight],
+  );
+
   const days = useMemo(
     () => eachDayOfInterval({ start: weekStart, end: addDays(weekStart, 6) }),
     [weekStart],
@@ -53,29 +80,38 @@ export function WeekGridCalendar({
     });
   }, [days, events]);
 
+  const rows = useMemo(() => buildTimeRows(hourHeight), [hourHeight]);
+
   useEffect(() => {
-    scrollRef.current?.scrollTo({ y: DEFAULT_SCROLL_HOUR * HOUR_HEIGHT, animated: false });
+    scrollRef.current?.scrollTo({ y: DEFAULT_SCROLL_HOUR * DEFAULT_HOUR_HEIGHT, animated: false });
+    // Only on mount — re-scrolling to a fixed hour every time the user zooms would fight their
+    // pinch gesture, which is naturally centered on whatever they're already looking at.
+     
   }, []);
 
   return (
     <YStack flex={1}>
       <DayHeaderRow days={days} today={today} />
-      <ScrollView ref={scrollRef} style={{ flex: 1 }} showsVerticalScrollIndicator={false}>
-        <YStack flexDirection="row">
-          <HourLabelColumn />
-          <YStack flex={1} flexDirection="row">
-            {days.map((day, index) => (
-              <DayColumn
-                key={day.toISOString()}
-                isToday={isSameDay(day, today)}
-                positioned={occurrencesByDay[index]}
-                classesById={classesById}
-                onSelectOccurrence={onSelectOccurrence}
-              />
-            ))}
+      <GestureDetector gesture={pinchGesture}>
+        <ScrollView ref={scrollRef} style={{ flex: 1 }} showsVerticalScrollIndicator={false}>
+          <YStack flexDirection="row">
+            <HourLabelColumn rows={rows} />
+            <YStack flex={1} flexDirection="row">
+              {days.map((day, index) => (
+                <DayColumn
+                  key={day.toISOString()}
+                  isToday={isSameDay(day, today)}
+                  positioned={occurrencesByDay[index]}
+                  classesById={classesById}
+                  onSelectOccurrence={onSelectOccurrence}
+                  rows={rows}
+                  hourHeight={hourHeight}
+                />
+              ))}
+            </YStack>
           </YStack>
-        </YStack>
-      </ScrollView>
+        </ScrollView>
+      </GestureDetector>
     </YStack>
   );
 }
@@ -109,13 +145,13 @@ function DayHeaderRow({ days, today }: { days: Date[]; today: Date }) {
   );
 }
 
-function HourLabelColumn() {
+function HourLabelColumn({ rows }: { rows: TimeRow[] }) {
   return (
     <YStack width={TIME_COL_WIDTH}>
-      {Array.from({ length: 24 }, (_, hour) => (
-        <YStack key={hour} height={HOUR_HEIGHT} alignItems="flex-end" paddingRight="$1.5">
+      {rows.map((row) => (
+        <YStack key={row.minutes} height={row.height} alignItems="flex-end" paddingRight="$1.5">
           <Text fontSize="$1" color="$color9" style={{ transform: [{ translateY: -6 }] }}>
-            {formatHourLabel(hour)}
+            {row.label}
           </Text>
         </YStack>
       ))}
@@ -128,24 +164,28 @@ function DayColumn({
   positioned,
   classesById,
   onSelectOccurrence,
+  rows,
+  hourHeight,
 }: {
   isToday: boolean;
   positioned: ReturnType<typeof layoutDayOccurrences>;
   classesById: Map<string, StudiqClass>;
   onSelectOccurrence: (occurrence: EventOccurrence) => void;
+  rows: TimeRow[];
+  hourHeight: number;
 }) {
   const now = new Date();
 
   return (
     <YStack
       flex={1}
-      height={24 * HOUR_HEIGHT}
+      height={24 * hourHeight}
       position="relative"
       borderLeftWidth={1}
       borderColor="$borderColor"
       backgroundColor={isToday ? '$blue2' : 'transparent'}>
-      {Array.from({ length: 24 }, (_, hour) => (
-        <YStack key={hour} height={HOUR_HEIGHT} borderTopWidth={1} borderColor="$borderColor" opacity={0.5} />
+      {rows.map((row) => (
+        <YStack key={row.minutes} height={row.height} borderTopWidth={1} borderColor="$borderColor" opacity={0.5} />
       ))}
 
       {isToday ? (
@@ -153,16 +193,16 @@ function DayColumn({
           position="absolute"
           left={0}
           right={0}
-          top={hourFloat(now) * HOUR_HEIGHT}
+          top={minutesToOffset(minutesFromMidnight(now), hourHeight)}
           height={2}
           backgroundColor="$red9"
         />
       ) : null}
 
       {positioned.map(({ occurrence, column, columnCount }) => {
-        const top = hourFloat(occurrence.startsAt) * HOUR_HEIGHT;
+        const top = minutesToOffset(minutesFromMidnight(occurrence.startsAt), hourHeight);
         const durationHours = (occurrence.endsAt.getTime() - occurrence.startsAt.getTime()) / (1000 * 60 * 60);
-        const height = Math.max(MIN_BLOCK_HEIGHT, durationHours * HOUR_HEIGHT);
+        const height = Math.max(MIN_BLOCK_HEIGHT, durationHours * hourHeight);
         const widthPercent = 100 / columnCount;
         const color = resolveEventColor(occurrence.event, classesById);
 

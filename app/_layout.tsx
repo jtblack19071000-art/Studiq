@@ -1,6 +1,7 @@
 import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { useEffect } from 'react';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import 'react-native-reanimated';
 import { TamaguiProvider, Theme } from 'tamagui';
 
@@ -85,21 +86,23 @@ function RootLayoutNav() {
   const requiresSignIn = Boolean(supabase) && (authInitializing || !session || Boolean(pendingVerification));
 
   return (
-    <TamaguiProvider config={tamaguiConfig} defaultTheme={colorScheme}>
-      {/* Accent color is a Tamagui sub-theme layered via nested <Theme>, not a flat "light_blue"
-          string — Tamagui's web CSS only extracts variables for the nested-descendant selector
-          form (e.g. `:root.t_dark .t_blue`), not a combined single-class name. */}
-      <Theme name={accentColor}>
-        {requiresSignIn ? (
-          <AuthGateScreen />
-        ) : (
-          <Stack>
-            <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-            <Stack.Screen name="modal" options={{ presentation: 'modal' }} />
-            <Stack.Screen name="event-detail" options={{ presentation: 'modal', title: 'Event' }} />
-          </Stack>
-        )}
-      </Theme>
-    </TamaguiProvider>
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <TamaguiProvider config={tamaguiConfig} defaultTheme={colorScheme}>
+        {/* Accent color is a Tamagui sub-theme layered via nested <Theme>, not a flat "light_blue"
+            string — Tamagui's web CSS only extracts variables for the nested-descendant selector
+            form (e.g. `:root.t_dark .t_blue`), not a combined single-class name. */}
+        <Theme name={accentColor}>
+          {requiresSignIn ? (
+            <AuthGateScreen />
+          ) : (
+            <Stack>
+              <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+              <Stack.Screen name="modal" options={{ presentation: 'modal' }} />
+              <Stack.Screen name="event-detail" options={{ presentation: 'modal', title: 'Event' }} />
+            </Stack>
+          )}
+        </Theme>
+      </TamaguiProvider>
+    </GestureHandlerRootView>
   );
 }
