@@ -43,11 +43,11 @@ interface AuthState {
 let initialized = false;
 
 /** Reacts to a resolved auth state (from getSession() or onAuthStateChange) by syncing or clearing every cloud-synced store. */
-function handleUserTransition(previousUserId: string | null, nextUserId: string | null): void {
+async function handleUserTransition(previousUserId: string | null, nextUserId: string | null): Promise<void> {
   if (nextUserId && nextUserId !== previousUserId) {
-    void startCloudSyncForUser(nextUserId);
+    await startCloudSyncForUser(nextUserId);
   } else if (!nextUserId && previousUserId) {
-    stopCloudSync();
+    await stopCloudSync();
     resetAllCloudSyncedStores();
   }
 }
@@ -69,14 +69,14 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
       const previousUserId = get().user?.id ?? null;
       const nextUserId = data.session?.user?.id ?? null;
       set({ session: data.session, user: data.session?.user ?? null, initializing: false });
-      handleUserTransition(previousUserId, nextUserId);
+      void handleUserTransition(previousUserId, nextUserId);
     });
 
     supabase.auth.onAuthStateChange((_event, session) => {
       const previousUserId = get().user?.id ?? null;
       const nextUserId = session?.user?.id ?? null;
       set({ session, user: session?.user ?? null });
-      handleUserTransition(previousUserId, nextUserId);
+      void handleUserTransition(previousUserId, nextUserId);
     });
   },
   signUp: async (identifierType, identifier, password, displayName) => {
@@ -235,7 +235,7 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
       set({ error: error instanceof Error ? error.message : 'Could not delete your account.' });
       return false;
     }
-    stopCloudSync();
+    await stopCloudSync();
     resetAllCloudSyncedStores();
     await supabase.auth.signOut();
     return true;
