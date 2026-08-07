@@ -4,6 +4,7 @@ import { createJSONStorage, persist } from 'zustand/middleware';
 import { registerCloudSyncedStore } from '@/src/lib/cloudSync';
 import { createId } from '@/src/lib/id';
 import { mmkvStateStorage } from '@/src/lib/mmkvStorage';
+import { useScheduleStore } from '@/src/state/scheduleStore';
 import type { Announcement, Assignment, ClassFile, Exam, GradeEntry, StudiqClass } from '@/src/types';
 
 const BLANK_CLASSES_DATA = {
@@ -68,6 +69,14 @@ export const useClassesStore = create<ClassesState>()(
           announcements: state.announcements.filter((announcement) => announcement.classId !== id),
           grades: state.grades.filter((grade) => grade.classId !== id),
         }));
+        // A class's meeting-time event lives in the separate schedule store (see ClassForm's
+        // meeting-time flow in app/(tabs)/schedule/classes/new.tsx and edit.tsx) — without this,
+        // deleting a class left its calendar block behind forever as an orphaned "ghost" event
+        // with no class to point back to.
+        const scheduleState = useScheduleStore.getState();
+        for (const event of scheduleState.events) {
+          if (event.classId === id) scheduleState.removeEvent(event.id);
+        }
       },
       addAssignment: (input) => {
         const created: Assignment = { ...input, id: createId() };

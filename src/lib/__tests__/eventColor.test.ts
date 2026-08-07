@@ -1,6 +1,6 @@
 /// <reference types="jest" />
 
-import { resolveEventColor } from '@/src/lib/eventColor';
+import { displayEventTitle, resolveEventColor } from '@/src/lib/eventColor';
 import type { ScheduleEvent, StudiqClass } from '@/src/types';
 
 function buildEvent(overrides: Partial<ScheduleEvent> = {}): ScheduleEvent {
@@ -52,5 +52,19 @@ describe('resolveEventColor', () => {
     const event = buildEvent({ classId: 'deleted-class', category: 'appointment' });
 
     expect(resolveEventColor(event, new Map())).toBe('#4C9F4C');
+  });
+});
+
+describe('displayEventTitle', () => {
+  it('strips the legacy " — Lecture" suffix a class meeting event used to be titled with', () => {
+    expect(displayEventTitle('Organic Chemistry II — Lecture')).toBe('Organic Chemistry II');
+  });
+
+  it('leaves a title with no such suffix untouched', () => {
+    expect(displayEventTitle('Organic Chemistry II')).toBe('Organic Chemistry II');
+  });
+
+  it('only strips the suffix, not an em dash appearing elsewhere in the title', () => {
+    expect(displayEventTitle('Study group — planning session')).toBe('Study group — planning session');
   });
 });

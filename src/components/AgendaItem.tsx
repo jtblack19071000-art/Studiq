@@ -2,7 +2,7 @@ import { format } from 'date-fns';
 import { Paragraph, Text, XStack, YStack } from 'tamagui';
 
 import type { EventOccurrence } from '@/src/lib/occurrences';
-import { resolveEventColor } from '@/src/lib/eventColor';
+import { displayEventTitle, resolveEventColor } from '@/src/lib/eventColor';
 import type { StudiqClass } from '@/src/types';
 
 export function AgendaItem({
@@ -27,7 +27,7 @@ export function AgendaItem({
       <YStack width={4} borderRadius="$10" alignSelf="stretch" style={{ backgroundColor: color }} />
       <YStack flex={1} gap="$1">
         <Text fontWeight="600" fontSize="$5">
-          {event.title}
+          {displayEventTitle(event.title)}
         </Text>
         <Paragraph color="$color10" fontSize="$3">
           {format(startsAt, 'h:mm a')} – {format(endsAt, 'h:mm a')}

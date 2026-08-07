@@ -5,7 +5,7 @@ import { Text, YStack } from 'tamagui';
 
 import type { EventOccurrence } from '@/src/lib/occurrences';
 import { getOccurrencesInRange } from '@/src/lib/occurrences';
-import { resolveEventColor } from '@/src/lib/eventColor';
+import { displayEventTitle, resolveEventColor } from '@/src/lib/eventColor';
 import { layoutDayOccurrences } from '@/src/lib/weekGridLayout';
 import type { ScheduleEvent, StudiqClass } from '@/src/types';
 
@@ -189,7 +189,7 @@ function DayColumn({
                 fontSize={9}
                 fontWeight="600"
                 numberOfLines={height > 58 ? 3 : height > 32 ? 2 : 1}>
-                {occurrence.event.title}
+                {displayEventTitle(occurrence.event.title)}
               </Text>
               {height > 34 ? (
                 <Text color="white" fontSize={9} opacity={0.9} numberOfLines={1}>

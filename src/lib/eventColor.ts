@@ -24,3 +24,14 @@ export function withAlpha(hex: string, alpha: number): string {
   const b = parseInt(match[1].slice(4, 6), 16);
   return `rgba(${r}, ${g}, ${b}, ${alpha})`;
 }
+
+/**
+ * A class's auto-created meeting event used to be titled "<Class name> — Lecture" — dropped since
+ * the block's color/position on the calendar already make clear it's a lecture, and the suffix
+ * was crowding out the class name on narrow blocks. Events created before that change still carry
+ * it in their stored title, so strip it at display time rather than requiring every existing
+ * class to be re-saved just to pick up the shorter title.
+ */
+export function displayEventTitle(title: string): string {
+  return title.replace(/ — Lecture$/, '');
+}

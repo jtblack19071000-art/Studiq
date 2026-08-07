@@ -3,7 +3,7 @@ import { router, useLocalSearchParams } from 'expo-router';
 import { Alert, Platform } from 'react-native';
 import { Button, H3, Paragraph, Text, XStack, YStack } from 'tamagui';
 
-import { resolveEventColor, withAlpha } from '@/src/lib/eventColor';
+import { displayEventTitle, resolveEventColor, withAlpha } from '@/src/lib/eventColor';
 import { useClassesStore } from '@/src/state/classesStore';
 import { useScheduleStore } from '@/src/state/scheduleStore';
 import { EVENT_COLOR_SWATCHES, eventCategoryLabels } from '@/src/types';
@@ -16,6 +16,7 @@ export default function EventDetailModal() {
   }>();
   const event = useScheduleStore((state) => state.events.find((e) => e.id === eventId));
   const updateEvent = useScheduleStore((state) => state.updateEvent);
+  const removeEvent = useScheduleStore((state) => state.removeEvent);
   const classes = useClassesStore((state) => state.classes);
   const removeClass = useClassesStore((state) => state.removeClass);
   const studiqClass = event?.classId ? classes.find((c) => c.id === event.classId) : undefined;
@@ -63,6 +64,30 @@ export default function EventDetailModal() {
     ]);
   }
 
+  // For any event that isn't tied to a class — including a "ghost" meeting-time event left over
+  // from before removeClass cleaned these up (see classesStore.ts), which has no class left to
+  // delete through.
+  function deleteEvent() {
+    const title = displayEventTitle(event!.title);
+
+    function performDelete() {
+      removeEvent(event!.id);
+      router.back();
+    }
+
+    if (Platform.OS === 'web') {
+      if (window.confirm(`Delete "${title}" from your schedule?`)) {
+        performDelete();
+      }
+      return;
+    }
+
+    Alert.alert('Delete event?', `Remove "${title}" from your schedule.`, [
+      { text: 'Cancel', style: 'cancel' },
+      { text: 'Delete', style: 'destructive', onPress: performDelete },
+    ]);
+  }
+
   return (
     <YStack flex={1} backgroundColor="$background" padding="$4" gap="$4">
       <XStack
@@ -73,7 +98,7 @@ export default function EventDetailModal() {
         style={{ backgroundColor: withAlpha(currentColor, 0.14) }}>
         <YStack width={6} borderRadius="$10" alignSelf="stretch" style={{ backgroundColor: currentColor }} />
         <YStack flex={1} gap="$1">
-          <H3 style={{ color: currentColor }}>{event.title}</H3>
+          <H3 style={{ color: currentColor }}>{displayEventTitle(event.title)}</H3>
           <Paragraph color="$color10">
             {format(new Date(startsAt), 'EEEE, MMM d · h:mm a')} – {format(new Date(endsAt), 'h:mm a')}
           </Paragraph>
@@ -160,6 +185,12 @@ export default function EventDetailModal() {
       <Button size="$4" theme="active" onPress={() => router.back()}>
         Done
       </Button>
+
+      {!studiqClass ? (
+        <Button size="$3" theme="red" chromeless onPress={deleteEvent}>
+          Delete event
+        </Button>
+      ) : null}
     </YStack>
   );
 }

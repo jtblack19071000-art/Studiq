@@ -1,8 +1,10 @@
 /// <reference types="jest" />
 
 import { useClassesStore } from '@/src/state/classesStore';
+import { useScheduleStore } from '@/src/state/scheduleStore';
 
 const initialState = useClassesStore.getState();
+const initialScheduleState = useScheduleStore.getState();
 
 const baseClassInput = {
   name: 'Linear Algebra',
@@ -14,6 +16,7 @@ const baseClassInput = {
 
 beforeEach(() => {
   useClassesStore.setState(initialState, true);
+  useScheduleStore.setState(initialScheduleState, true);
 });
 
 describe('useClassesStore', () => {
@@ -70,6 +73,39 @@ describe('useClassesStore', () => {
     const state = useClassesStore.getState();
     expect(state.classes).toEqual([other]);
     expect(state.assignments).toEqual([keptAssignment]);
+  });
+
+  it('removeClass also removes the class\'s meeting-time event from the schedule store, not just its own records', () => {
+    // The regression this guards: deleting a class left its recurring calendar block behind
+    // forever as an orphaned "ghost" event with no class to point back to, because the two
+    // stores' delete logic used to be entirely separate.
+    const target = useClassesStore.getState().addClass(baseClassInput);
+    const other = useClassesStore.getState().addClass({ ...baseClassInput, name: 'Physics I', code: 'PHYS 101' });
+
+    const targetEvent = useScheduleStore.getState().addEvent({
+      title: `${target.name} — Lecture`,
+      category: 'class',
+      classId: target.id,
+      startsAt: '2024-01-01T09:00:00.000Z',
+      endsAt: '2024-01-01T09:50:00.000Z',
+      reminders: [],
+      recurrence: { frequency: 'WEEKLY', byWeekday: [0, 2] },
+    });
+    const otherEvent = useScheduleStore.getState().addEvent({
+      title: `${other.name} — Lecture`,
+      category: 'class',
+      classId: other.id,
+      startsAt: '2024-01-01T11:00:00.000Z',
+      endsAt: '2024-01-01T11:50:00.000Z',
+      reminders: [],
+      recurrence: { frequency: 'WEEKLY', byWeekday: [1, 3] },
+    });
+
+    useClassesStore.getState().removeClass(target.id);
+
+    const events = useScheduleStore.getState().events;
+    expect(events.find((event) => event.id === targetEvent.id)).toBeUndefined();
+    expect(events.find((event) => event.id === otherEvent.id)).toEqual(otherEvent);
   });
 
   it('addAssignment assigns an id and appends to the list', () => {
