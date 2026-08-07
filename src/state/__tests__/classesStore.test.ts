@@ -123,4 +123,14 @@ describe('useClassesStore', () => {
     expect(useClassesStore.getState().classById(created.id)).toEqual(created);
     expect(useClassesStore.getState().classById('no-such-class')).toBeUndefined();
   });
+
+  it('starts with no active semester, so every class shows on the calendar until one is started', () => {
+    expect(useClassesStore.getState().activeTerm).toBeNull();
+  });
+
+  it('startNewSemester sets the active term, trimmed', () => {
+    useClassesStore.getState().startNewSemester('  Spring 2027  ');
+
+    expect(useClassesStore.getState().activeTerm).toBe('Spring 2027');
+  });
 });

@@ -13,6 +13,9 @@ const BLANK_CLASSES_DATA = {
   files: [] as ClassFile[],
   announcements: [] as Announcement[],
   grades: [] as GradeEntry[],
+  /** The term shown on the calendar. Null means "no semester started yet" — every class's meeting
+   * events show, matching the pre-semester-archiving behavior. See startNewSemester. */
+  activeTerm: null as string | null,
 };
 
 interface ClassesState {
@@ -22,6 +25,7 @@ interface ClassesState {
   files: ClassFile[];
   announcements: Announcement[];
   grades: GradeEntry[];
+  activeTerm: string | null;
   addClass: (input: Omit<StudiqClass, 'id'>) => StudiqClass;
   updateClass: (id: string, patch: Partial<Omit<StudiqClass, 'id'>>) => void;
   removeClass: (id: string) => void;
@@ -29,6 +33,9 @@ interface ClassesState {
   updateAssignmentStatus: (id: string, status: Assignment['status']) => void;
   addExam: (input: Omit<Exam, 'id'>) => Exam;
   classById: (id: string) => StudiqClass | undefined;
+  /** Sets the active term shown on the calendar — classes from any other term stop appearing
+   * there, but stay fully browsable (with all their files/notes) under the Classes tab. */
+  startNewSemester: (term: string) => void;
 }
 
 /** Drops any leftover pre-launch sample content (ids prefixed `seed-`) while keeping data the user entered themselves. */
@@ -80,11 +87,14 @@ export const useClassesStore = create<ClassesState>()(
         return created;
       },
       classById: (id) => get().classes.find((studiqClass) => studiqClass.id === id),
+      startNewSemester: (term) => {
+        set({ activeTerm: term.trim() });
+      },
     }),
     {
       name: 'studiq-classes',
       storage: createJSONStorage(() => mmkvStateStorage),
-      version: 2,
+      version: 3,
       migrate: (persistedState) => {
         const state = persistedState as ClassesState;
         return {
@@ -93,6 +103,7 @@ export const useClassesStore = create<ClassesState>()(
           assignments: dropSeeds(state?.assignments),
           exams: dropSeeds(state?.exams),
           announcements: dropSeeds(state?.announcements),
+          activeTerm: state?.activeTerm ?? null,
         };
       },
     },
@@ -109,6 +120,7 @@ registerCloudSyncedStore({
     files: state.files,
     announcements: state.announcements,
     grades: state.grades,
+    activeTerm: state.activeTerm,
   }),
   blank: BLANK_CLASSES_DATA,
 });

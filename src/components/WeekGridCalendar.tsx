@@ -189,7 +189,12 @@ function DayColumn({
               </Text>
               {height > 34 ? (
                 <Text color="white" fontSize={9} opacity={0.9} numberOfLines={1}>
-                  {format(occurrence.startsAt, 'h:mm a')}
+                  {format(occurrence.startsAt, 'h:mm a')}–{format(occurrence.endsAt, 'h:mm a')}
+                </Text>
+              ) : null}
+              {height > 58 && occurrence.event.location ? (
+                <Text color="white" fontSize={9} opacity={0.85} numberOfLines={1}>
+                  {occurrence.event.location}
                 </Text>
               ) : null}
             </YStack>

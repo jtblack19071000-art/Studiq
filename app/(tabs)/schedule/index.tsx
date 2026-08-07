@@ -14,7 +14,8 @@ import {
 } from 'date-fns';
 import { router } from 'expo-router';
 import { useMemo, useState } from 'react';
-import { Button, H2, Paragraph, Text, XStack, YStack } from 'tamagui';
+import { Platform } from 'react-native';
+import { Button, H2, Input, Paragraph, Text, XStack, YStack } from 'tamagui';
 
 import { AgendaItem } from '@/src/components/AgendaItem';
 import { Card } from '@/src/components/Card';
@@ -22,6 +23,7 @@ import { EmptyState } from '@/src/components/EmptyState';
 import { Icon } from '@/src/components/Icon';
 import { Screen } from '@/src/components/Screen';
 import { WeekGridCalendar } from '@/src/components/WeekGridCalendar';
+import { groupClassesByTerm } from '@/src/lib/gpa';
 import type { EventOccurrence } from '@/src/lib/occurrences';
 import { getOccurrencesInRange } from '@/src/lib/occurrences';
 import { useClassesStore } from '@/src/state/classesStore';
@@ -45,7 +47,20 @@ function openEventDetail(occurrence: EventOccurrence) {
 export default function ScheduleScreen() {
   const events = useScheduleStore((state) => state.events);
   const classes = useClassesStore((state) => state.classes);
+  const activeTerm = useClassesStore((state) => state.activeTerm);
+  const startNewSemester = useClassesStore((state) => state.startNewSemester);
   const classesById = useMemo(() => new Map(classes.map((studiqClass) => [studiqClass.id, studiqClass])), [classes]);
+
+  // A class-linked event only shows on the live calendar while its class belongs to the active
+  // semester — see startNewSemester. Non-class events (personal, work, …) are never archived.
+  // activeTerm === null means no semester has been started yet, so nothing is filtered.
+  const visibleEvents = useMemo(() => {
+    if (activeTerm === null) return events;
+    return events.filter((event) => {
+      if (!event.classId) return true;
+      return classesById.get(event.classId)?.term === activeTerm;
+    });
+  }, [events, activeTerm, classesById]);
 
   const [tabMode, setTabMode] = useState<TabMode>('calendar');
   const [viewMode, setViewMode] = useState<ViewMode>('week');
@@ -116,7 +131,7 @@ export default function ScheduleScreen() {
           {viewMode === 'day' && (
             <DayView
               date={selectedDate}
-              events={events}
+              events={visibleEvents}
               classesById={classesById}
               onSelectOccurrence={openEventDetail}
             />
@@ -124,7 +139,7 @@ export default function ScheduleScreen() {
           {viewMode === 'week' && (
             <WeekGridCalendar
               weekStart={startOfWeek(selectedDate, { weekStartsOn: 1 })}
-              events={events}
+              events={visibleEvents}
               classesById={classesById}
               onSelectOccurrence={openEventDetail}
             />
@@ -132,7 +147,7 @@ export default function ScheduleScreen() {
           {viewMode === 'month' && (
             <MonthView
               date={selectedDate}
-              events={events}
+              events={visibleEvents}
               onSelectDay={(day) => {
                 setSelectedDate(day);
                 setViewMode('day');
@@ -141,7 +156,7 @@ export default function ScheduleScreen() {
           )}
         </>
       ) : (
-        <ClassesList classes={classes} />
+        <ClassesList classes={classes} activeTerm={activeTerm} onStartNewSemester={startNewSemester} />
       )}
     </Screen>
   );
@@ -275,7 +290,33 @@ function MonthView({
   );
 }
 
-function ClassesList({ classes }: { classes: ReturnType<typeof useClassesStore.getState>['classes'] }) {
+function ClassesList({
+  classes,
+  activeTerm,
+  onStartNewSemester,
+}: {
+  classes: ReturnType<typeof useClassesStore.getState>['classes'];
+  activeTerm: string | null;
+  onStartNewSemester: (term: string) => void;
+}) {
+  const [startingSemester, setStartingSemester] = useState(false);
+  const [semesterName, setSemesterName] = useState('');
+
+  const termGroups = useMemo(() => groupClassesByTerm(classes), [classes]);
+  const otherTerms = useMemo(
+    () => Array.from(termGroups.keys()).filter((term) => term !== activeTerm),
+    [termGroups, activeTerm],
+  );
+  const currentClasses = activeTerm === null ? classes : (termGroups.get(activeTerm) ?? []);
+
+  function confirmNewSemester() {
+    const trimmed = semesterName.trim();
+    if (!trimmed) return;
+    onStartNewSemester(trimmed);
+    setSemesterName('');
+    setStartingSemester(false);
+  }
+
   return (
     <YStack gap="$3">
       <XStack gap="$2">
@@ -298,29 +339,101 @@ function ClassesList({ classes }: { classes: ReturnType<typeof useClassesStore.g
         </Button>
       </XStack>
 
+      <Card gap="$2">
+        <XStack justifyContent="space-between" alignItems="center">
+          <YStack flex={1}>
+            <Text fontWeight="700" fontSize="$3" color="$color10">
+              CURRENT SEMESTER
+            </Text>
+            <Text fontWeight="700" fontSize="$5">
+              {activeTerm ?? 'All classes (no semester started)'}
+            </Text>
+          </YStack>
+          {!startingSemester ? (
+            <Button size="$3" borderRadius="$10" onPress={() => setStartingSemester(true)}>
+              New semester
+            </Button>
+          ) : null}
+        </XStack>
+        {startingSemester ? (
+          <YStack gap="$2" paddingTop="$1">
+            <Paragraph color="$color10" fontSize="$3">
+              Starting a new semester moves every current class off the calendar — they stay fully
+              available here under Classes, grouped by term.
+            </Paragraph>
+            <Input
+              placeholder="e.g. Spring 2027"
+              value={semesterName}
+              onChangeText={setSemesterName}
+              autoFocus={Platform.OS === 'web'}
+            />
+            <XStack gap="$2">
+              <Button flex={1} theme="active" disabled={!semesterName.trim()} onPress={confirmNewSemester}>
+                Start semester
+              </Button>
+              <Button
+                flex={1}
+                chromeless
+                onPress={() => {
+                  setStartingSemester(false);
+                  setSemesterName('');
+                }}>
+                Cancel
+              </Button>
+            </XStack>
+          </YStack>
+        ) : null}
+      </Card>
+
       {classes.length === 0 ? (
         <EmptyState message="No classes yet. Add your first one above — it'll show up on your Schedule too if you set a meeting time." />
       ) : (
-        classes.map((studiqClass) => (
-          <Card
-            key={studiqClass.id}
-            onPress={() => router.push(`/schedule/classes/${studiqClass.id}`)}
-            pressStyle={{ opacity: 0.7 }}
-            borderLeftWidth={4}
-            style={{ borderLeftColor: studiqClass.color }}>
-            <Text fontWeight="700" fontSize="$5">
-              {studiqClass.name}
-            </Text>
-            <Paragraph color="$color10">
-              {studiqClass.code} · {studiqClass.term}
-            </Paragraph>
-            <Paragraph color="$color10" fontSize="$3">
-              {studiqClass.professor.name}
-              {studiqClass.classroom ? ` · ${studiqClass.classroom}` : ''}
-            </Paragraph>
-          </Card>
-        ))
+        <>
+          {currentClasses.length === 0 ? (
+            <EmptyState message="No classes in the current semester yet. Add one above." />
+          ) : (
+            <YStack gap="$3">
+              {currentClasses.map((studiqClass) => (
+                <ClassCard key={studiqClass.id} studiqClass={studiqClass} />
+              ))}
+            </YStack>
+          )}
+
+          {otherTerms.map((term) => (
+            <YStack key={term} gap="$2" paddingTop="$2">
+              <Text fontWeight="700" fontSize="$3" color="$color10">
+                ARCHIVED · {term.toUpperCase()}
+              </Text>
+              <YStack gap="$3">
+                {termGroups.get(term)!.map((studiqClass) => (
+                  <ClassCard key={studiqClass.id} studiqClass={studiqClass} />
+                ))}
+              </YStack>
+            </YStack>
+          ))}
+        </>
       )}
     </YStack>
+  );
+}
+
+function ClassCard({ studiqClass }: { studiqClass: StudiqClass }) {
+  return (
+    <Card
+      onPress={() => router.push(`/schedule/classes/${studiqClass.id}`)}
+      pressStyle={{ opacity: 0.7 }}
+      borderLeftWidth={4}
+      style={{ borderLeftColor: studiqClass.color }}>
+      <Text fontWeight="700" fontSize="$5">
+        {studiqClass.name}
+      </Text>
+      <Paragraph color="$color10">
+        {studiqClass.code} · {studiqClass.term}
+      </Paragraph>
+      <Paragraph color="$color10" fontSize="$3">
+        {studiqClass.professor.name}
+        {studiqClass.classroom ? ` · ${studiqClass.classroom}` : ''}
+      </Paragraph>
+    </Card>
   );
 }

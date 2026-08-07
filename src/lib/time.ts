@@ -1,3 +1,5 @@
+import { startOfWeek } from 'date-fns';
+
 /**
  * Parses a time typed as either 12-hour with AM/PM ("1:30 PM", "1:30pm", "1:30 P.M.") or bare
  * 24-hour ("13:30") into a Date anchored to today. No leading zero required either way. Returns
@@ -54,6 +56,28 @@ export function parseFlexibleDate(text: string, hour = 12): Date | null {
 
   parsed.setHours(hour, 0, 0, 0);
   return parsed;
+}
+
+/**
+ * Turns a meeting's start/end time-of-day strings into concrete Dates for a recurring
+ * WEEKLY schedule event's `startsAt`/`endsAt`. Anchored to this week's Monday rather than
+ * "today" — anchoring to today made a meeting day earlier in the week than the day the class
+ * was added/edited invisible until the following week, since RRule never generates an
+ * occurrence before its dtstart. Monday is always the earliest day RRule needs to consider, so
+ * every weekday selected for this week (and every week after) resolves correctly. Returns null
+ * if either time fails to parse.
+ */
+export function anchorMeetingTimes(startTime: string, endTime: string): { startsAt: Date; endsAt: Date } | null {
+  const start = parseTimeToday(startTime);
+  const end = parseTimeToday(endTime);
+  if (!start || !end) return null;
+
+  const monday = startOfWeek(new Date(), { weekStartsOn: 1 });
+  const startsAt = new Date(monday);
+  startsAt.setHours(start.getHours(), start.getMinutes(), 0, 0);
+  const endsAt = new Date(monday);
+  endsAt.setHours(end.getHours(), end.getMinutes(), 0, 0);
+  return { startsAt, endsAt };
 }
 
 /** Formats an ISO datetime string as "1:30 PM" in local time, for prefilling time inputs. */

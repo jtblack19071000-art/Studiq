@@ -6,7 +6,7 @@ import { ClassForm } from '@/src/components/ClassForm';
 import { EmptyState } from '@/src/components/EmptyState';
 import { Screen } from '@/src/components/Screen';
 import { createId } from '@/src/lib/id';
-import { formatTimeOfDay, parseTimeToday } from '@/src/lib/time';
+import { anchorMeetingTimes, formatTimeOfDay } from '@/src/lib/time';
 import { useClassesStore } from '@/src/state/classesStore';
 import { useScheduleStore } from '@/src/state/scheduleStore';
 
@@ -67,8 +67,9 @@ export default function EditClassScreen() {
           updateClass(studiqClass.id, classInput);
 
           if (meeting) {
-            const startsAt = parseTimeToday(meeting.startTime)!.toISOString();
-            const endsAt = parseTimeToday(meeting.endTime)!.toISOString();
+            const times = anchorMeetingTimes(meeting.startTime, meeting.endTime)!;
+            const startsAt = times.startsAt.toISOString();
+            const endsAt = times.endsAt.toISOString();
             const recurrence = { frequency: 'WEEKLY' as const, byWeekday: meeting.byWeekday };
             if (meetingEvent) {
               updateEvent(meetingEvent.id, {

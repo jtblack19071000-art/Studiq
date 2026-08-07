@@ -1,6 +1,8 @@
 /// <reference types="jest" />
 
-import { formatTimeOfDay, parseFlexibleDate, parseTimeToday } from '@/src/lib/time';
+import { startOfWeek } from 'date-fns';
+
+import { anchorMeetingTimes, formatTimeOfDay, parseFlexibleDate, parseTimeToday } from '@/src/lib/time';
 
 function hm(date: Date | null): string | null {
   if (!date) return null;
@@ -85,6 +87,24 @@ describe('parseFlexibleDate', () => {
     expect(parseFlexibleDate('')).toBeNull();
     expect(parseFlexibleDate('   ')).toBeNull();
     expect(parseFlexibleDate('not a date at all')).toBeNull();
+  });
+});
+
+describe('anchorMeetingTimes', () => {
+  it('anchors to this week\'s Monday, not "today" — a Monday meeting still resolves even if added later in the week', () => {
+    const { startsAt, endsAt } = anchorMeetingTimes('9:00 AM', '9:50 AM')!;
+    const monday = startOfWeek(new Date(), { weekStartsOn: 1 });
+    expect(startsAt.getDay()).toBe(1); // Monday
+    expect(startsAt.getFullYear()).toBe(monday.getFullYear());
+    expect(startsAt.getMonth()).toBe(monday.getMonth());
+    expect(startsAt.getDate()).toBe(monday.getDate());
+    expect(hm(startsAt)).toBe('9:00');
+    expect(hm(endsAt)).toBe('9:50');
+  });
+
+  it('returns null when either time fails to parse', () => {
+    expect(anchorMeetingTimes('not a time', '9:50 AM')).toBeNull();
+    expect(anchorMeetingTimes('9:00 AM', '')).toBeNull();
   });
 });
 

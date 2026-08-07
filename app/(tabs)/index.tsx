@@ -54,18 +54,25 @@ export default function HomeScreen() {
   const assignments = useClassesStore((state) => state.assignments);
   const exams = useClassesStore((state) => state.exams);
   const classes = useClassesStore((state) => state.classes);
+  const activeTerm = useClassesStore((state) => state.activeTerm);
   const classesById = useMemo(() => new Map(classes.map((studiqClass) => [studiqClass.id, studiqClass])), [classes]);
   const todayKey = format(new Date(), 'yyyy-MM-dd');
   const note = useNotesStore((state) => state.noteForDate(todayKey));
   const setNote = useNotesStore((state) => state.setNoteForDate);
 
+  // Keep archived-semester classes off the daily timeline too — see startNewSemester.
+  const visibleEvents = useMemo(() => {
+    if (activeTerm === null) return events;
+    return events.filter((event) => !event.classId || classesById.get(event.classId)?.term === activeTerm);
+  }, [events, activeTerm, classesById]);
+
   const todaysOccurrences = useMemo(() => {
     const rangeStart = startOfToday();
     const rangeEnd = endOfToday();
-    return events
+    return visibleEvents
       .flatMap((event) => getOccurrencesInRange(event, rangeStart, rangeEnd))
       .sort((a, b) => a.startsAt.getTime() - b.startsAt.getTime());
-  }, [events]);
+  }, [visibleEvents]);
 
   const upcomingAssignments = useMemo(() => {
     const now = new Date();

@@ -26,13 +26,15 @@ interface ClassFormProps {
   initialClass?: StudiqClass;
   initialMeeting?: ClassMeetingTime;
   submitLabel: string;
+  /** Prefills the term field for a brand-new class, e.g. with the current active semester. */
+  defaultTerm?: string;
   onSubmit: (result: ClassFormResult) => void;
 }
 
-export function ClassForm({ initialClass, initialMeeting, submitLabel, onSubmit }: ClassFormProps) {
+export function ClassForm({ initialClass, initialMeeting, submitLabel, defaultTerm, onSubmit }: ClassFormProps) {
   const [name, setName] = useState(initialClass?.name ?? '');
   const [code, setCode] = useState(initialClass?.code ?? '');
-  const [term, setTerm] = useState(initialClass?.term ?? '');
+  const [term, setTerm] = useState(initialClass?.term ?? defaultTerm ?? '');
   const [color, setColor] = useState(initialClass?.color ?? EVENT_COLOR_SWATCHES[0]);
   const [creditHours, setCreditHours] = useState(initialClass?.creditHours?.toString() ?? '');
   const [professorName, setProfessorName] = useState(initialClass?.professor.name ?? '');

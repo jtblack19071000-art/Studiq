@@ -146,5 +146,25 @@ describe('getOccurrencesInRange', () => {
 
       expect(occurrences).toEqual([]);
     });
+
+    it('never generates an occurrence before dtstart, even for a weekday earlier in the same week', () => {
+      // dtstart is Wednesday 2024-01-03; Monday (weekday 0) is requested too, but the current
+      // week's Monday (2024-01-01) is before dtstart, so it's correctly excluded. This is the
+      // exact reason a class's meeting time must anchor to the week's Monday rather than "today"
+      // — see anchorMeetingTimes in src/lib/time.ts — otherwise a class added mid-week with an
+      // earlier meeting day looks entirely absent from the calendar until the following week.
+      const event = buildEvent({
+        startsAt: '2024-01-03T09:00:00.000Z',
+        endsAt: '2024-01-03T09:50:00.000Z',
+        recurrence: { frequency: 'WEEKLY', byWeekday: [0, 2] }, // Monday & Wednesday
+      });
+      const occurrences = getOccurrencesInRange(
+        event,
+        new Date('2024-01-01T00:00:00.000Z'),
+        new Date('2024-01-07T23:59:59.000Z'),
+      );
+
+      expect(occurrences.map((o) => o.startsAt.toISOString())).toEqual(['2024-01-03T09:00:00.000Z']);
+    });
   });
 });
