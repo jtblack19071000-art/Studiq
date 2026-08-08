@@ -23,12 +23,13 @@ export function clampHourHeight(hourHeight: number): number {
 /**
  * How finely the calendar's left-hand time column subdivides an hour at a given zoom level —
  * the closer you pinch-zoom in (the taller an hour renders), the smaller the interval, so there's
- * always room to read the labels without them overlapping.
+ * always room to read the labels without them overlapping. 30-minute lines are the default (the
+ * DEFAULT_HOUR_HEIGHT rest state); pinching out past that drops back to a hourly overview.
  */
 export function minuteIntervalForHourHeight(hourHeight: number): number {
   if (hourHeight >= 240) return 10;
   if (hourHeight >= 160) return 15;
-  if (hourHeight >= 90) return 30;
+  if (hourHeight >= 50) return 30;
   return 60;
 }
 

@@ -12,7 +12,7 @@ import { layoutDayOccurrences } from '@/src/lib/weekGridLayout';
 import { buildTimeRows, clampHourHeight, DEFAULT_HOUR_HEIGHT, minutesToOffset, type TimeRow } from '@/src/lib/weekGridZoom';
 import type { ScheduleEvent, StudiqClass } from '@/src/types';
 
-const TIME_COL_WIDTH = 50;
+const TIME_COL_WIDTH = 58;
 const MIN_BLOCK_HEIGHT = 22;
 const DEFAULT_SCROLL_HOUR = 7;
 
@@ -154,7 +154,7 @@ function HourLabelColumn({ rows }: { rows: TimeRow[] }) {
     <YStack width={TIME_COL_WIDTH}>
       {rows.map((row) => (
         <YStack key={row.minutes} height={row.height} alignItems="flex-end" paddingRight="$1.5">
-          <Text fontSize="$1" color="$color9" style={{ transform: [{ translateY: -6 }] }}>
+          <Text fontSize="$1" color="$color9" numberOfLines={1} style={{ transform: [{ translateY: -6 }] }}>
             {row.label}
           </Text>
         </YStack>

@@ -26,12 +26,17 @@ describe('clampHourHeight', () => {
 });
 
 describe('minuteIntervalForHourHeight', () => {
-  it('uses hourly labels at the default (zoomed-out) height', () => {
-    expect(minuteIntervalForHourHeight(DEFAULT_HOUR_HEIGHT)).toBe(60);
+  it('uses 30-minute labels at the default (rest) height', () => {
+    expect(minuteIntervalForHourHeight(DEFAULT_HOUR_HEIGHT)).toBe(30);
   });
 
-  it('switches to 30-minute labels once zoomed in a bit, matching a laptop-calendar-style zoom', () => {
-    expect(minuteIntervalForHourHeight(90)).toBe(30);
+  it('drops back to hourly labels only once pinched out below the 30-minute threshold', () => {
+    expect(minuteIntervalForHourHeight(MIN_HOUR_HEIGHT)).toBe(60);
+    expect(minuteIntervalForHourHeight(49)).toBe(60);
+  });
+
+  it('stays on 30-minute labels through the middle of the zoom range', () => {
+    expect(minuteIntervalForHourHeight(50)).toBe(30);
     expect(minuteIntervalForHourHeight(159)).toBe(30);
   });
 
@@ -68,19 +73,19 @@ describe('formatTimeLabel', () => {
 });
 
 describe('buildTimeRows', () => {
-  it('produces one row per hour at the default zoom, covering the full day', () => {
+  it('produces one row per half hour at the default zoom, covering the full day', () => {
     const rows = buildTimeRows(DEFAULT_HOUR_HEIGHT);
 
-    expect(rows).toHaveLength(24);
-    expect(rows[0]).toEqual({ minutes: 0, height: DEFAULT_HOUR_HEIGHT, label: '12 AM' });
-    expect(rows[7]).toEqual({ minutes: 420, height: DEFAULT_HOUR_HEIGHT, label: '7 AM' });
+    expect(rows).toHaveLength(48);
+    expect(rows[0]).toEqual({ minutes: 0, height: DEFAULT_HOUR_HEIGHT / 2, label: '12 AM' });
+    expect(rows[14]).toEqual({ minutes: 420, height: DEFAULT_HOUR_HEIGHT / 2, label: '7 AM' });
   });
 
-  it('produces twice as many, half-height rows once zoomed to 30-minute labels', () => {
-    const rows = buildTimeRows(120);
+  it('produces one row per hour, pinched all the way out', () => {
+    const rows = buildTimeRows(MIN_HOUR_HEIGHT);
 
-    expect(rows).toHaveLength(48);
-    expect(rows[1]).toEqual({ minutes: 30, height: 60, label: '12:30 AM' });
+    expect(rows).toHaveLength(24);
+    expect(rows[7]).toEqual({ minutes: 420, height: MIN_HOUR_HEIGHT, label: '7 AM' });
   });
 
   it('every row height sums to 24 times the given hour height, regardless of zoom level', () => {
