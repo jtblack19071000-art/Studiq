@@ -124,11 +124,16 @@ export default function HomeScreen() {
         </Paragraph>
       </Hero>
 
-      <Link href="/modal" asChild>
-        <Button size="$4" theme="active" borderRadius="$10" icon={<Icon name="plus" size={16} color="white" />}>
-          Quick add
-        </Button>
-      </Link>
+      <YStack gap="$1.5">
+        <Link href="/modal" asChild>
+          <Button size="$4" theme="active" borderRadius="$10" icon={<Icon name="plus" size={16} color="white" />}>
+            Quick add
+          </Button>
+        </Link>
+        <Paragraph fontSize="$2" color="$color10" textAlign="center">
+          Add anything that isn&apos;t a class — work, research, appointments, and more.
+        </Paragraph>
+      </YStack>
 
       <YStack gap="$2">
         <SectionHeader title="Timeline" icon="calendar" />
