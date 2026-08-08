@@ -36,7 +36,7 @@ describe('useSubscriptionStore (RevenueCat not configured)', () => {
     expect(state.refreshing).toBe(false);
   });
 
-  it('refresh() is a no-op when purchases are not configured', async () => {
+  it('refresh() settles on the free tier without touching `refreshing` when purchases are not configured', async () => {
     await useSubscriptionStore.getState().refresh();
 
     const state = useSubscriptionStore.getState();
@@ -70,6 +70,25 @@ describe('useSubscriptionStore (RevenueCat not configured)', () => {
 
   it('refresh() does not grant Premium to a non-founder email', async () => {
     await useSubscriptionStore.getState().refresh('someone-else@example.com');
+
+    expect(useSubscriptionStore.getState().tier).toBe('free');
+  });
+
+  it('refresh() clears a stale Premium tier left over from a previous account on this device', async () => {
+    // `tier` is persisted per-device (see partialize in subscriptionStore.ts), not per-account —
+    // this simulates a founder (or a past purchase) signing out on this browser/device right
+    // before a brand-new, non-founder account signs up on the same one.
+    useSubscriptionStore.setState({ tier: 'premium' });
+
+    await useSubscriptionStore.getState().refresh('brand-new-user@example.com');
+
+    expect(useSubscriptionStore.getState().tier).toBe('free');
+  });
+
+  it('refresh() clears a stale Premium tier on sign-out (email undefined)', async () => {
+    useSubscriptionStore.setState({ tier: 'premium' });
+
+    await useSubscriptionStore.getState().refresh();
 
     expect(useSubscriptionStore.getState().tier).toBe('free');
   });

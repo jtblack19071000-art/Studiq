@@ -35,7 +35,14 @@ export const useSubscriptionStore = create<SubscriptionState>()(
           set({ tier: 'premium' });
           return;
         }
-        if (!isPurchasesConfigured) return;
+        if (!isPurchasesConfigured) {
+          // Without RevenueCat there's no way anyone legitimately purchased Premium, so anything
+          // other than 'free' here can only be stale state left over from a previous account on
+          // this device (e.g. a founder signed out, or `tier` was persisted from an earlier
+          // session) — explicitly reset it instead of leaving it untouched.
+          set({ tier: 'free' });
+          return;
+        }
         set({ refreshing: true });
         try {
           const [tier, offer] = await Promise.all([fetchCurrentTier(), fetchPremiumOffer()]);
