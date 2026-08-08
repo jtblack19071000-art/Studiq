@@ -35,7 +35,7 @@ export default function ProfileScreen() {
       <Screen>
         <YStack gap="$1" paddingTop="$2">
           <XStack alignItems="center" gap="$2">
-            <Icon name="graduation-cap" size={22} color="#3B6FE0" />
+            <Icon name="user" size={22} color="#3B6FE0" />
             <H2>Profile</H2>
           </XStack>
         </YStack>
@@ -54,7 +54,7 @@ export default function ProfileScreen() {
       <Screen>
         <YStack gap="$1" paddingTop="$2">
           <XStack alignItems="center" gap="$2">
-            <Icon name="graduation-cap" size={22} color="#3B6FE0" />
+            <Icon name="user" size={22} color="#3B6FE0" />
             <H2>Profile</H2>
           </XStack>
         </YStack>

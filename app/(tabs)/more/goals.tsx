@@ -7,6 +7,7 @@ import { Hero } from '@/src/components/Hero';
 import { Icon } from '@/src/components/Icon';
 import { Screen } from '@/src/components/Screen';
 import { SectionHeader } from '@/src/components/SectionHeader';
+import { SelectableChip } from '@/src/components/SelectableChip';
 import { useGoalsStore } from '@/src/state/goalsStore';
 import { ACCENT_TINT, useThemeStore } from '@/src/state/themeStore';
 import { goalCategoryLabels, type Goal, type GoalCategory, type GoalStatus } from '@/src/types';
@@ -40,13 +41,12 @@ function GoalCard({ goal }: { goal: Goal }) {
       </XStack>
       <XStack flexWrap="wrap" gap="$2" paddingTop="$2">
         {STATUSES.map((option) => (
-          <Button
+          <SelectableChip
             key={option.value}
-            size="$2"
-            theme={goal.status === option.value ? 'active' : undefined}
+            selected={goal.status === option.value}
             onPress={() => updateGoalStatus(goal.id, option.value)}>
             {option.label}
-          </Button>
+          </SelectableChip>
         ))}
       </XStack>
     </Card>
@@ -139,13 +139,9 @@ export default function GoalsScreen() {
           />
           <XStack flexWrap="wrap" gap="$2">
             {CATEGORIES.map((option) => (
-              <Button
-                key={option}
-                size="$2"
-                theme={category === option ? 'active' : undefined}
-                onPress={() => setCategory(option)}>
+              <SelectableChip key={option} selected={category === option} onPress={() => setCategory(option)}>
                 {goalCategoryLabels[option]}
-              </Button>
+              </SelectableChip>
             ))}
           </XStack>
           {error ? <Paragraph color="$red10">{error}</Paragraph> : null}

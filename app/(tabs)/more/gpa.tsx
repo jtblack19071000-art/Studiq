@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { Button, H2, H3, Input, Paragraph, Text, XStack, YStack } from 'tamagui';
+import { H2, H3, Input, Paragraph, Text, XStack, YStack } from 'tamagui';
 
 import { Card } from '@/src/components/Card';
 import { EmptyState } from '@/src/components/EmptyState';
@@ -7,6 +7,7 @@ import { Hero } from '@/src/components/Hero';
 import { Icon } from '@/src/components/Icon';
 import { Screen } from '@/src/components/Screen';
 import { SectionHeader } from '@/src/components/SectionHeader';
+import { SelectableChip } from '@/src/components/SelectableChip';
 import { calculateGpa, groupClassesByTerm, LETTER_GRADES } from '@/src/lib/gpa';
 import { useClassesStore } from '@/src/state/classesStore';
 import { ACCENT_TINT, useThemeStore } from '@/src/state/themeStore';
@@ -89,17 +90,16 @@ export default function GpaScreen() {
                       </Text>
                       <XStack flexWrap="wrap" gap="$1.5">
                         {LETTER_GRADES.map((grade) => (
-                          <Button
+                          <SelectableChip
                             key={grade}
-                            size="$2"
-                            theme={studiqClass.finalGrade === grade ? 'active' : undefined}
+                            selected={studiqClass.finalGrade === grade}
                             onPress={() =>
                               updateClass(studiqClass.id, {
                                 finalGrade: studiqClass.finalGrade === grade ? undefined : (grade as LetterGrade),
                               })
                             }>
                             {grade}
-                          </Button>
+                          </SelectableChip>
                         ))}
                       </XStack>
                     </YStack>

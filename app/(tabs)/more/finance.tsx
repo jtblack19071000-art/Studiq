@@ -8,6 +8,7 @@ import { Hero } from '@/src/components/Hero';
 import { Icon } from '@/src/components/Icon';
 import { Screen } from '@/src/components/Screen';
 import { SectionHeader } from '@/src/components/SectionHeader';
+import { SelectableChip } from '@/src/components/SelectableChip';
 import { calculateMonthlySummary, estimateMonthlyIncomeFromProfile } from '@/src/lib/finance';
 import { estimateHourlyPay, PayEstimateAiError } from '@/src/lib/payEstimateAi';
 import { useFinanceStore } from '@/src/state/financeStore';
@@ -118,22 +119,18 @@ export default function FinanceScreen() {
             <Input width={100} placeholder="Amount" keyboardType="decimal-pad" value={amount} onChangeText={setAmount} />
           </XStack>
           <XStack gap="$2">
-            <Button flex={1} size="$3" theme={type === 'expense' ? 'active' : undefined} onPress={() => setType('expense')}>
+            <SelectableChip size="$3" flex={1} selected={type === 'expense'} onPress={() => setType('expense')}>
               Expense
-            </Button>
-            <Button flex={1} size="$3" theme={type === 'income' ? 'active' : undefined} onPress={() => setType('income')}>
+            </SelectableChip>
+            <SelectableChip size="$3" flex={1} selected={type === 'income'} onPress={() => setType('income')}>
               Income
-            </Button>
+            </SelectableChip>
           </XStack>
           <XStack flexWrap="wrap" gap="$2">
             {CATEGORIES.map((option) => (
-              <Button
-                key={option}
-                size="$2"
-                theme={category === option ? 'active' : undefined}
-                onPress={() => setCategory(option)}>
+              <SelectableChip key={option} selected={category === option} onPress={() => setCategory(option)}>
                 {transactionCategoryLabels[option]}
-              </Button>
+              </SelectableChip>
             ))}
           </XStack>
           {error ? <Paragraph color="$red10">{error}</Paragraph> : null}
@@ -366,12 +363,12 @@ function AddJobForm() {
         <Input flex={1} value={location} onChangeText={setLocation} placeholder="Location (optional)" />
       </XStack>
       <XStack gap="$2">
-        <Button flex={1} size="$3" theme={payType === 'hourly' ? 'active' : undefined} onPress={() => setPayType('hourly')}>
+        <SelectableChip size="$3" flex={1} selected={payType === 'hourly'} onPress={() => setPayType('hourly')}>
           Hourly
-        </Button>
-        <Button flex={1} size="$3" theme={payType === 'salary' ? 'active' : undefined} onPress={() => setPayType('salary')}>
+        </SelectableChip>
+        <SelectableChip size="$3" flex={1} selected={payType === 'salary'} onPress={() => setPayType('salary')}>
           Annual salary
-        </Button>
+        </SelectableChip>
       </XStack>
       <XStack gap="$2">
         <Input
@@ -439,14 +436,14 @@ function AddScholarshipForm() {
       </XStack>
       <XStack gap="$2">
         {FREQUENCY_OPTIONS.map((option) => (
-          <Button
+          <SelectableChip
             key={option.value}
             flex={1}
             size="$3"
-            theme={frequency === option.value ? 'active' : undefined}
+            selected={frequency === option.value}
             onPress={() => setFrequency(option.value)}>
             {option.label}
-          </Button>
+          </SelectableChip>
         ))}
       </XStack>
       {error ? <Paragraph color="$red10">{error}</Paragraph> : null}

@@ -7,7 +7,7 @@ import { Icon, type IconName } from '@/src/components/Icon';
 import { Screen } from '@/src/components/Screen';
 
 const MENU_ITEMS: { href: string; label: string; icon: IconName; color: string }[] = [
-  { href: '/more/profile', label: 'Profile', icon: 'graduation-cap', color: '#3B6FE0' },
+  { href: '/more/profile', label: 'Profile', icon: 'user', color: '#3B6FE0' },
   { href: '/more/gpa', label: 'GPA Tracker', icon: 'graduation-cap', color: '#3B6FE0' },
   { href: '/more/finance', label: 'Finance', icon: 'dollar', color: '#4C9F4C' },
   { href: '/more/goals', label: 'Goals', icon: 'target', color: '#D9862B' },

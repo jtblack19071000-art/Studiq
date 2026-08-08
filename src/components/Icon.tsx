@@ -56,7 +56,8 @@ export type IconName =
   | 'more'
   | 'star'
   | 'layers'
-  | 'info';
+  | 'info'
+  | 'user';
 
 interface IconProps {
   name: IconName;
@@ -514,6 +515,13 @@ function renderIcon(name: IconName, common: CommonStrokeProps, color: string) {
           <Circle cx={12} cy={12} r={8} {...common} />
           <Line x1={12} y1={11} x2={12} y2={16} {...common} />
           <Circle cx={12} cy={7.8} r={0.9} fill={color} stroke="none" />
+        </>
+      );
+    case 'user':
+      return (
+        <>
+          <Circle cx={12} cy={8} r={3.5} {...common} />
+          <Path d="M4.5 20c0-3.9 3.4-7 7.5-7s7.5 3.1 7.5 7" {...common} />
         </>
       );
     default:

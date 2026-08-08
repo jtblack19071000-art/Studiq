@@ -7,6 +7,7 @@ import { Hero } from '@/src/components/Hero';
 import { Icon } from '@/src/components/Icon';
 import { Screen } from '@/src/components/Screen';
 import { SectionHeader } from '@/src/components/SectionHeader';
+import { SelectableChip } from '@/src/components/SelectableChip';
 import { useCareerStore } from '@/src/state/careerStore';
 import { ACCENT_TINT, useThemeStore } from '@/src/state/themeStore';
 import { applicationStatusLabels, type ApplicationStatus } from '@/src/types';
@@ -120,13 +121,12 @@ export default function CareerScreen() {
                 </XStack>
                 <XStack flexWrap="wrap" gap="$2" paddingTop="$2">
                   {STATUSES.map((status) => (
-                    <Button
+                    <SelectableChip
                       key={status}
-                      size="$2"
-                      theme={application.status === status ? 'active' : undefined}
+                      selected={application.status === status}
                       onPress={() => updateApplicationStatus(application.id, status)}>
                       {applicationStatusLabels[status]}
-                    </Button>
+                    </SelectableChip>
                   ))}
                 </XStack>
               </Card>

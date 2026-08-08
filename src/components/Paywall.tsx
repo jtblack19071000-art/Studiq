@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Button, H3, Paragraph, Text, XStack, YStack } from 'tamagui';
 
 import { Icon } from '@/src/components/Icon';
+import { SelectableChip } from '@/src/components/SelectableChip';
 import { isPurchasesConfigured } from '@/src/lib/purchases';
 import { useSubscriptionStore } from '@/src/state/subscriptionStore';
 
@@ -67,20 +68,12 @@ export function Paywall() {
       </Paragraph>
 
       <XStack gap="$2">
-        <Button
-          flex={1}
-          size="$3"
-          theme={period === 'annual' ? 'active' : undefined}
-          onPress={() => setPeriod('annual')}>
+        <SelectableChip size="$3" flex={1} selected={period === 'annual'} onPress={() => setPeriod('annual')}>
           Yearly · {annualPrice}
-        </Button>
-        <Button
-          flex={1}
-          size="$3"
-          theme={period === 'monthly' ? 'active' : undefined}
-          onPress={() => setPeriod('monthly')}>
+        </SelectableChip>
+        <SelectableChip size="$3" flex={1} selected={period === 'monthly'} onPress={() => setPeriod('monthly')}>
           Monthly · {monthlyPrice}
-        </Button>
+        </SelectableChip>
       </XStack>
 
       <Text fontSize="$8" fontWeight="700">

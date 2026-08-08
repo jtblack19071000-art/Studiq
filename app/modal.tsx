@@ -5,6 +5,7 @@ import { Alert, Platform } from 'react-native';
 import { Button, H3, Input, Label, Paragraph, Text, XStack, YStack } from 'tamagui';
 
 import { Icon } from '@/src/components/Icon';
+import { SelectableChip } from '@/src/components/SelectableChip';
 import { createId } from '@/src/lib/id';
 import { anchorMeetingTimes, combineDateAndTime } from '@/src/lib/time';
 import { useScheduleStore } from '@/src/state/scheduleStore';
@@ -147,13 +148,9 @@ export default function QuickAddModal() {
         <Label>Category</Label>
         <XStack flexWrap="wrap" gap="$2">
           {CATEGORIES.map((option) => (
-            <Button
-              key={option}
-              size="$3"
-              theme={category === option ? 'active' : undefined}
-              onPress={() => setCategory(option)}>
+            <SelectableChip key={option} size="$3" selected={category === option} onPress={() => setCategory(option)}>
               {eventCategoryLabels[option]}
-            </Button>
+            </SelectableChip>
           ))}
         </XStack>
       </YStack>
@@ -161,12 +158,12 @@ export default function QuickAddModal() {
       <YStack gap="$2">
         <Label>Repeats weekly?</Label>
         <XStack gap="$2">
-          <Button flex={1} size="$3" theme={!repeatsWeekly ? 'active' : undefined} onPress={() => setRepeatsWeekly(false)}>
+          <SelectableChip size="$3" flex={1} selected={!repeatsWeekly} onPress={() => setRepeatsWeekly(false)}>
             One time
-          </Button>
-          <Button flex={1} size="$3" theme={repeatsWeekly ? 'active' : undefined} onPress={() => setRepeatsWeekly(true)}>
+          </SelectableChip>
+          <SelectableChip size="$3" flex={1} selected={repeatsWeekly} onPress={() => setRepeatsWeekly(true)}>
             Every week
-          </Button>
+          </SelectableChip>
         </XStack>
       </YStack>
 
@@ -203,13 +200,9 @@ export default function QuickAddModal() {
           <Label>Which day</Label>
           <XStack flexWrap="wrap" gap="$2">
             {DAY_OPTIONS.map((option) => (
-              <Button
-                key={option.key}
-                size="$3"
-                theme={dayOption === option.key ? 'active' : undefined}
-                onPress={() => setDayOption(option.key)}>
+              <SelectableChip key={option.key} size="$3" selected={dayOption === option.key} onPress={() => setDayOption(option.key)}>
                 {option.label}
-              </Button>
+              </SelectableChip>
             ))}
           </XStack>
         </YStack>
@@ -254,13 +247,13 @@ export default function QuickAddModal() {
         <Label>Reminder</Label>
         <XStack flexWrap="wrap" gap="$2">
           {REMINDER_OPTIONS.map((option) => (
-            <Button
+            <SelectableChip
               key={option.label}
               size="$3"
-              theme={reminderMinutes === option.minutesBefore ? 'active' : undefined}
+              selected={reminderMinutes === option.minutesBefore}
               onPress={() => setReminderMinutes(option.minutesBefore)}>
               {option.label}
-            </Button>
+            </SelectableChip>
           ))}
         </XStack>
       </YStack>

@@ -9,6 +9,7 @@ import { Icon } from '@/src/components/Icon';
 import { Paywall } from '@/src/components/Paywall';
 import { Screen } from '@/src/components/Screen';
 import { SectionHeader } from '@/src/components/SectionHeader';
+import { SelectableChip } from '@/src/components/SelectableChip';
 import {
   isNotificationPermissionGranted,
   notificationsSchedulingSupported,
@@ -172,14 +173,14 @@ function AppearanceSection() {
           </Text>
           <XStack gap="$2">
             {COLOR_SCHEME_OPTIONS.map((option) => (
-              <Button
+              <SelectableChip
                 key={option.value}
                 flex={1}
                 size="$3"
-                theme={colorSchemeOverride === option.value ? 'active' : undefined}
+                selected={colorSchemeOverride === option.value}
                 onPress={() => setColorSchemeOverride(option.value)}>
                 {option.label}
-              </Button>
+              </SelectableChip>
             ))}
           </XStack>
         </YStack>

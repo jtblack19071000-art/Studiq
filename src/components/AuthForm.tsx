@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Button, H4, Input, Paragraph, Text, XStack, YStack } from 'tamagui';
 
+import { SelectableChip } from '@/src/components/SelectableChip';
 import { useAuthStore, type AuthIdentifierType } from '@/src/state/authStore';
 
 type BaseMode = 'sign_in' | 'sign_up' | 'forgot_password';
@@ -129,26 +130,26 @@ export function AuthForm() {
         <>
           <Input placeholder="Your name" value={name} onChangeText={setName} />
           <XStack gap="$2">
-            <Button
-              flex={1}
+            <SelectableChip
               size="$3"
-              theme={signUpMethod === 'email' ? 'active' : undefined}
+              flex={1}
+              selected={signUpMethod === 'email'}
               onPress={() => {
                 setSignUpMethod('email');
                 setIdentifier('');
               }}>
               Email
-            </Button>
-            <Button
-              flex={1}
+            </SelectableChip>
+            <SelectableChip
               size="$3"
-              theme={signUpMethod === 'phone' ? 'active' : undefined}
+              flex={1}
+              selected={signUpMethod === 'phone'}
               onPress={() => {
                 setSignUpMethod('phone');
                 setIdentifier('');
               }}>
               Phone
-            </Button>
+            </SelectableChip>
           </XStack>
           <Input
             placeholder={signUpMethod === 'email' ? 'Email' : 'Phone number, e.g. +15551234567'}

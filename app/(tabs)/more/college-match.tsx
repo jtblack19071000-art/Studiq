@@ -7,6 +7,7 @@ import { Hero } from '@/src/components/Hero';
 import { Icon } from '@/src/components/Icon';
 import { Screen } from '@/src/components/Screen';
 import { SectionHeader } from '@/src/components/SectionHeader';
+import { SelectableChip } from '@/src/components/SelectableChip';
 import { generateCollegeMatchGuidance, CollegeMatchAiError, type CollegeMatchGuidance } from '@/src/lib/collegeMatchAi';
 import { useCollegeMatchStore } from '@/src/state/collegeMatchStore';
 import { ACCENT_TINT, useThemeStore } from '@/src/state/themeStore';
@@ -111,13 +112,12 @@ export default function CollegeMatchScreen() {
             />
             <XStack flexWrap="wrap" gap="$2">
               {SIZE_OPTIONS.map((option) => (
-                <Button
+                <SelectableChip
                   key={option.value}
-                  size="$2"
-                  theme={preferences.sizePreference === option.value ? 'active' : undefined}
+                  selected={preferences.sizePreference === option.value}
                   onPress={() => setPreferences({ sizePreference: option.value })}>
                   {option.label}
-                </Button>
+                </SelectableChip>
               ))}
             </XStack>
             <Input
@@ -168,13 +168,12 @@ export default function CollegeMatchScreen() {
                   </XStack>
                   <XStack flexWrap="wrap" gap="$2" paddingTop="$2">
                     {STATUSES.map((status) => (
-                      <Button
+                      <SelectableChip
                         key={status}
-                        size="$2"
-                        theme={school.status === status ? 'active' : undefined}
+                        selected={school.status === status}
                         onPress={() => updateSchoolStatus(school.id, status)}>
                         {schoolApplicationStatusLabels[status]}
-                      </Button>
+                      </SelectableChip>
                     ))}
                   </XStack>
                 </Card>

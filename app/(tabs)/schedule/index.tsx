@@ -22,6 +22,7 @@ import { Card } from '@/src/components/Card';
 import { EmptyState } from '@/src/components/EmptyState';
 import { Icon } from '@/src/components/Icon';
 import { Screen } from '@/src/components/Screen';
+import { SelectableChip } from '@/src/components/SelectableChip';
 import { WeekGridCalendar } from '@/src/components/WeekGridCalendar';
 import { groupClassesByTerm } from '@/src/lib/gpa';
 import type { EventOccurrence } from '@/src/lib/occurrences';
@@ -89,14 +90,9 @@ export default function ScheduleScreen() {
 
       <XStack gap="$2">
         {(['calendar', 'classes'] as TabMode[]).map((mode) => (
-          <Button
-            key={mode}
-            flex={1}
-            size="$3"
-            theme={tabMode === mode ? 'active' : undefined}
-            onPress={() => setTabMode(mode)}>
+          <SelectableChip key={mode} size="$3" flex={1} selected={tabMode === mode} onPress={() => setTabMode(mode)}>
             {mode === 'calendar' ? 'Calendar' : 'Classes'}
-          </Button>
+          </SelectableChip>
         ))}
       </XStack>
 
@@ -104,15 +100,9 @@ export default function ScheduleScreen() {
         <>
           <XStack gap="$2">
             {(['day', 'week', 'month'] as ViewMode[]).map((mode) => (
-              <Button
-                key={mode}
-                flex={1}
-                size="$2"
-                chromeless={viewMode !== mode}
-                theme={viewMode === mode ? 'active' : undefined}
-                onPress={() => setViewMode(mode)}>
+              <SelectableChip key={mode} flex={1} selected={viewMode === mode} onPress={() => setViewMode(mode)}>
                 {mode[0].toUpperCase() + mode.slice(1)}
-              </Button>
+              </SelectableChip>
             ))}
           </XStack>
 

@@ -7,6 +7,7 @@ import { Hero } from '@/src/components/Hero';
 import { Icon } from '@/src/components/Icon';
 import { Screen } from '@/src/components/Screen';
 import { SectionHeader } from '@/src/components/SectionHeader';
+import { SelectableChip } from '@/src/components/SelectableChip';
 import { useCampusResourcesStore } from '@/src/state/campusResourcesStore';
 import { ACCENT_TINT, useThemeStore } from '@/src/state/themeStore';
 import { resourceCategoryLabels, type ResourceCategory } from '@/src/types';
@@ -67,13 +68,9 @@ export default function CampusResourcesScreen() {
           <Input placeholder="Name, e.g. Writing Center" value={name} onChangeText={setName} />
           <XStack flexWrap="wrap" gap="$2">
             {CATEGORIES.map((option) => (
-              <Button
-                key={option}
-                size="$2"
-                theme={category === option ? 'active' : undefined}
-                onPress={() => setCategory(option)}>
+              <SelectableChip key={option} selected={category === option} onPress={() => setCategory(option)}>
                 {resourceCategoryLabels[option]}
-              </Button>
+              </SelectableChip>
             ))}
           </XStack>
           <Input placeholder="Contact (phone, email, or website)" value={contact} onChangeText={setContact} />
