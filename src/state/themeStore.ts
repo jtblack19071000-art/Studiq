@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
 
+import { registerCloudSyncedStore } from '@/src/lib/cloudSync';
 import { mmkvStateStorage } from '@/src/lib/mmkvStorage';
 
 /** Matches Tamagui's built-in `${scheme}_${accent}` sub-themes from @tamagui/config/v4. */
@@ -31,14 +32,22 @@ interface ThemeState {
   setColorSchemeOverride: (override: ColorSchemeOverride) => void;
 }
 
+const BLANK_THEME_DATA = { accentColor: 'blue' as AccentColor, colorSchemeOverride: 'system' as ColorSchemeOverride };
+
 export const useThemeStore = create<ThemeState>()(
   persist(
     (set) => ({
-      accentColor: 'blue',
-      colorSchemeOverride: 'system',
+      ...BLANK_THEME_DATA,
       setAccentColor: (color) => set({ accentColor: color }),
       setColorSchemeOverride: (override) => set({ colorSchemeOverride: override }),
     }),
     { name: 'studiq-theme', storage: createJSONStorage(() => mmkvStateStorage) },
   ),
 );
+
+registerCloudSyncedStore({
+  name: 'theme',
+  store: useThemeStore,
+  serialize: (state) => ({ accentColor: state.accentColor, colorSchemeOverride: state.colorSchemeOverride }),
+  blank: BLANK_THEME_DATA,
+});

@@ -1,6 +1,6 @@
 import * as DocumentPicker from 'expo-document-picker';
 import { router } from 'expo-router';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { Button, H2, H3, Input, Label, Paragraph, Text, XStack, YStack } from 'tamagui';
 
 import { Card } from '@/src/components/Card';
@@ -12,7 +12,7 @@ import { importSyllabus, SyllabusAiError, type SyllabusImportResult, type Syllab
 import { anchorMeetingTimes, parseFlexibleDate } from '@/src/lib/time';
 import { useClassesStore } from '@/src/state/classesStore';
 import { useScheduleStore } from '@/src/state/scheduleStore';
-import { EVENT_COLOR_SWATCHES, type ExamType } from '@/src/types';
+import { EVENT_COLOR_SWATCHES, type ExamType, type StudiqClass } from '@/src/types';
 
 const WEEKDAY_LABELS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 
@@ -79,10 +79,32 @@ export default function ImportSyllabusScreen() {
   );
 }
 
+/** Case/whitespace-insensitive comparison for matching a syllabus's class name or code against
+ * classes already in the app. */
+function normalize(text: string): string {
+  return text.trim().toLowerCase();
+}
+
+function findMatchingClass(classes: StudiqClass[], name: string, code: string): StudiqClass | undefined {
+  const normalizedName = normalize(name);
+  const normalizedCode = normalize(code);
+  if (!normalizedName && !normalizedCode) return undefined;
+  return classes.find(
+    (studiqClass) =>
+      (normalizedCode && normalize(studiqClass.code) === normalizedCode) ||
+      (normalizedName && normalize(studiqClass.name) === normalizedName),
+  );
+}
+
 function ImportFlow() {
+  const classes = useClassesStore((state) => state.classes);
+  const assignments = useClassesStore((state) => state.assignments);
+  const exams = useClassesStore((state) => state.exams);
   const addClass = useClassesStore((state) => state.addClass);
+  const updateClass = useClassesStore((state) => state.updateClass);
   const addAssignment = useClassesStore((state) => state.addAssignment);
   const addExam = useClassesStore((state) => state.addExam);
+  const events = useScheduleStore((state) => state.events);
   const addEvent = useScheduleStore((state) => state.addEvent);
 
   const [loading, setLoading] = useState(false);
@@ -94,11 +116,16 @@ function ImportFlow() {
   const [code, setCode] = useState('');
   const [term, setTerm] = useState('');
   const [professorName, setProfessorName] = useState('');
+  const [professorEmail, setProfessorEmail] = useState('');
   const [classroom, setClassroom] = useState('');
   const [color, setColor] = useState(EVENT_COLOR_SWATCHES[0]);
   const [byWeekday, setByWeekday] = useState<number[]>([]);
   const [startTime, setStartTime] = useState('');
   const [endTime, setEndTime] = useState('');
+
+  // Lets the syllabus fill in extra info (assignments, exams, a meeting time) on a class you
+  // already have instead of creating a duplicate — see handleImport.
+  const matchedClass = useMemo(() => findMatchingClass(classes, name, code), [classes, name, code]);
 
   async function handlePickFile() {
     setError(null);
@@ -118,6 +145,7 @@ function ImportFlow() {
       setCode(imported.courseCode ?? '');
       setTerm(imported.term ?? '');
       setProfessorName(imported.professorName ?? '');
+      setProfessorEmail(imported.professorEmail ?? '');
       setClassroom(imported.classroom ?? '');
       setStartTime(imported.meetingStartTime ?? '');
       setEndTime(imported.meetingEndTime ?? '');
@@ -150,32 +178,59 @@ function ImportFlow() {
     }
     setError(null);
 
-    const createdClass = addClass({
-      name: name.trim(),
-      code: code.trim(),
-      color,
-      term: term.trim() || 'This term',
-      classroom: classroom.trim() || undefined,
-      professor: { name: professorName.trim() || 'TBD' },
-    });
+    let targetClass: StudiqClass;
+    if (matchedClass) {
+      // Only fill in what's actually missing — never clobber something already entered.
+      const patch: Partial<Omit<StudiqClass, 'id'>> = {};
+      if (!matchedClass.code && code.trim()) patch.code = code.trim();
+      if (!matchedClass.classroom && classroom.trim()) patch.classroom = classroom.trim();
+      const needsProfessorName = (!matchedClass.professor.name || matchedClass.professor.name === 'TBD') && professorName.trim();
+      const needsProfessorEmail = !matchedClass.professor.email && professorEmail.trim();
+      if (needsProfessorName || needsProfessorEmail) {
+        patch.professor = {
+          ...matchedClass.professor,
+          ...(needsProfessorName ? { name: professorName.trim() } : null),
+          ...(needsProfessorEmail ? { email: professorEmail.trim() } : null),
+        };
+      }
+      if (Object.keys(patch).length > 0) updateClass(matchedClass.id, patch);
+      targetClass = { ...matchedClass, ...patch };
+    } else {
+      targetClass = addClass({
+        name: name.trim(),
+        code: code.trim(),
+        color,
+        term: term.trim() || 'This term',
+        classroom: classroom.trim() || undefined,
+        professor: { name: professorName.trim() || 'TBD', email: professorEmail.trim() || undefined },
+      });
+    }
 
-    if (byWeekday.length > 0) {
+    // Don't add a second meeting-time event on top of one the class already has.
+    const hasExistingMeeting = events.some((event) => event.classId === targetClass.id && event.recurrence);
+    if (byWeekday.length > 0 && !hasExistingMeeting) {
       const times = anchorMeetingTimes(startTime, endTime);
       if (times && times.endsAt > times.startsAt) {
         addEvent({
-          title: createdClass.name,
+          title: targetClass.name,
           category: 'class',
-          classId: createdClass.id,
+          classId: targetClass.id,
           startsAt: times.startsAt.toISOString(),
           endsAt: times.endsAt.toISOString(),
-          location: createdClass.classroom,
+          location: targetClass.classroom,
           recurrence: { frequency: 'WEEKLY', byWeekday },
           reminders: [{ id: createId(), minutesBefore: 10 }],
         });
       }
     }
 
+    const existingAssignmentTitles = new Set(
+      assignments.filter((a) => a.classId === targetClass.id).map((a) => normalize(a.title)),
+    );
+    const existingExamTitles = new Set(exams.filter((e) => e.classId === targetClass.id).map((e) => normalize(e.title)));
+
     let skipped = 0;
+    let duplicates = 0;
     for (const item of items) {
       if (!item.included) continue;
       const date = parseFlexibleDate(item.dateText, item.kind === 'exam' ? 10 : 23);
@@ -184,12 +239,21 @@ function ImportFlow() {
         continue;
       }
       if (item.kind === 'exam') {
-        addExam({ classId: createdClass.id, title: item.title, type: examTypeFromTitle(item.title), date: date.toISOString() });
+        if (existingExamTitles.has(normalize(item.title))) {
+          duplicates += 1;
+          continue;
+        }
+        addExam({ classId: targetClass.id, title: item.title, type: examTypeFromTitle(item.title), date: date.toISOString() });
       } else {
         const prefix = item.kind === 'reading' ? 'Reading: ' : item.kind === 'project' ? 'Project: ' : '';
+        const title = `${prefix}${item.title}`;
+        if (existingAssignmentTitles.has(normalize(title))) {
+          duplicates += 1;
+          continue;
+        }
         addAssignment({
-          classId: createdClass.id,
-          title: `${prefix}${item.title}`,
+          classId: targetClass.id,
+          title,
           dueAt: date.toISOString(),
           status: 'not_started',
           source: 'syllabus',
@@ -197,11 +261,12 @@ function ImportFlow() {
       }
     }
 
-    if (skipped > 0) {
-      setError(`Imported the class, but ${skipped} item${skipped === 1 ? '' : 's'} had no clear date — add ${skipped === 1 ? 'it' : 'them'} manually.`);
-    }
+    const notes: string[] = [];
+    if (skipped > 0) notes.push(`${skipped} item${skipped === 1 ? '' : 's'} had no clear date — add ${skipped === 1 ? 'it' : 'them'} manually`);
+    if (duplicates > 0) notes.push(`${duplicates} already existed on this class and ${duplicates === 1 ? 'was' : 'were'} skipped`);
+    if (notes.length > 0) setError(`Imported, but ${notes.join('; ')}.`);
 
-    router.replace(`/schedule/classes/${createdClass.id}`);
+    router.replace(`/schedule/classes/${targetClass.id}`);
   }
 
   if (!result) {
@@ -222,6 +287,15 @@ function ImportFlow() {
     <YStack gap="$4">
       <Card gap="$3">
         <H3 fontSize="$5">Class details</H3>
+        {matchedClass ? (
+          <XStack alignItems="center" gap="$1.5" backgroundColor="$blue3" borderRadius="$4" paddingHorizontal="$2.5" paddingVertical="$2">
+            <Icon name="check" size={13} color="#3B6FE0" />
+            <Text fontSize="$2" color="$color11" flex={1}>
+              Matches your existing class &quot;{matchedClass.name}&quot; — we&apos;ll fill in any missing
+              details and add these items to it instead of making a duplicate.
+            </Text>
+          </XStack>
+        ) : null}
         <Input value={name} onChangeText={setName} placeholder="Class name" />
         <XStack gap="$3">
           <Input flex={1} value={code} onChangeText={setCode} placeholder="Course code" />
@@ -322,7 +396,7 @@ function ImportFlow() {
         borderRadius="$10"
         onPress={handleImport}
         icon={<Icon name="plus" size={16} color="white" />}>
-        Import class
+        {matchedClass ? `Add to ${matchedClass.name}` : 'Import class'}
       </Button>
     </YStack>
   );
