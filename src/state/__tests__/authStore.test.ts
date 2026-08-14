@@ -27,7 +27,7 @@ describe('useAuthStore (cloud sync not configured)', () => {
   });
 
   it('signUp() surfaces a clear "not configured" error instead of hanging or crashing', async () => {
-    await useAuthStore.getState().signUp('email', 'student@example.edu', 'password123');
+    await useAuthStore.getState().signUp('student@example.edu', 'password123');
 
     expect(useAuthStore.getState().error).toBe('Cloud sync is not configured.');
   });
@@ -78,7 +78,7 @@ describe('useAuthStore (cloud sync not configured)', () => {
   });
 
   it('clearPendingVerification() clears both pendingVerification and error', () => {
-    useAuthStore.setState({ pendingVerification: { type: 'email', value: 'a@b.com', purpose: 'sign_up' }, error: 'oops' });
+    useAuthStore.setState({ pendingVerification: { value: 'a@b.com', purpose: 'sign_up' }, error: 'oops' });
 
     useAuthStore.getState().clearPendingVerification();
 

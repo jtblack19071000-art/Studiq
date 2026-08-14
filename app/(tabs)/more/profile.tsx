@@ -158,7 +158,7 @@ export default function ProfileScreen() {
                 <Text color="$color10" fontSize="$2">
                   Email
                 </Text>
-                <Text fontWeight="600">{user.email ?? user.phone ?? 'Not set'}</Text>
+                <Text fontWeight="600">{user.email ?? 'Not set'}</Text>
               </YStack>
               <YStack>
                 <Text color="$color10" fontSize="$2">

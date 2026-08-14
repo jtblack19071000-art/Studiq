@@ -1,8 +1,7 @@
 import { useState } from 'react';
 import { Button, H4, Input, Paragraph, Text, XStack, YStack } from 'tamagui';
 
-import { SelectableChip } from '@/src/components/SelectableChip';
-import { useAuthStore, type AuthIdentifierType } from '@/src/state/authStore';
+import { useAuthStore } from '@/src/state/authStore';
 
 type BaseMode = 'sign_in' | 'sign_up' | 'forgot_password';
 
@@ -19,7 +18,6 @@ export function AuthForm() {
   const authError = useAuthStore((state) => state.error);
 
   const [baseMode, setBaseMode] = useState<BaseMode>('sign_in');
-  const [signUpMethod, setSignUpMethod] = useState<AuthIdentifierType>('email');
   const [name, setName] = useState('');
   const [identifier, setIdentifier] = useState('');
   const [password, setPassword] = useState('');
@@ -53,12 +51,11 @@ export function AuthForm() {
   }
 
   if (pendingVerification) {
-    const destination = pendingVerification.type === 'email' ? 'email' : 'phone';
     return (
       <YStack gap="$3">
         <H4>Enter your code</H4>
         <Paragraph color="$color10" fontSize="$3">
-          We sent a 6-digit code to the {destination} {pendingVerification.value}.
+          We sent a 6-digit code to the email {pendingVerification.value}.
         </Paragraph>
         <Input
           placeholder="123456"
@@ -115,7 +112,7 @@ export function AuthForm() {
     if (baseMode === 'sign_in') {
       await run(() => signIn(identifier.trim(), password));
     } else {
-      await run(() => signUp(signUpMethod, identifier.trim(), password, name.trim() || undefined));
+      await run(() => signUp(identifier.trim(), password, name.trim() || undefined));
     }
   }
 
@@ -126,48 +123,14 @@ export function AuthForm() {
         Your account keeps your data separate from anyone else who uses Studiq — and Premium
         features follow you across devices too.
       </Paragraph>
-      {baseMode === 'sign_up' ? (
-        <>
-          <Input placeholder="Your name" value={name} onChangeText={setName} />
-          <XStack gap="$2">
-            <SelectableChip
-              size="$3"
-              flex={1}
-              selected={signUpMethod === 'email'}
-              onPress={() => {
-                setSignUpMethod('email');
-                setIdentifier('');
-              }}>
-              Email
-            </SelectableChip>
-            <SelectableChip
-              size="$3"
-              flex={1}
-              selected={signUpMethod === 'phone'}
-              onPress={() => {
-                setSignUpMethod('phone');
-                setIdentifier('');
-              }}>
-              Phone
-            </SelectableChip>
-          </XStack>
-          <Input
-            placeholder={signUpMethod === 'email' ? 'Email' : 'Phone number, e.g. +15551234567'}
-            autoCapitalize="none"
-            keyboardType={signUpMethod === 'email' ? 'email-address' : 'phone-pad'}
-            value={identifier}
-            onChangeText={setIdentifier}
-          />
-        </>
-      ) : (
-        <Input
-          placeholder="Email or phone"
-          autoCapitalize="none"
-          keyboardType="email-address"
-          value={identifier}
-          onChangeText={setIdentifier}
-        />
-      )}
+      {baseMode === 'sign_up' ? <Input placeholder="Your name" value={name} onChangeText={setName} /> : null}
+      <Input
+        placeholder="Email"
+        autoCapitalize="none"
+        keyboardType="email-address"
+        value={identifier}
+        onChangeText={setIdentifier}
+      />
       <Input placeholder="Password" secureTextEntry value={password} onChangeText={setPassword} />
       {authError ? <Paragraph color="$red10">{authError}</Paragraph> : null}
       <Button theme="active" onPress={handleSubmit} disabled={submitting || !identifier.trim() || !password}>
@@ -175,7 +138,7 @@ export function AuthForm() {
       </Button>
       {baseMode === 'sign_up' ? (
         <Paragraph color="$color10" fontSize="$2" textAlign="center">
-          We&apos;ll text or email you a code to verify it&apos;s you before your account is created.
+          We&apos;ll email you a code to verify it&apos;s you before your account is created.
         </Paragraph>
       ) : null}
       <YStack gap="$2" alignItems="center">

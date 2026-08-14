@@ -9,10 +9,7 @@ export interface ProfileMetadata {
   college?: string;
 }
 
-export type AuthIdentifierType = 'email' | 'phone';
-
 export interface PendingVerification {
-  type: AuthIdentifierType;
   value: string;
   purpose: 'sign_up' | 'recovery';
 }
@@ -25,7 +22,7 @@ interface AuthState {
   /** Set once a sign-up or password-reset needs a code entered before it can complete. */
   pendingVerification: PendingVerification | null;
   init: () => void;
-  signUp: (identifierType: AuthIdentifierType, identifier: string, password: string, displayName?: string) => Promise<void>;
+  signUp: (email: string, password: string, displayName?: string) => Promise<void>;
   /** Verifies the code sent for the current `pendingVerification` (sign-up or recovery). */
   verifyOtp: (token: string) => Promise<void>;
   resendOtp: () => Promise<void>;
@@ -79,18 +76,15 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
       void handleUserTransition(previousUserId, nextUserId);
     });
   },
-  signUp: async (identifierType, identifier, password, displayName) => {
+  signUp: async (email, password, displayName) => {
     if (!supabase) {
       set({ error: 'Cloud sync is not configured.' });
       return;
     }
     set({ error: null });
-    const trimmed = identifier.trim();
+    const trimmed = email.trim();
     const options = displayName ? { data: { display_name: displayName } } : undefined;
-    const { error, data } =
-      identifierType === 'email'
-        ? await supabase.auth.signUp({ email: trimmed, password, options })
-        : await supabase.auth.signUp({ phone: trimmed, password, options });
+    const { error, data } = await supabase.auth.signUp({ email: trimmed, password, options });
     if (error) {
       set({ error: error.message });
       return;
@@ -101,7 +95,7 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
       set({ pendingVerification: null });
       return;
     }
-    set({ pendingVerification: { type: identifierType, value: trimmed, purpose: 'sign_up' } });
+    set({ pendingVerification: { value: trimmed, purpose: 'sign_up' } });
   },
   verifyOtp: async (token) => {
     if (!supabase) {
@@ -114,19 +108,11 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
       return;
     }
     set({ error: null });
-    const signUpType = pending.type === 'email' ? 'signup' : 'sms';
-    const { error } =
-      pending.type === 'email'
-        ? await supabase.auth.verifyOtp({
-            email: pending.value,
-            token,
-            type: pending.purpose === 'recovery' ? 'recovery' : signUpType,
-          })
-        : await supabase.auth.verifyOtp({
-            phone: pending.value,
-            token,
-            type: pending.purpose === 'recovery' ? 'sms' : signUpType,
-          });
+    const { error } = await supabase.auth.verifyOtp({
+      email: pending.value,
+      token,
+      type: pending.purpose === 'recovery' ? 'recovery' : 'signup',
+    });
     if (error) {
       set({ error: error.message });
       return;
@@ -140,26 +126,20 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
     if (!pending) return;
     set({ error: null });
     if (pending.purpose === 'sign_up') {
-      const { error } =
-        pending.type === 'email'
-          ? await supabase.auth.resend({ type: 'signup', email: pending.value })
-          : await supabase.auth.resend({ type: 'sms', phone: pending.value });
+      const { error } = await supabase.auth.resend({ type: 'signup', email: pending.value });
       if (error) set({ error: error.message });
     } else {
       const { error } = await supabase.auth.resetPasswordForEmail(pending.value);
       if (error) set({ error: error.message });
     }
   },
-  signIn: async (identifier, password) => {
+  signIn: async (email, password) => {
     if (!supabase) {
       set({ error: 'Cloud sync is not configured.' });
       return;
     }
     set({ error: null });
-    const trimmed = identifier.trim();
-    const { error } = trimmed.includes('@')
-      ? await supabase.auth.signInWithPassword({ email: trimmed, password })
-      : await supabase.auth.signInWithPassword({ phone: trimmed, password });
+    const { error } = await supabase.auth.signInWithPassword({ email: email.trim(), password });
     if (error) set({ error: error.message });
   },
   signOut: async () => {
@@ -194,7 +174,7 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
       set({ error: error.message });
       return;
     }
-    set({ pendingVerification: { type: 'email', value: trimmed, purpose: 'recovery' } });
+    set({ pendingVerification: { value: trimmed, purpose: 'recovery' } });
   },
   setNewPassword: async (newPassword) => {
     if (!supabase) {
