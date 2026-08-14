@@ -74,8 +74,8 @@ export default function SubscriptionScreen() {
         <Card gap="$2">
           <H2 fontSize="$4">Free, always</H2>
           <Paragraph color="$color10" fontSize="$3">
-            Classes, schedule, GPA tracker, finance, goals, career hub, campus resources, and
-            College Match — unlimited, no account required for local use.
+            Classes, schedule, finance, goals, career hub, campus resources, and College Match —
+            unlimited, no account required for local use.
           </Paragraph>
           <H2 fontSize="$4" paddingTop="$2">
             Premium

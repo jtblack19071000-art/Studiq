@@ -37,18 +37,18 @@ describe('useClassesStore', () => {
     expect(useClassesStore.getState().classes).toEqual([created]);
   });
 
-  it('updateClass merges a patch (e.g. credit hours + final grade) onto only the targeted class', () => {
+  it('updateClass merges a patch (e.g. classroom + color) onto only the targeted class', () => {
     const first = useClassesStore.getState().addClass(baseClassInput);
     const second = useClassesStore.getState().addClass({ ...baseClassInput, name: 'Physics I', code: 'PHYS 101' });
 
-    useClassesStore.getState().updateClass(first.id, { creditHours: 4, finalGrade: 'A-' });
+    useClassesStore.getState().updateClass(first.id, { classroom: 'Chem Bldg 118', color: '#4C9F4C' });
 
     const classes = useClassesStore.getState().classes;
     expect(classes.find((studiqClass) => studiqClass.id === first.id)).toMatchObject({
-      creditHours: 4,
-      finalGrade: 'A-',
+      classroom: 'Chem Bldg 118',
+      color: '#4C9F4C',
     });
-    expect(classes.find((studiqClass) => studiqClass.id === second.id)?.finalGrade).toBeUndefined();
+    expect(classes.find((studiqClass) => studiqClass.id === second.id)?.classroom).toBeUndefined();
   });
 
   it('removeClass deletes the class and cascades to its assignments, exams, and announcements', () => {

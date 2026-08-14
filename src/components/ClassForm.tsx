@@ -36,7 +36,6 @@ export function ClassForm({ initialClass, initialMeeting, submitLabel, defaultTe
   const [code, setCode] = useState(initialClass?.code ?? '');
   const [term, setTerm] = useState(initialClass?.term ?? defaultTerm ?? '');
   const [color, setColor] = useState(initialClass?.color ?? EVENT_COLOR_SWATCHES[0]);
-  const [creditHours, setCreditHours] = useState(initialClass?.creditHours?.toString() ?? '');
   const [professorName, setProfessorName] = useState(initialClass?.professor.name ?? '');
   const [professorEmail, setProfessorEmail] = useState(initialClass?.professor.email ?? '');
   const [officeLocation, setOfficeLocation] = useState(initialClass?.professor.officeLocation ?? '');
@@ -81,7 +80,6 @@ export function ClassForm({ initialClass, initialMeeting, submitLabel, defaultTe
     }
 
     setError(null);
-    const parsedCreditHours = Number(creditHours);
     onSubmit({
       classInput: {
         name: name.trim(),
@@ -89,14 +87,12 @@ export function ClassForm({ initialClass, initialMeeting, submitLabel, defaultTe
         color,
         term: term.trim(),
         classroom: classroom.trim() || undefined,
-        creditHours: creditHours.trim() === '' || Number.isNaN(parsedCreditHours) ? undefined : parsedCreditHours,
         professor: {
           name: professorName.trim() || 'TBD',
           email: professorEmail.trim() || undefined,
           officeLocation: officeLocation.trim() || undefined,
           officeHours: officeHours.trim() || undefined,
         },
-        finalGrade: initialClass?.finalGrade,
         studyCourseId: initialClass?.studyCourseId,
       },
       meeting,
@@ -121,16 +117,10 @@ export function ClassForm({ initialClass, initialMeeting, submitLabel, defaultTe
         </YStack>
       </XStack>
 
-      <XStack gap="$3">
-        <YStack flex={1} gap="$2">
-          <Label>Classroom</Label>
-          <Input value={classroom} onChangeText={setClassroom} placeholder="e.g. Chem Bldg 118" />
-        </YStack>
-        <YStack width={90} gap="$2">
-          <Label>Credit hrs</Label>
-          <Input value={creditHours} onChangeText={setCreditHours} keyboardType="numeric" placeholder="3" />
-        </YStack>
-      </XStack>
+      <YStack gap="$2">
+        <Label>Classroom</Label>
+        <Input value={classroom} onChangeText={setClassroom} placeholder="e.g. Chem Bldg 118" />
+      </YStack>
 
       <YStack gap="$2">
         <Label>Color</Label>

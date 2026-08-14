@@ -60,8 +60,6 @@ export interface GradeEntry {
   earnedPercent?: number;
 }
 
-export type LetterGrade = 'A+' | 'A' | 'A-' | 'B+' | 'B' | 'B-' | 'C+' | 'C' | 'C-' | 'D+' | 'D' | 'D-' | 'F';
-
 export interface StudiqClass {
   id: ID;
   name: string;
@@ -72,7 +70,4 @@ export interface StudiqClass {
   term: string;
   /** Links to the matching Study workspace Course, once created. */
   studyCourseId?: ID;
-  creditHours?: number;
-  /** Final letter grade, entered once the class is complete; drives the GPA Tracker. */
-  finalGrade?: LetterGrade;
 }
