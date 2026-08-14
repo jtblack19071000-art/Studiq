@@ -9,6 +9,7 @@
     "@ai-sdk/anthropic": "^4.0.24",
     "@ai-sdk/google": "^4.0.24",
     "@ai-sdk/openai": "^4.0.24",
+    "@expo/server": "^0.7.5",
     "@supabase/supabase-js": "^2.111.0",
     "@tamagui/babel-plugin": "^2.6.0",
     "@tamagui/config": "^2.6.0",

@@ -18,8 +18,8 @@ AI study workspace, in place of paper planners and scattered productivity apps.
 - [Jest](https://jestjs.io) (via [`jest-expo`](https://github.com/expo/expo/tree/main/packages/jest-expo)) for unit tests — see "Testing" below
 - [EAS Build](https://docs.expo.dev/build/introduction/) (`expo-dev-client`) for installable dev
   builds on a physical device — see "Running on a physical device" below
-- [Vercel](https://vercel.com) for a free static web preview deploy — see "Deploying a free
-  preview" below
+- [Vercel](https://vercel.com) for a free web preview deploy, AI API routes included — see
+  "Deploying a free preview" below
 
 ## Setup
 
@@ -47,36 +47,36 @@ controls whether the app requires an account at all — see "Accounts & per-user
 ## Deploying a free preview (web)
 
 The cheapest way to get this in front of real people — no $99/year Apple fee, no $25 Google Play
-fee, no app-store review — is a free static web deploy. Studiq already builds to a static site
-(`web.output: "static"` in `app.json`), so any static host works. [Vercel](https://vercel.com)'s
-free Hobby plan is the easiest: no credit card, and it deploys straight from the GitHub repo this
-project is already pushed to.
+fee, no app-store review — is [Vercel](https://vercel.com)'s free Hobby plan: no credit card, and
+it deploys straight from the GitHub repo this project is already pushed to.
+
+Studiq builds with Expo Router's **server** web output (`web.output: "server"` in `app.json`), not
+a static export — the AI API routes (transcription, syllabus import, per-lecture generation, Unit
+Study Guide generation, College Match guidance) are real server code and need an actual Node
+runtime to run at all, not just static file hosting. `expo export -p web` produces `dist/client`
+(static assets) and `dist/server` (page HTML + the API routes' server bundles); `api/index.ts` at
+the repo root is the Vercel serverless function entry point (`@expo/server/adapter/vercel`) that
+serves both. `vercel.json` wires this up: build command `npm run build:web`, output directory
+`dist/client`, a `functions` entry pointing `api/index.ts` at the Node runtime with `dist/server`
+included, and a rewrite sending every request through `api/index.ts` so Expo Router's own routing
+(static pages and API routes alike) handles it from there.
 
 1. Go to [vercel.com](https://vercel.com) and sign up free (GitHub sign-in is fastest).
 2. **Add New… → Project**, then **Import** this repo (`jtblack19071000-art/Studiq`).
-3. Vercel reads `vercel.json` (already in the repo) automatically — build command
-   `npm run build:web`, output directory `dist`. No settings to fill in; just click **Deploy**.
-4. A couple minutes later you get a public `https://<something>.vercel.app` URL — share it with
-   anyone, no install needed, works on phone or desktop browsers. Every future push to `main`
-   redeploys it automatically.
+3. Vercel reads `vercel.json` automatically — no settings to fill in; just click **Deploy**.
+4. Before the AI routes will actually respond instead of returning their "not configured" error,
+   add `OPENAI_API_KEY` and `ANTHROPIC_API_KEY` (or `GOOGLE_GENERATIVE_AI_API_KEY` as a free-tier
+   fallback for text generation) under **Project → Settings → Environment Variables**, then
+   redeploy. These are server-only secrets — never prefix them `EXPO_PUBLIC_`, and never commit
+   them; see "Setup" above for what each one unlocks.
+5. A couple minutes later you get a public `https://<something>.vercel.app` URL — share it with
+   anyone, no install needed, works on phone or desktop browsers, AI routes included. Every future
+   push to `main` redeploys it automatically.
 
-**What won't work in this mode**: the four AI API routes (transcription, per-lecture generation,
-Unit Study Guide generation, College Match guidance) are server code, and a static export
-deliberately excludes them (`web.output` would need to be `"server"`, which needs an actual Node
-host, not just static file hosting). They fail with a clear in-app error rather than crashing —
-same honest-degradation behavior as running locally without the `OPENAI_API_KEY`/`ANTHROPIC_API_KEY`
-env vars set. Everything else — Schedule, the week grid calendar, Classes, GPA Tracker, Finance,
-Goals, Career Hub, Campus Resources, lecture recording (capture only, not transcription),
-Settings — works exactly as it does locally. If you later want the AI routes live too, that's a
-bigger step (Vercel does support Expo Router's Node/server output via its serverless functions,
-but it's more setup and means paying for OpenAI/Anthropic API usage on a publicly-reachable URL —
-worth doing deliberately, not as a default).
-
-`vercel.json`'s `rewrites` entry sends any URL Vercel doesn't find a static file for (e.g. a
-dynamic route like `/study/<some-real-id>`) to `index.html`, where Expo Router's client-side
-routing takes over — the standard pattern for deploying a client-rendered Expo Router app to a
-static host. Routes that do have a matching static file (e.g. `/schedule`) are served directly by
-Vercel's default clean-URL resolution, no rewrite needed.
+Because this is now a real server deployment (not static files), OpenAI/Anthropic usage on this
+URL is a live, publicly-reachable cost the moment the keys are set — anyone with the link can
+trigger an AI call. Keep an eye on usage/billing on both providers' dashboards, especially before
+sharing the link widely.
 
 ## Running on a physical device (EAS Build)
 
@@ -168,8 +168,8 @@ API costs actually are). Concretely, Premium gates: lecture recording, transcrip
 AI generation (notes/flashcards/quizzes/mnemonics/etc), Unit Study Guide generation + PDF export —
 all under the Study tab. **College Match is free**, even though it's AI-powered — it's meant to
 hook prospective/high-school students before they'd ever consider paying, so it stays free. Home,
-Schedule, Classes, GPA Tracker, Finance, Goals, Career Hub, and Campus Resources are all free with
-no limits (no "first 3 classes free" traps). Content already generated while subscribed stays
+Schedule, Classes, Finance, Goals, Career Hub, and Campus Resources are all free with no limits (no
+"first 3 classes free" traps). Content already generated while subscribed stays
 viewable if the subscription later lapses — only generating *new* content is gated.
 
 Subscriptions require your own accounts; none of this can be set up or tested for real from a dev
@@ -327,9 +327,9 @@ npm test            # jest
 ## Project status
 
 **Phase 1** (foundation, planner, schedule, classes), **Phase 2** (Study AI: lecture recording,
-transcription, AI-generated study materials), **Phase 3** (GPA Tracker, Finance, Goals, Career Hub,
-College Match, Campus Resources), and a **Premium subscription** (Supabase Auth + RevenueCat)
-gating the Study tab's AI-powered features are built.
+transcription, AI-generated study materials), **Phase 3** (Finance, Goals, Career Hub, College
+Match, Campus Resources), and a **Premium subscription** (Supabase Auth + RevenueCat) gating the
+Study tab's AI-powered features are built.
 
 Built and working end to end:
 
@@ -360,8 +360,6 @@ Built and working end to end:
     emphasis, mnemonics, and a review checklist
   - Export the generated Unit Study Guide to PDF
 - More:
-  - **GPA Tracker** — credit-hour-weighted GPA (standard 4.0 scale), grouped by term with
-    cumulative + per-term totals, editable credit hours and final letter grade per class
   - **Finance** — income/expense tracking with categories, this-month summary (income, expenses,
     balance)
   - **Goals** — academic/career/personal/health/financial goals with status tracking
@@ -478,7 +476,7 @@ rather than just eyeballed.
   cleanly on the network error, with no crash. It should be verified against a real key in a
   normal environment before relying on it.
 - **Deploying** the API routes (not just running them via `expo start` in dev) requires
-  `"web": { "output": "server" }` in `app.json` instead of `"static"` — a static export skips
-  API routes entirely. This project currently uses `"static"` (needed for the plain static/SPA
-  client build); switch to `"server"` and deploy behind a Node server (or EAS Hosting) to serve
-  the API routes in production.
+  `"web": { "output": "server" }` in `app.json` instead of `"static"` — a static export skips API
+  routes entirely. This project now uses `"server"`, deployed to Vercel via the `api/index.ts`
+  serverless entry point and `vercel.json`'s `functions`/`rewrites` config — see "Deploying a free
+  preview" above for the current setup.
